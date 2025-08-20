@@ -1,0 +1,25 @@
+{
+  "nome": "Template Base Limpo - Nuno Correia",
+  "categoria": "orientacoes",
+  "tipo": "template_editavel",
+  "variaveis": [
+    "nome_paciente",
+    "data_hoje", 
+    "hora_atual",
+    "nome_profissional",
+    "nome_clinica",
+    "telefone_clinica",
+    "email_clinica",
+    "proxima_consulta",
+    "observacoes_especificas",
+    "saudacao",
+    "especialidade_profissional",
+    "imagem_1",
+    "imagem_2",
+    "imagem_3"
+  ],
+  "arquivo_conteudo": "templates\\orientacoes\\template_base_limpo.txt",
+  "suporte_imagens": true,
+  "pasta_imagens": "templates\\orientacoes\\imagens",
+  "descricao": "Template base limpo para colar conteúdo personalizado das 4 páginas do protocolo original"
+}

@@ -1,0 +1,14 @@
+{
+  "smtp_server": "smtp.gmail.com",
+  "smtp_port": 587,
+  "use_tls": true,
+  "email": "nunocorreiaterapiasnaturais@gmail.com",
+  "password": "onrchxxvcfelwuvg",
+  "nome_clinica": "Nuno Correia - Terapias Naturais",
+  "telefone": "+351 964 861 387",
+  "endereco": "",
+  "horario_semana": "",
+  "horario_sabado": "",
+  "whatsapp": "",
+  "assinatura": "Com os melhores cumprimentos,\nhttps://www.instagram.com/nunocorreia.naturopata/\nhttps://www.facebook.com/NunoCorreiaTerapiasNaturais"
+}

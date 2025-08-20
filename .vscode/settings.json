@@ -6,5 +6,7 @@
     // Se o hover deve permanecer visível enquanto o mouse estiver sobre ele
     "editor.hover.sticky": false,
     // Use Pylance como servidor de linguagem Python para melhor IntelliSense
-    "python.languageServer": "Pylance"
+    "python.languageServer": "None",
+    "git.enabled": false
+
 }

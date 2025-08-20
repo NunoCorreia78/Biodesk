@@ -1,0 +1,3211 @@
+{
+  "Cólon Descendente": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras do setor do cólon descendente.",
+    "interpretação_clinica": "Predisposição a obstipação, inflamação, dor ou distensão abdominal, maior risco de diverticulite.",
+    "psicoemocional": "Dificuldade em libertar emoções antigas, resistência a terminar ciclos, tendência a guardar ressentimentos."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial na área do cólon descendente.",
+    "interpretação_clinica": "Sinal de sobrecarga tóxica, risco de inflamação, dor ou bloqueio funcional.",
+    "psicoemocional": "Stress antigo ligado a perdas, bloqueio emocional perante finais inevitáveis."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre o cólon descendente.",
+    "interpretação_clinica": "Memória de inflamação ou infeção antiga, tendência a distúrbios crónicos.",
+    "psicoemocional": "Tendência a racionalizar despedidas, dificuldade em aceitar mudanças bruscas."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico no cólon descendente.",
+    "interpretação_clinica": "Tensão muscular persistente, propensão a dor ou espasmos.",
+    "psicoemocional": "Ansiedade perante o fim de ciclos, medo de perder estabilidade."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas no cólon descendente.",
+    "interpretação_clinica": "Boa integridade, menor risco de lesão ou inflamação.",
+    "psicoemocional": "Facilidade em aceitar finais, abertura a novos começos."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico no cólon descendente.",
+    "interpretação_clinica": "Congestão linfática, risco de infeção, inflamação ou edema.",
+    "psicoemocional": "Defesa emocional ao encerrar etapas, necessidade de proteção adicional."
+  }
+],
+
+"Cólon Sigmóide (Sigmóide)": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras do setor do cólon sigmóide.",
+    "interpretação_clinica": "Predisposição a espasmos, dor, obstipação ou risco aumentado de pólipos.",
+    "psicoemocional": "Dificuldade em aceitar recomeços, tendência a revisitar o passado antes de seguir em frente."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial na área do sigmóide.",
+    "interpretação_clinica": "Sinal de bloqueio funcional, risco de inflamação, dor ou distensão.",
+    "psicoemocional": "Stress antigo ligado a voltas emocionais, dificuldade em sair de ciclos repetitivos."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre o sigmóide.",
+    "interpretação_clinica": "Memória de inflamação, infeção ou alteração crónica.",
+    "psicoemocional": "Tendência a racionalizar repetições, dificuldade em romper padrões."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico no sigmóide.",
+    "interpretação_clinica": "Tensão muscular, propensão a espasmos, dor ou bloqueio.",
+    "psicoemocional": "Ansiedade perante situações repetidas, medo de não conseguir mudar."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas no sigmóide.",
+    "interpretação_clinica": "Boa resistência, menor risco de lesão ou dor crónica.",
+    "psicoemocional": "Facilidade em adaptar-se, abertura ao novo."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico no sigmóide.",
+    "interpretação_clinica": "Congestão linfática, risco de infeção ou inflamação.",
+    "psicoemocional": "Defesa emocional perante padrões repetitivos, necessidade de renovação."
+  }
+],
+
+"Maxilar": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras na área do maxilar.",
+    "interpretação_clinica": "Predisposição a dores maxilares, infeções, dificuldade mastigatória ou rigidez.",
+    "psicoemocional": "Dificuldade em aceitar o passado, medo de afirmar a própria vontade."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial no maxilar.",
+    "interpretação_clinica": "Sinal de bloqueio energético, risco de dor, inflamação ou trauma.",
+    "psicoemocional": "Stress antigo ligado à decisão, dificuldade em impor limites."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre o maxilar.",
+    "interpretação_clinica": "Memória de trauma, inflamação ou infeção antiga.",
+    "psicoemocional": "Tendência a racionalizar decisões, dificuldade em libertar mágoas."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico na área do maxilar.",
+    "interpretação_clinica": "Tensão muscular, propensão a dor, bruxismo ou bloqueio.",
+    "psicoemocional": "Ansiedade perante desafios, medo de confrontos."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas no maxilar.",
+    "interpretação_clinica": "Boa força mastigatória, menor risco de lesão.",
+    "psicoemocional": "Segurança na tomada de decisões, facilidade em expressar vontade."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico no maxilar.",
+    "interpretação_clinica": "Congestão linfática, risco de infeção ou edema.",
+    "psicoemocional": "Defesa emocional perante desafios familiares, necessidade de proteção no convívio."
+  }
+],
+
+"Mandíbula (Maxilar Inferior)": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras na zona da mandíbula (maxilar inferior).",
+    "interpretação_clinica": "Predisposição a dor mandibular, dificuldade mastigatória, rigidez ou inflamação.",
+    "psicoemocional": "Dificuldade em expressar vontade, medo de afirmar necessidades."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial na mandíbula.",
+    "interpretação_clinica": "Sinal de bloqueio energético, risco de trauma ou dor crónica.",
+    "psicoemocional": "Stress antigo perante autoridade, dificuldade em aceitar ordens."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre a mandíbula.",
+    "interpretação_clinica": "Memória de inflamação, infeção ou trauma.",
+    "psicoemocional": "Tendência a racionalizar conflitos, dificuldade em libertar ressentimentos antigos."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico na mandíbula.",
+    "interpretação_clinica": "Tensão muscular persistente, propensão a dor ou bloqueio.",
+    "psicoemocional": "Ansiedade perante confrontos, receio de impor limites."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na mandíbula.",
+    "interpretação_clinica": "Boa resistência, menor risco de lesão ou dor.",
+    "psicoemocional": "Facilidade em afirmar opiniões, confiança interior."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico na mandíbula.",
+    "interpretação_clinica": "Congestão linfática, risco de infeção, inflamação ou edema.",
+    "psicoemocional": "Defesa emocional perante imposições, necessidade de proteção do próprio espaço."
+  }
+],
+
+"Amígdalas": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras na área das amígdalas.",
+    "interpretação_clinica": "Predisposição a amigdalites, infeções recorrentes ou inflamação crónica.",
+    "psicoemocional": "Dificuldade em expressar emoções, medo de expor fragilidades."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial nas amígdalas.",
+    "interpretação_clinica": "Sinal de infeção, risco de inflamação, dor ou bloqueio energético.",
+    "psicoemocional": "Stress antigo ao ser criticado, dificuldade em perdoar."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre as amígdalas.",
+    "interpretação_clinica": "Memória de infeção, inflamação ou dor recorrente.",
+    "psicoemocional": "Tendência a racionalizar ressentimentos, dificuldade em libertar mágoas."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico nas amígdalas.",
+    "interpretação_clinica": "Tensão muscular, propensão a dor, bloqueio vocal ou cansaço.",
+    "psicoemocional": "Ansiedade perante exposição pública, medo de errar ao comunicar."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas nas amígdalas.",
+    "interpretação_clinica": "Boa defesa imunitária, menor risco de infeção.",
+    "psicoemocional": "Facilidade em perdoar, abertura ao diálogo emocional."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico nas amígdalas.",
+    "interpretação_clinica": "Congestão linfática local, risco de infeção ou inflamação.",
+    "psicoemocional": "Defesa emocional em situações de exposição, necessidade de proteção ao comunicar-se."
+  }
+],
+
+"Cordas Vocais": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras na zona das cordas vocais.",
+    "interpretação_clinica": "Predisposição a disfonia, rouquidão, fadiga vocal ou infeção.",
+    "psicoemocional": "Dificuldade em exprimir sentimentos profundos, medo de não ser ouvido."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial nas cordas vocais.",
+    "interpretação_clinica": "Sinal de bloqueio vocal, risco de fadiga, dor ou alteração do timbre.",
+    "psicoemocional": "Stress antigo ao falar em público, ansiedade perante multidões."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre as cordas vocais.",
+    "interpretação_clinica": "Memória de inflamação, infeção ou trauma vocal.",
+    "psicoemocional": "Tendência a racionalizar o medo de falar, dificuldade em assumir a própria voz."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico nas cordas vocais.",
+    "interpretação_clinica": "Tensão muscular ao falar, propensão a fadiga ou rouquidão.",
+    "psicoemocional": "Ansiedade perante exposição, medo de falhar na comunicação."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas nas cordas vocais.",
+    "interpretação_clinica": "Boa resistência vocal, menor risco de lesão ou bloqueio.",
+    "psicoemocional": "Facilidade em expor opiniões, confiança na expressão verbal."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico nas cordas vocais.",
+    "interpretação_clinica": "Congestão linfática local, risco de infeção ou edema.",
+    "psicoemocional": "Defesa emocional em contexto de exposição, necessidade de proteção ao comunicar."
+  }
+],
+
+"Cárdia": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras da zona da cárdia.",
+    "interpretação_clinica": "Predisposição a refluxo, hérnia do hiato, dor ou inflamação gástrica.",
+    "psicoemocional": "Dificuldade em integrar novas experiências, medo de se magoar emocionalmente."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial na área da cárdia.",
+    "interpretação_clinica": "Sinal de bloqueio funcional, risco de inflamação, dor ou espasmos.",
+    "psicoemocional": "Stress antigo ao enfrentar novidades, ansiedade perante situações desconhecidas."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre a cárdia.",
+    "interpretação_clinica": "Memória de inflamação, infeção ou dor recorrente.",
+    "psicoemocional": "Tendência a racionalizar desconfortos, dificuldade em aceitar novidades."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico na cárdia.",
+    "interpretação_clinica": "Tensão muscular gástrica, propensão a dor, espasmos ou refluxo.",
+    "psicoemocional": "Ansiedade perante experiências novas, receio de não conseguir digerir mudanças."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na cárdia.",
+    "interpretação_clinica": "Boa defesa gástrica, menor risco de refluxo ou lesão.",
+    "psicoemocional": "Facilidade em integrar novas experiências, confiança no processo digestivo."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico na cárdia.",
+    "interpretação_clinica": "Congestão linfática gástrica, risco de infeção ou inflamação.",
+    "psicoemocional": "Defesa emocional perante mudanças, necessidade de proteção ao enfrentar novidades."
+  }
+],
+
+"Diafragma": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras do setor do diafragma.",
+    "interpretação_clinica": "Predisposição a hérnias, dificuldades respiratórias, dor ou fadiga diafragmática.",
+    "psicoemocional": "Dificuldade em respirar fundo perante desafios, medo de perder o controlo das emoções."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial na área do diafragma.",
+    "interpretação_clinica": "Sinal de bloqueio funcional, risco de espasmos, dor ou alterações ventilatórias.",
+    "psicoemocional": "Stress antigo perante pressões, ansiedade por não conseguir relaxar."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre o diafragma.",
+    "interpretação_clinica": "Memória de trauma, inflamação ou dificuldade respiratória.",
+    "psicoemocional": "Tendência a racionalizar tensões, dificuldade em relaxar completamente."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico no diafragma.",
+    "interpretação_clinica": "Tensão muscular crónica, propensão a dor, espasmos ou fadiga.",
+    "psicoemocional": "Ansiedade perante situações de pressão, medo de não conseguir libertar emoções."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas no diafragma.",
+    "interpretação_clinica": "Boa flexibilidade respiratória, menor risco de dor ou fadiga.",
+    "psicoemocional": "Facilidade em relaxar, confiança ao enfrentar desafios respiratórios ou emocionais."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico no diafragma.",
+    "interpretação_clinica": "Congestão linfática diafragmática, risco de infeção ou inflamação.",
+    "psicoemocional": "Defesa emocional em contextos de pressão, necessidade de proteção para conseguir respirar fundo."
+  }
+],
+
+"Escápula": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras da zona da escápula.",
+    "interpretação_clinica": "Predisposição a dor escapular, tensão muscular, rigidez ou lesão.",
+    "psicoemocional": "Dificuldade em libertar o peso dos outros, tendência a sobrecarregar-se de responsabilidades."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial atravessando a escápula.",
+    "interpretação_clinica": "Sinal de bloqueio energético, risco de inflamação, dor ou trauma.",
+    "psicoemocional": "Stress antigo ao carregar problemas alheios, receio de falhar com os outros."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento na escápula.",
+    "interpretação_clinica": "Memória de lesão, inflamação ou dor persistente.",
+    "psicoemocional": "Tendência a racionalizar cargas, dificuldade em pedir ajuda."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico na escápula.",
+    "interpretação_clinica": "Tensão muscular crónica, propensão a dor, espasmos ou rigidez.",
+    "psicoemocional": "Ansiedade perante responsabilidades, medo de não conseguir suportar as pressões."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na escápula.",
+    "interpretação_clinica": "Boa resistência muscular, menor risco de lesão ou dor crónica.",
+    "psicoemocional": "Facilidade em delegar tarefas, confiança no apoio dos outros."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico na escápula.",
+    "interpretação_clinica": "Congestão linfática local, risco de infeção, dor ou inflamação.",
+    "psicoemocional": "Defesa emocional perante excesso de carga, necessidade de proteção e apoio."
+  }
+],
+
+"Piloro": [
+    {
+      "nome": "**Lacuna**",
+      "descricao": "Abertura ou falha nas fibras na zona do piloro, geralmente indica debilidade constitucional ou défice funcional neste sector.",
+      "interpretação_clinica": "Predisposição para problemas no esvaziamento gástrico, tendência a digestão lenta, risco de estenose ou espasmo pilórico. Sinal de possível fragilidade congénita ou adquirida do músculo pilórico.",
+      "psicoemocional": "Tendência a 'reter' emoções ou situações passadas, dificuldade em libertar o que já não serve, medo do futuro. Personalidade com traços de perfeccionismo ou necessidade de controlo."
+    },
+    {
+      "nome": "**Raio Solaris**",
+    "descricao": "Sulco fino e profundo que irradia a partir da pupila na direção do piloro.",
+    "interpretação_clinica": "Sugere intoxicação crónica, stress digestivo, possível autointoxicação ou sobrecarga do sistema digestivo. Pode indicar colón lento, obstipação ou bloqueios na transição gástrica.",
+    "psicoemocional": "Stress antigo, emoções reprimidas relacionadas a transições e mudanças, tendência a acumular tensão quando confrontado com novidades ou pressão para avançar. A INTERPRETAÇÃO DEVE SER FEITA PELO TRAJETO E ZONAS QUE ATRAVESSA (não só onde começa)."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Depósito de pigmento (castanho, amarelo, preto) sobre o piloro.",
+    "interpretação_clinica": "Indica sobrecarga tóxica, resíduos metabólicos ou dificuldade de eliminação de toxinas naquela região. Associa-se a quadros crónicos, uso prolongado de fármacos ou exposição a químicos.",
+    "psicoemocional": "Padrão 'Jóia': tendência a intelectualizar sentimentos ligados a mudanças, necessidade de compreender antes de avançar. Pode denotar hesitação, dúvidas ou apego racional a hábitos antigos."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico a atravessar o setor do piloro.",
+    "interpretação_clinica": "Indica tensão neuro-muscular crónica, stress acumulado, propensão a espasmos ou a distúrbios funcionais da motilidade gástrica.",
+    "psicoemocional": "Autoexigência, tendência a controlar excessivamente o fluxo da vida, medo de perder controlo sobre as próprias decisões ou sobre o que deixa 'passar'."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras compactas, alinhadas e densas na zona do piloro.",
+    "interpretação_clinica": "Sinal de boa integridade estrutural e resistência orgânica. Dificilmente apresenta lesões crónicas se mantiver este padrão.",
+    "psicoemocional": "Estabilidade, constância e tendência a reagir vigorosamente perante desafios digestivos ou emocionais. Pode esconder tensões internas não verbalizadas."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Pequenos pontos esbranquiçados na periferia do setor do piloro.",
+    "interpretação_clinica": "Congestão linfática local, predisposição a alergias, infeções digestivas recorrentes ou eliminação cutânea de toxinas.",
+    "psicoemocional": "Defesas emocionais elevadas, necessidade de proteção e dificuldade em confiar em novas experiências ligadas ao alimentar-se ou digerir mudanças."
+  }
+]
+,
+"Estômago": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura ou falha nas fibras na zona do estômago, sinal de debilidade constitucional ou crónica da mucosa gástrica.",
+    "interpretação_clinica": "Tendência a gastrite, digestão difícil, úlceras ou atrofia da mucosa. Pode indicar propensão a enfartamento, distensão abdominal e fragilidade das defesas gástricas.",
+    "psicoemocional": "Dificuldade em digerir emoções, tendência a guardar ressentimentos, ansiedade face a novas experiências, medo do desconhecido."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial que atravessa a zona do estômago.",
+    "interpretação_clinica": "Sinal de intoxicação, stress digestivo crónico, risco de autointoxicação, má eliminação. Pode estar associado a colite, cólon lento ou refluxo tóxico para o estômago.",
+    "psicoemocional": "Tensão acumulada, emoções reprimidas, dificuldade em libertar-se do passado, tendência a explodir sob pressão digestiva ou emocional."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Depósito de pigmento (amarelo, castanho, preto) sobre a área do estômago.",
+    "interpretação_clinica": "Indica sobrecarga de toxinas, resíduos alimentares, consumo excessivo de medicamentos ou má eliminação. Predispõe a gastrite, dispepsia ou problemas metabólicos.",
+    "psicoemocional": "Padrão 'Jóia': intelectualização das emoções ligadas à alimentação, excesso de preocupação com o que se ingere, controlo mental sobre o corpo."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico a atravessar o setor do estômago.",
+    "interpretação_clinica": "Tensão neuro-muscular crónica, propensão a espasmos gástricos, sensação de “nó no estômago”, gastrite nervosa.",
+    "psicoemocional": "Tendência a somatizar ansiedade, medo de falhar, autoexigência, stress face a desafios e mudanças."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras alinhadas e densas na zona do estômago.",
+    "interpretação_clinica": "Boa resistência da mucosa gástrica, defesa natural contra agressões. Menor risco de lesões crónicas.",
+    "psicoemocional": "Estabilidade e força interior, mas pode ocultar tensão emocional não expressa."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Pontos esbranquiçados na periferia da zona do estômago.",
+    "interpretação_clinica": "Congestão linfática digestiva, tendência a alergias alimentares, gastrites recorrentes, eliminação cutânea de toxinas.",
+    "psicoemocional": "Defesas elevadas, receio de experimentar o novo, resistência emocional a mudanças na dieta ou ambiente."
+  }
+],
+  "Intestino Delgado": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras do setor correspondente ao intestino delgado.",
+    "interpretação_clinica": "Debilidade constitucional, propensão a má absorção, diarreia, intolerâncias alimentares e défices nutricionais.",
+    "psicoemocional": "Dificuldade em assimilar experiências, tendência à autocrítica, receio de mudanças e sensibilidade excessiva ao ambiente."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial a atravessar a zona do intestino delgado.",
+    "interpretação_clinica": "Sinal de autointoxicação, sobrecarga tóxica intestinal, predisposição a infeções ou inflamações crónicas.",
+    "psicoemocional": "Stress antigo associado a aprendizagem, medo de integrar novidades, bloqueio emocional face ao novo."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Mancha ou depósito pigmentado sobre o setor do intestino delgado.",
+    "interpretação_clinica": "Acumulação de toxinas, tendência a distúrbios metabólicos, intolerâncias, ou infeções de repetição.",
+    "psicoemocional": "Tendência a racionalizar problemas digestivos, necessidade de compreender antes de aceitar mudanças."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico sobre o intestino delgado.",
+    "interpretação_clinica": "Tensão crónica, propensão a cólicas, espasmos intestinais, ou distúrbios funcionais do tubo digestivo.",
+    "psicoemocional": "Ansiedade face à absorção de novidades, medo do desconhecido, preocupação com o próprio rendimento."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas no setor do intestino delgado.",
+    "interpretação_clinica": "Boa integridade estrutural, menor risco de perturbações intestinais graves.",
+    "psicoemocional": "Abertura à aprendizagem, flexibilidade emocional e capacidade de adaptação."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Pontos esbranquiçados na periferia da zona do intestino delgado.",
+    "interpretação_clinica": "Tendência a alergias, infeções intestinais, congestão linfática e reatividade imune.",
+    "psicoemocional": "Defesa emocional acentuada, hipersensibilidade ao ambiente e ao convívio social."
+  }
+],
+  "Placa de Peyer": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura localizada sobre a zona das placas de Peyer.",
+    "interpretação_clinica": "Defesa imunitária intestinal debilitada, propensão a infeções, alergias e perturbações autoimunes.",
+    "psicoemocional": "Dificuldade em confiar, hipersensibilidade, tendência ao isolamento ou à autoimunidade emocional."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco profundo a atravessar a área das placas de Peyer.",
+    "interpretação_clinica": "Indica inflamação crónica, infeção recorrente ou défice de tolerância imune local.",
+    "psicoemocional": "Stress antigo ligado a invasões emocionais, medo de “contaminação” por influências externas."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Depósito pigmentado sobre as placas de Peyer.",
+    "interpretação_clinica": "Sobrecarga de toxinas ou memória de infeções antigas, propensão a alergias e problemas imunitários.",
+    "psicoemocional": "Necessidade de “proteger-se”, tendência à vigilância excessiva e receio do desconhecido."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco sobre a região das placas de Peyer.",
+    "interpretação_clinica": "Tensão crónica, risco de disbiose ou perturbação imunitária digestiva.",
+    "psicoemocional": "Vigilância emocional extrema, resistência à integração de novas experiências."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e retas nesta zona.",
+    "interpretação_clinica": "Boa defesa imune, menor propensão a infeções e alergias.",
+    "psicoemocional": "Confiança na relação com o meio exterior e nas próprias defesas emocionais."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico na zona das placas de Peyer.",
+    "interpretação_clinica": "Alerta para congestão linfática intestinal, tendência a alergias e infeções de repetição.",
+    "psicoemocional": "Defesas emocionais muito fortes, dificuldade em confiar e aceitar influências externas."
+  }
+],
+  "Cólon Transverso": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras do setor do cólon transverso.",
+    "interpretação_clinica": "Indica debilidade na função do cólon, tendência a obstipação, distensão abdominal, ou propensão para inflamação e polipose.",
+    "psicoemocional": "Dificuldade em libertar o passado, tendência a guardar ressentimentos, resistência à mudança ou apego a padrões antigos."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial que atravessa a zona do cólon transverso.",
+    "interpretação_clinica": "Sugere autointoxicação, sobrecarga de toxinas no intestino grosso, propensão a disbiose, cólon irritável ou inflamação.",
+    "psicoemocional": "Stress acumulado não processado, emoções reprimidas que afetam o 'soltar' emocional, resistência a fechar ciclos."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Mancha ou depósito pigmentado no setor do cólon transverso.",
+    "interpretação_clinica": "Associa-se a sobrecarga tóxica, possível retenção de resíduos, predisposição a perturbações metabólicas ou inflamatórias.",
+    "psicoemocional": "Padrão 'Jóia': intelectualização das emoções ligadas a perdas e processos de eliminação, medo de enfrentar mudanças."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico que atravessa o cólon transverso.",
+    "interpretação_clinica": "Tensão crónica, propensão a cólicas, distúrbios do trânsito intestinal e sensação de 'barriga dura'.",
+    "psicoemocional": "Dificuldade em relaxar, excesso de autoexigência, tendência a controlar o fluxo da vida."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras alinhadas e densas no setor do cólon transverso.",
+    "interpretação_clinica": "Boa resistência dos tecidos intestinais, menor risco de inflamação ou alterações crónicas.",
+    "psicoemocional": "Estabilidade emocional na gestão do passado, capacidade de avançar com leveza."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Pontos esbranquiçados na periferia do cólon transverso.",
+    "interpretação_clinica": "Congestão linfática, predisposição a alergias, infeções intestinais ou inflamações recorrentes.",
+    "psicoemocional": "Defesas emocionais elevadas, dificuldade em abrir-se a novas experiências, resistência ao contacto íntimo."
+  }
+],
+  "Mesentério": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras da zona do mesentério.",
+    "interpretação_clinica": "Debilidade na função de sustentação e vascularização intestinal, maior risco de má absorção ou isquemia local.",
+    "psicoemocional": "Dificuldade em encontrar apoio emocional, sensação de fragilidade perante desafios."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial que atravessa o mesentério.",
+    "interpretação_clinica": "Indica sobrecarga tóxica e défice circulatório, tendência a congestão ou estagnação linfática.",
+    "psicoemocional": "Stress associado à insegurança, medo de não receber suporte suficiente na vida."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento depositado sobre o mesentério.",
+    "interpretação_clinica": "Sobreacumulação de resíduos, memória de infeções antigas ou má circulação local.",
+    "psicoemocional": "Dificuldade em confiar, tendência a racionalizar a falta de apoio."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico no setor do mesentério.",
+    "interpretação_clinica": "Tensão persistente, maior risco de espasmos ou bloqueios na vascularização.",
+    "psicoemocional": "Ansiedade por medo de não receber sustento emocional, preocupação constante."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na área do mesentério.",
+    "interpretação_clinica": "Boa resistência, menor risco de problemas vasculares ou de sustentação.",
+    "psicoemocional": "Segurança interior, estabilidade, confiança em si e nos outros."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Pontos esbranquiçados na periferia do mesentério.",
+    "interpretação_clinica": "Congestão linfática, propensão a infeções ou edema intestinal.",
+    "psicoemocional": "Defesas reforçadas perante ameaças ao bem-estar, tendência ao isolamento emocional em situações adversas."
+  }
+],
+  "Sistema Nervoso Autónomo": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras da zona do sistema nervoso autónomo.",
+    "interpretação_clinica": "Predisposição a desequilíbrios neurovegetativos, variações de pressão arterial, digestão irregular, alterações do sono e do ritmo cardíaco.",
+    "psicoemocional": "Dificuldade em gerir o stress, sensação de perda de controlo, ansiedade generalizada."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial a atravessar a área do sistema nervoso autónomo.",
+    "interpretação_clinica": "Sinal de stress crónico, sobrecarga do eixo neurovegetativo, maior risco de crises de ansiedade ou exaustão.",
+    "psicoemocional": "Acumulação de tensão antiga, incapacidade de relaxar, sensação de alerta permanente."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento localizado no sistema nervoso autónomo.",
+    "interpretação_clinica": "Risco de desequilíbrios autonómicos, fadiga crónica, alterações metabólicas, sintomas psicossomáticos.",
+    "psicoemocional": "Tendência a intelectualizar as emoções, racionalizar o medo e o cansaço."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico a atravessar o sistema nervoso autónomo.",
+    "interpretação_clinica": "Tensão neurovegetativa crónica, propensão a episódios de ansiedade, insónia e disfunção autonómica.",
+    "psicoemocional": "Dificuldade em desconectar-se do stress, hipervigilância e preocupação excessiva."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na zona do sistema nervoso autónomo.",
+    "interpretação_clinica": "Boa regulação neurovegetativa, menor risco de crises agudas ou crónicas.",
+    "psicoemocional": "Estabilidade emocional, capacidade de relaxar e adaptar-se a novos contextos."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico no setor do sistema nervoso autónomo.",
+    "interpretação_clinica": "Congestão linfática, predisposição a alergias, infeções recorrentes e distúrbios psicossomáticos.",
+    "psicoemocional": "Defesas emocionais elevadas, necessidade de proteção contra o stress externo."
+  }
+],
+  "Paratiróide": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras sobre o setor da paratiróide.",
+    "interpretação_clinica": "Predisposição a desequilíbrios do cálcio, risco de alterações ósseas ou musculares, tendência a cãibras ou fraqueza óssea.",
+    "psicoemocional": "Dificuldade em manter limites pessoais, sensação de fragilidade perante desafios, medo de perder estrutura."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial a atravessar a área da paratiróide.",
+    "interpretação_clinica": "Indica stress metabólico, risco de perda de minerais, sobrecarga do metabolismo ósseo.",
+    "psicoemocional": "Stress acumulado pela necessidade de adaptação, ansiedade perante mudanças estruturais."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento localizado na zona da paratiróide.",
+    "interpretação_clinica": "Sobrecarga tóxica, risco de alterações hormonais, tendência a fadiga e oscilações de energia.",
+    "psicoemocional": "Tendência a racionalizar fragilidades, necessidade de compreender o motivo das próprias limitações."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico a atravessar o setor da paratiróide.",
+    "interpretação_clinica": "Tensão muscular persistente, propensão a cãibras, espasmos ou desequilíbrios de cálcio.",
+    "psicoemocional": "Dificuldade em relaxar, medo de perder suporte ou base emocional."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na paratiróide.",
+    "interpretação_clinica": "Boa resistência óssea e muscular, menor risco de lesões crónicas.",
+    "psicoemocional": "Estabilidade, capacidade de adaptação a novas bases e rotinas."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Pontos esbranquiçados na periferia da paratiróide.",
+    "interpretação_clinica": "Congestão linfática, tendência a infeções ou processos inflamatórios ósseos.",
+    "psicoemocional": "Defesas elevadas quando confrontado com situações que ameaçam a estabilidade emocional."
+  }
+],
+  "Pineal": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras sobre a zona da pineal.",
+    "interpretação_clinica": "Predisposição a distúrbios do sono, alterações no ritmo circadiano, dificuldade em regular ciclos hormonais.",
+    "psicoemocional": "Dificuldade em adaptar-se a ciclos de mudança, tendência ao isolamento noturno, sensibilidade ao ambiente."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial atravessando a área da pineal.",
+    "interpretação_clinica": "Risco de desequilíbrios hormonais, perturbações do sono e desregulação dos ciclos biológicos.",
+    "psicoemocional": "Stress relacionado à necessidade de adaptação, ansiedade por mudanças de rotina."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre o setor da pineal.",
+    "interpretação_clinica": "Memória de intoxicações antigas, propensão a alterações neuroendócrinas, distúrbios do sono.",
+    "psicoemocional": "Necessidade de racionalizar o desconhecido, medo da escuridão ou do futuro."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico a atravessar a zona da pineal.",
+    "interpretação_clinica": "Tensão nervosa, propensão a insónia, agitação noturna e stress mental.",
+    "psicoemocional": "Dificuldade em descansar, preocupação excessiva ao deitar, pensamento acelerado."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na pineal.",
+    "interpretação_clinica": "Boa estrutura neuroendócrina, regulação eficiente dos ciclos de sono e vigília.",
+    "psicoemocional": "Facilidade em adaptar-se a novas rotinas, abertura à intuição e ao autoconhecimento."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Pontos esbranquiçados junto à pineal.",
+    "interpretação_clinica": "Propensão a congestão linfática cerebral, risco de cefaleias e cansaço mental.",
+    "psicoemocional": "Defesa emocional contra influências externas durante o descanso, necessidade de proteção ao dormir."
+  }
+],
+  "Pituitária": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras sobre a zona da pituitária.",
+    "interpretação_clinica": "Predisposição a distúrbios hormonais, alterações de crescimento, metabolismo ou reprodução.",
+    "psicoemocional": "Dificuldade em regular emoções, sensação de instabilidade interna, medo de perder controlo dos processos da vida."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial a atravessar a pituitária.",
+    "interpretação_clinica": "Stress hormonal crónico, risco de perturbações no eixo hipotálamo-hipófise, oscilação emocional.",
+    "psicoemocional": "Stress face à responsabilidade, ansiedade por não conseguir controlar as rotinas diárias."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre a pituitária.",
+    "interpretação_clinica": "Propensão a distúrbios hormonais crónicos, memória de intoxicação antiga ou perturbação metabólica.",
+    "psicoemocional": "Tendência a racionalizar as emoções, dificuldade em aceitar a própria vulnerabilidade."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico atravessando a pituitária.",
+    "interpretação_clinica": "Tensão neuroendócrina crónica, risco de insónia ou perturbações psicossomáticas.",
+    "psicoemocional": "Ansiedade perante as exigências do quotidiano, medo de não corresponder às expectativas externas."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na pituitária.",
+    "interpretação_clinica": "Boa regulação hormonal, menor risco de distúrbios endócrinos graves.",
+    "psicoemocional": "Estabilidade emocional, capacidade de gerir desafios com equilíbrio interior."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico junto à pituitária.",
+    "interpretação_clinica": "Congestão linfática cerebral, risco de cefaleias, fadiga mental e défice de concentração.",
+    "psicoemocional": "Defesas reforçadas em situações de stress mental, tendência ao isolamento emocional quando sobrecarregado."
+  }
+],
+  "Costelas": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras sobre a zona das costelas.",
+    "interpretação_clinica": "Predisposição a dores intercostais, fragilidade óssea ou muscular, maior risco de inflamação dos tecidos adjacentes.",
+    "psicoemocional": "Dificuldade em proteger-se, sensação de vulnerabilidade, medo de exposição emocional."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial a atravessar a área das costelas.",
+    "interpretação_clinica": "Indica stress mecânico ou tóxico sobre a caixa torácica, risco de tensão crónica ou neuralgia.",
+    "psicoemocional": "Stress persistente ligado à defesa, tendência a 'fechar-se' perante desafios."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento localizado sobre as costelas.",
+    "interpretação_clinica": "Memória de trauma físico ou inflamação, risco de debilidade óssea.",
+    "psicoemocional": "Tendência a racionalizar agressões externas, dificuldade em confiar nos outros."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico a atravessar o setor das costelas.",
+    "interpretação_clinica": "Tensão crónica, predisposição a dores musculares e espasmos intercostais.",
+    "psicoemocional": "Dificuldade em relaxar perante desafios, excesso de controlo sobre emoções e relações sociais."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas sobre as costelas.",
+    "interpretação_clinica": "Boa integridade estrutural, menor risco de lesão.",
+    "psicoemocional": "Estabilidade e segurança, tendência a proteger os outros e a si mesmo."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico sobre a zona das costelas.",
+    "interpretação_clinica": "Congestão linfática, predisposição a infeções ou inflamações das vias respiratórias.",
+    "psicoemocional": "Defesas elevadas perante ameaças externas, necessidade de criar barreiras emocionais."
+  }
+],
+  "Mama": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras sobre o setor da mama.",
+    "interpretação_clinica": "Predisposição a quistos, mastite, ou fragilidade do tecido glandular.",
+    "psicoemocional": "Dificuldade em nutrir-se ou ser nutrido, medo de rejeição afetiva, carência de afeto."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial a atravessar a área da mama.",
+    "interpretação_clinica": "Sinal de sobrecarga tóxica, risco de inflamação crónica ou patologia mamária.",
+    "psicoemocional": "Stress ligado à expressão afetiva, bloqueio no dar ou receber carinho."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento depositado na zona da mama.",
+    "interpretação_clinica": "Memória de processos inflamatórios ou tóxicos, predisposição a alterações benignas.",
+    "psicoemocional": "Tendência a intelectualizar relações afetivas, medo de se expor emocionalmente."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico sobre o setor da mama.",
+    "interpretação_clinica": "Tensão crónica, propensão a dor ou espasmos musculares na zona mamária.",
+    "psicoemocional": "Autoexigência nas relações de cuidado, receio de falhar como cuidador ou de não ser suficientemente amado."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras alinhadas e densas na mama.",
+    "interpretação_clinica": "Boa resistência glandular, menor risco de patologia crónica.",
+    "psicoemocional": "Segurança afetiva, tendência à proteção dos outros e de si próprio."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Pontos esbranquiçados junto à periferia da mama.",
+    "interpretação_clinica": "Congestão linfática mamária, risco de infeção ou processos inflamatórios.",
+    "psicoemocional": "Defesa emocional nas relações de proximidade, necessidade de espaço pessoal."
+  }
+],
+  "Tórax": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras sobre o setor do tórax.",
+    "interpretação_clinica": "Predisposição a debilidade muscular, dores ou inflamações na parede torácica, dificuldade respiratória.",
+    "psicoemocional": "Dificuldade em expandir-se perante a vida, medo de exposição, receio de assumir novas responsabilidades."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial a atravessar a zona do tórax.",
+    "interpretação_clinica": "Sinal de sobrecarga tóxica, stress mecânico ou inflamatório na parede torácica, tendência a dor muscular crónica.",
+    "psicoemocional": "Tensão acumulada pela responsabilidade, tendência a fechar-se perante pressões externas."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento na área do tórax.",
+    "interpretação_clinica": "Memória de trauma físico, inflamação ou infeção, predisposição a alterações metabólicas locais.",
+    "psicoemocional": "Tendência a racionalizar desafios físicos, dificuldade em aceitar vulnerabilidades."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico sobre o tórax.",
+    "interpretação_clinica": "Tensão crónica, propensão a espasmos musculares e dores torácicas.",
+    "psicoemocional": "Ansiedade face à exposição pública, receio de enfrentar multidões ou desafios sociais."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras alinhadas e densas no setor do tórax.",
+    "interpretação_clinica": "Boa resistência da parede torácica, menor risco de lesão.",
+    "psicoemocional": "Segurança e estabilidade ao enfrentar desafios da vida."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Pontos esbranquiçados junto à periferia do tórax.",
+    "interpretação_clinica": "Congestão linfática, risco de infeção respiratória ou inflamação local.",
+    "psicoemocional": "Defesas elevadas perante desafios externos, tendência a retraimento social em fases de vulnerabilidade."
+  }
+],
+"Pleura": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras da zona da pleura.",
+    "interpretação_clinica": "Predisposição a pleurite, inflamação ou dor pleural, maior fragilidade respiratória.",
+    "psicoemocional": "Dificuldade em delimitar o espaço pessoal, sensação de invasão emocional, medo do confronto direto."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial atravessando a pleura.",
+    "interpretação_clinica": "Sinal de intoxicação crónica, stress respiratório, risco de processos inflamatórios repetidos.",
+    "psicoemocional": "Stress antigo relacionado à proteção, tendência a guardar ressentimentos ligados a relações familiares ou de proximidade."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento depositado sobre a zona da pleura.",
+    "interpretação_clinica": "Sobreacumulação de toxinas respiratórias, memória de infeção ou alergia.",
+    "psicoemocional": "Dificuldade em deixar ir mágoas, necessidade de racionalizar agressões externas."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico sobre a pleura.",
+    "interpretação_clinica": "Tensão crónica da parede torácica, propensão a dores ou espasmos musculares respiratórios.",
+    "psicoemocional": "Tendência a fechar-se perante pressão social, dificuldade em expor vulnerabilidades."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na pleura.",
+    "interpretação_clinica": "Boa integridade estrutural, menor risco de processos inflamatórios ou infeções respiratórias.",
+    "psicoemocional": "Segurança emocional em ambientes familiares, facilidade em criar limites saudáveis."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico na pleura.",
+    "interpretação_clinica": "Congestão linfática, propensão a alergias respiratórias e inflamação pleural.",
+    "psicoemocional": "Defesa elevada em situações de confronto, necessidade de proteção reforçada perante desafios externos."
+  }
+],
+"Pulmão Inferior": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras do setor inferior do pulmão.",
+    "interpretação_clinica": "Predisposição a infeções respiratórias, bronquite ou dificuldade ventilatória.",
+    "psicoemocional": "Dificuldade em 'respirar fundo' perante desafios, tendência ao medo do fracasso ou sensação de incapacidade."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial atravessando o pulmão inferior.",
+    "interpretação_clinica": "Sinal de intoxicação crónica, propensão a processos inflamatórios repetidos no aparelho respiratório.",
+    "psicoemocional": "Stress antigo relacionado a perdas, dificuldade em ultrapassar mágoas profundas."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento depositado sobre o pulmão inferior.",
+    "interpretação_clinica": "Sobreacumulação de toxinas, tendência a processos alérgicos ou infeções respiratórias.",
+    "psicoemocional": "Tendência a guardar ressentimentos, medo de perder liberdade ou espaço vital."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico sobre o setor inferior do pulmão.",
+    "interpretação_clinica": "Tensão crónica dos músculos respiratórios, propensão a espasmos e restrição ventilatória.",
+    "psicoemocional": "Dificuldade em relaxar, tendência a sentir-se constantemente pressionado ou sufocado."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas no pulmão inferior.",
+    "interpretação_clinica": "Boa integridade estrutural pulmonar, menor risco de infeções recorrentes.",
+    "psicoemocional": "Resiliência emocional, capacidade de recuperar após perdas ou desafios."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico no pulmão inferior.",
+    "interpretação_clinica": "Congestão linfática, risco de alergias, infeções ou edema pulmonar.",
+    "psicoemocional": "Defesas elevadas perante ameaças externas, necessidade de auto-proteção constante."
+  }
+],
+"Ombro": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras sobre a zona do ombro.",
+    "interpretação_clinica": "Predisposição a dor crónica, tendinite, lesão muscular ou limitação articular.",
+    "psicoemocional": "Tendência a carregar o peso dos outros, dificuldade em pedir ajuda, sensação de responsabilidade excessiva."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial a atravessar a zona do ombro.",
+    "interpretação_clinica": "Sinal de stress crónico, risco de sobrecarga ou lesão por esforço repetido.",
+    "psicoemocional": "Stress antigo ligado ao dever ou à responsabilidade, tendência a suportar mais do que deveria."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento localizado sobre o ombro.",
+    "interpretação_clinica": "Memória de trauma físico ou inflamação, propensão a dor crónica.",
+    "psicoemocional": "Tendência a racionalizar a dor, dificuldade em expressar necessidades emocionais."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico na zona do ombro.",
+    "interpretação_clinica": "Tensão crónica, propensão a espasmos ou bloqueio articular.",
+    "psicoemocional": "Ansiedade perante a possibilidade de falhar, receio de ser sobrecarregado emocionalmente."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas no ombro.",
+    "interpretação_clinica": "Boa resistência músculo-articular, menor risco de lesão crónica.",
+    "psicoemocional": "Resiliência, capacidade de aguentar desafios, mas necessidade de aprender a delegar responsabilidades."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico na zona do ombro.",
+    "interpretação_clinica": "Congestão linfática, risco de inflamação, infeção ou edema local.",
+    "psicoemocional": "Defesas elevadas quando confrontado com excesso de trabalho ou exigências externas."
+  }
+],
+"Pescoço": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras sobre a zona do pescoço.",
+    "interpretação_clinica": "Predisposição a tensão cervical, rigidez, dor muscular, dificuldade de mobilidade.",
+    "psicoemocional": "Dificuldade em ser flexível, rigidez de opiniões, tendência a guardar palavras não ditas."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial que atravessa a área do pescoço.",
+    "interpretação_clinica": "Sinal de stress acumulado, propensão a dores crónicas cervicais, inflamação ou bloqueio energético.",
+    "psicoemocional": "Stress antigo relacionado à comunicação, medo de se expressar, bloqueios emocionais ligados à voz."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento na zona do pescoço.",
+    "interpretação_clinica": "Sobreacumulação de toxinas, memória de infeção ou processo inflamatório cervical.",
+    "psicoemocional": "Tendência a racionalizar bloqueios emocionais, dificuldade em aceitar críticas."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico sobre o pescoço.",
+    "interpretação_clinica": "Tensão muscular persistente, propensão a torcicolos, cansaço ao final do dia.",
+    "psicoemocional": "Dificuldade em relaxar perante exigências externas, excesso de responsabilidade auto-imposta."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na zona do pescoço.",
+    "interpretação_clinica": "Boa resistência músculo-ligamentar, menor risco de lesão cervical.",
+    "psicoemocional": "Flexibilidade emocional e capacidade de adaptação a mudanças rápidas."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico sobre o pescoço.",
+    "interpretação_clinica": "Congestão linfática cervical, propensão a infeções respiratórias ou inflamações locais.",
+    "psicoemocional": "Defesas elevadas quando se sente ameaçado verbalmente ou em contexto social."
+  }
+],
+"Ouvido": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras da zona do ouvido.",
+    "interpretação_clinica": "Predisposição a infeções otorrinolaringológicas, otites, zumbidos ou perda auditiva.",
+    "psicoemocional": "Dificuldade em ouvir o outro, tendência ao isolamento, resistência à crítica."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial atravessando o ouvido.",
+    "interpretação_clinica": "Sinal de intoxicação, risco de processos inflamatórios repetidos, alergias ou bloqueios auditivos.",
+    "psicoemocional": "Stress antigo ligado a ouvir más notícias, medo do desconhecido, ansiedade social."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre o ouvido.",
+    "interpretação_clinica": "Sobreacumulação de toxinas auditivas, tendência a infeções ou alergias locais.",
+    "psicoemocional": "Tendência a guardar ressentimentos, dificuldade em perdoar o que ouviu."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico sobre o ouvido.",
+    "interpretação_clinica": "Tensão muscular local, propensão a otalgias ou problemas temporomandibulares.",
+    "psicoemocional": "Dificuldade em relaxar ao receber informação nova, ansiedade perante conversas importantes."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na zona do ouvido.",
+    "interpretação_clinica": "Boa resistência auditiva, menor risco de infeções ou lesão.",
+    "psicoemocional": "Capacidade de escuta ativa e integração de críticas construtivas."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico junto ao ouvido.",
+    "interpretação_clinica": "Congestão linfática auricular, propensão a infeções ou edema local.",
+    "psicoemocional": "Defesas elevadas em contextos sociais ou quando sente que não é ouvido."
+  }
+],
+"Mastóide": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras sobre a mastóide.",
+    "interpretação_clinica": "Predisposição a infeções, otites médias, mastoidite ou processos inflamatórios locais.",
+    "psicoemocional": "Dificuldade em aceitar mudanças, tendência ao ressentimento de eventos passados."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial a atravessar a zona da mastóide.",
+    "interpretação_clinica": "Sinal de intoxicação local, risco de inflamação crónica, infeção ou perturbação auditiva.",
+    "psicoemocional": "Stress antigo ligado a traumas auditivos, medo de novidades bruscas."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre a área da mastóide.",
+    "interpretação_clinica": "Sobreacumulação de toxinas, tendência a infeções ou inflamações da região.",
+    "psicoemocional": "Tendência a intelectualizar dores do passado, dificuldade em libertar mágoas antigas."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico sobre a mastóide.",
+    "interpretação_clinica": "Tensão muscular, propensão a dor ou inflamação crónica.",
+    "psicoemocional": "Ansiedade perante novidades, medo do desconhecido."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas sobre a mastóide.",
+    "interpretação_clinica": "Boa estrutura óssea e auditiva, menor risco de infeções crónicas.",
+    "psicoemocional": "Resiliência ao enfrentar desafios e mudanças inesperadas."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico junto à mastóide.",
+    "interpretação_clinica": "Congestão linfática local, predisposição a infeções ou inflamações da cabeça e pescoço.",
+    "psicoemocional": "Defesas reforçadas ao enfrentar conflitos ou ambientes hostis."
+  }
+],
+"Medula": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras da zona da medula espinhal.",
+    "interpretação_clinica": "Predisposição a debilidade neuro-muscular, risco de perturbações da condução nervosa ou reflexos diminuídos.",
+    "psicoemocional": "Dificuldade em sentir-se apoiado, sensação de fragilidade perante desafios de base, medo de colapso interior."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial atravessando a medula.",
+    "interpretação_clinica": "Sinal de stress antigo, risco de neuropatias, perturbações neurovegetativas, instabilidade postural.",
+    "psicoemocional": "Stress profundo relacionado com a estrutura da vida, medo de perder o eixo central."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento depositado sobre a zona medular.",
+    "interpretação_clinica": "Memória de traumas antigos, intoxicação neurogénica, predisposição a problemas degenerativos.",
+    "psicoemocional": "Tendência a racionalizar fragilidades profundas, receio do desconhecido e das mudanças estruturais."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico atravessando a medula.",
+    "interpretação_clinica": "Tensão neuro-muscular crónica, propensão a espasmos, dores na coluna, disfunções de reflexos.",
+    "psicoemocional": "Excesso de autoexigência, medo de não ser suficientemente forte, dificuldade em relaxar a estrutura interna."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na zona da medula.",
+    "interpretação_clinica": "Boa resistência estrutural da coluna e do sistema nervoso central.",
+    "psicoemocional": "Estabilidade emocional, confiança na base da própria vida, capacidade de recuperação."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico sobre a zona medular.",
+    "interpretação_clinica": "Congestão linfática central, risco de infeções, inflamações medulares ou imunidade comprometida.",
+    "psicoemocional": "Defesa emocional perante ameaças à segurança interna, necessidade de proteção da própria essência."
+  }
+],
+
+"Equílibrio": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras da zona do equilíbrio (vestibular).",
+    "interpretação_clinica": "Predisposição a vertigens, tonturas, alterações posturais e instabilidade.",
+    "psicoemocional": "Dificuldade em manter o equilíbrio emocional, sensação de desorientação perante desafios ou mudanças rápidas."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial atravessando o setor do equilíbrio.",
+    "interpretação_clinica": "Sinal de stress antigo, propensão a desequilíbrios posturais, perturbações vestibulares.",
+    "psicoemocional": "Medo de perder a estabilidade emocional, insegurança perante contextos novos."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre a área do equilíbrio.",
+    "interpretação_clinica": "Risco de perturbações neuro-sensoriais, memória de quedas ou traumas antigos.",
+    "psicoemocional": "Tendência a racionalizar instabilidade, receio de perder o controlo sobre as emoções."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico na zona do equilíbrio.",
+    "interpretação_clinica": "Tensão neuro-muscular crónica, propensão a tonturas, rigidez postural.",
+    "psicoemocional": "Ansiedade perante instabilidade, medo de tomar decisões rápidas, dificuldade em adaptar-se."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na zona do equilíbrio.",
+    "interpretação_clinica": "Boa regulação postural e neurossensorial, menor risco de desequilíbrios.",
+    "psicoemocional": "Confiança em si, capacidade de adaptação e flexibilidade diante da vida."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico na zona do equilíbrio.",
+    "interpretação_clinica": "Congestão linfática central, predisposição a infeções e desequilíbrios sensoriais.",
+    "psicoemocional": "Defesas elevadas perante contextos instáveis, necessidade de proteção ao mudar de direção na vida."
+  }
+],
+
+"Mente inata": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras do setor da mente inata.",
+    "interpretação_clinica": "Predisposição a perturbações cognitivas, falhas de memória, défice de processamento intuitivo.",
+    "psicoemocional": "Dificuldade em confiar na própria intuição, bloqueio criativo ou emocional, sensação de alienação."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial na zona da mente inata.",
+    "interpretação_clinica": "Risco de stress mental crónico, perturbações do sono ou fadiga intelectual.",
+    "psicoemocional": "Medo de explorar o desconhecido, bloqueios inconscientes, tendência ao pessimismo."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre a área da mente inata.",
+    "interpretação_clinica": "Memória de toxinas antigas, predisposição a alterações do humor ou do pensamento.",
+    "psicoemocional": "Racionalização excessiva dos sentimentos, dificuldade em aceitar o lado intuitivo."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico atravessando a mente inata.",
+    "interpretação_clinica": "Tensão mental persistente, risco de bloqueios criativos ou incapacidade de relaxar o pensamento.",
+    "psicoemocional": "Autoexigência intelectual, preocupação constante, medo de falhar a nível mental."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na zona da mente inata.",
+    "interpretação_clinica": "Boa capacidade de processamento intuitivo e criatividade preservada.",
+    "psicoemocional": "Facilidade de acesso à intuição e criatividade, confiança na própria sabedoria interior."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico sobre a mente inata.",
+    "interpretação_clinica": "Congestão linfática cerebral, risco de infeções ou fadiga mental crónica.",
+    "psicoemocional": "Defesas emocionais reforçadas, necessidade de proteção perante pensamentos ou ambientes tóxicos."
+  }
+],
+
+"Locomoção": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras do setor da locomoção.",
+    "interpretação_clinica": "Predisposição a fraqueza muscular, claudicação, limitações motoras ou maior risco de lesão.",
+    "psicoemocional": "Dificuldade em avançar, medo de dar o próximo passo, bloqueio perante novas direções na vida."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial na zona da locomoção.",
+    "interpretação_clinica": "Risco de bloqueio energético, perturbação muscular ou dor crónica.",
+    "psicoemocional": "Medo do futuro, resistência a mudar de caminho, tendência a paralisar perante obstáculos."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre a área da locomoção.",
+    "interpretação_clinica": "Memória de trauma antigo, predisposição a dor articular, tendinites ou processos inflamatórios.",
+    "psicoemocional": "Tendência a racionalizar bloqueios físicos, receio de avançar na vida."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico na zona da locomoção.",
+    "interpretação_clinica": "Tensão crónica muscular, propensão a rigidez, câimbras ou fadiga nas pernas.",
+    "psicoemocional": "Ansiedade perante desafios, medo de não ser capaz de chegar onde se pretende."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas no setor da locomoção.",
+    "interpretação_clinica": "Boa capacidade de locomoção, menor risco de lesão ou dor crónica.",
+    "psicoemocional": "Confiança no avanço, determinação e coragem para iniciar novos caminhos."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico na zona da locomoção.",
+    "interpretação_clinica": "Congestão linfática dos membros inferiores, predisposição a edema, infeção ou dor.",
+    "psicoemocional": "Defesa emocional ao enfrentar novos percursos, necessidade de proteção ao explorar novos horizontes."
+  }
+],
+
+"Sistema circulatório e linfático": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras do setor circulatório ou linfático.",
+    "interpretação_clinica": "Predisposição a má circulação, risco de varizes, linfedema, fragilidade vascular.",
+    "psicoemocional": "Dificuldade em fazer circular emoções, tendência ao isolamento, medo de partilhar sentimentos."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial atravessando a área circulatória ou linfática.",
+    "interpretação_clinica": "Sinal de stress crónico, risco de bloqueios circulatórios, estagnação linfática.",
+    "psicoemocional": "Stress antigo ligado a partilha, bloqueios emocionais na comunicação com os outros."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre o setor circulatório ou linfático.",
+    "interpretação_clinica": "Predisposição a intoxicação crónica, risco de infeções, linfangite ou alterações vasculares.",
+    "psicoemocional": "Necessidade de racionalizar relações, dificuldade em aceitar o fluxo natural da vida."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico no setor circulatório ou linfático.",
+    "interpretação_clinica": "Tensão crónica, propensão a hipertensão, linfedema ou fadiga vascular.",
+    "psicoemocional": "Ansiedade perante a necessidade de abrir-se a novas experiências, medo da exposição emocional."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na zona circulatória/linfática.",
+    "interpretação_clinica": "Boa circulação sanguínea e linfática, menor risco de doença crónica.",
+    "psicoemocional": "Capacidade de partilha emocional, abertura e facilidade de relacionamento interpessoal."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico no sistema circulatório ou linfático.",
+    "interpretação_clinica": "Congestão linfática generalizada, predisposição a infeções recorrentes ou edema.",
+    "psicoemocional": "Defesa emocional perante ambientes tóxicos ou relações complicadas, necessidade de proteção interior."
+  }
+],
+
+"Pele": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras do setor da pele.",
+    "interpretação_clinica": "Predisposição a problemas dermatológicos, eczema, psoríase, infeções ou feridas de cicatrização lenta.",
+    "psicoemocional": "Dificuldade em lidar com o contacto social, medo de exposição, sensação de vulnerabilidade perante o mundo exterior."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial na zona da pele.",
+    "interpretação_clinica": "Risco de intoxicação cutânea, tendência a alergias, urticária ou processos inflamatórios repetidos.",
+    "psicoemocional": "Stress antigo ligado ao contacto, receio de críticas ou rejeição social."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre a área da pele.",
+    "interpretação_clinica": "Predisposição a pigmentação irregular, dermatites, ou memória de infeções antigas.",
+    "psicoemocional": "Tendência a racionalizar fragilidades físicas, dificuldade em aceitar a própria imagem."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico atravessando a pele.",
+    "interpretação_clinica": "Tensão cutânea persistente, propensão a dermatite nervosa, comichão ou distúrbios psicossomáticos.",
+    "psicoemocional": "Ansiedade perante contacto físico, medo da proximidade, tendência ao isolamento social."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas sobre a pele.",
+    "interpretação_clinica": "Boa integridade cutânea, menor risco de infeção, cicatrização eficiente.",
+    "psicoemocional": "Segurança pessoal, facilidade em adaptar-se a diferentes ambientes e relações sociais."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico sobre a zona da pele.",
+    "interpretação_clinica": "Congestão linfática superficial, predisposição a alergias, dermatite e infeções cutâneas.",
+    "psicoemocional": "Defesas elevadas perante contacto excessivo, necessidade de espaço e proteção pessoal."
+  }
+],
+"Virilha": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras da zona da virilha.",
+    "interpretação_clinica": "Predisposição a hérnias, dor inguinal, inflamação dos gânglios linfáticos ou infeções locais.",
+    "psicoemocional": "Dificuldade em lidar com a intimidade, receio de exposição, medo de perder limites pessoais."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial atravessando a zona da virilha.",
+    "interpretação_clinica": "Sinal de sobrecarga tóxica, risco de infeção, congestão linfática ou inflamação crónica.",
+    "psicoemocional": "Stress antigo associado à sexualidade, bloqueio emocional em relações íntimas."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento na área da virilha.",
+    "interpretação_clinica": "Memória de infeção antiga, tendência a pigmentação irregular ou alergias de contacto.",
+    "psicoemocional": "Tendência a racionalizar questões íntimas, dificuldade em aceitar a própria sexualidade."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico na zona da virilha.",
+    "interpretação_clinica": "Tensão muscular persistente, propensão a dor inguinal ou cãibras.",
+    "psicoemocional": "Ansiedade perante situações íntimas, receio de entregar-se totalmente."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na zona da virilha.",
+    "interpretação_clinica": "Boa resistência muscular e ligamentar, menor risco de lesão ou hérnia.",
+    "psicoemocional": "Facilidade em estabelecer e respeitar limites, segurança nas relações íntimas."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico na área da virilha.",
+    "interpretação_clinica": "Congestão linfática inguinal, risco de infeções, edema ou inflamação local.",
+    "psicoemocional": "Defesas elevadas perante ameaça à intimidade ou confiança."
+  }
+],
+
+"Parede abdominal": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras da parede abdominal.",
+    "interpretação_clinica": "Predisposição a fraqueza muscular, hérnias, dor abdominal ou distensão.",
+    "psicoemocional": "Dificuldade em proteger o centro vital, receio de exposição emocional."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial na parede abdominal.",
+    "interpretação_clinica": "Risco de inflamação, lesão muscular ou fraqueza do core abdominal.",
+    "psicoemocional": "Medo de assumir responsabilidades, tendência ao retraimento perante desafios."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento na parede abdominal.",
+    "interpretação_clinica": "Memória de processos inflamatórios, tendência a infeções ou cicatrizes.",
+    "psicoemocional": "Racionalização dos sentimentos ligados à força e proteção pessoal."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico sobre a parede abdominal.",
+    "interpretação_clinica": "Tensão muscular crónica, propensão a dor ou rigidez abdominal.",
+    "psicoemocional": "Ansiedade perante desafios que exigem força, medo de falhar na proteção dos outros."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na parede abdominal.",
+    "interpretação_clinica": "Boa resistência e proteção do centro vital.",
+    "psicoemocional": "Segurança nas próprias capacidades, facilidade em enfrentar desafios físicos e emocionais."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico sobre a parede abdominal.",
+    "interpretação_clinica": "Congestão linfática, risco de infeção, inflamação ou edema.",
+    "psicoemocional": "Defesas reforçadas ao enfrentar ameaças à segurança pessoal."
+  }
+],
+
+"Peritoneo": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras do setor do peritoneo.",
+    "interpretação_clinica": "Predisposição a inflamação, aderências, infeções ou dor abdominal difusa.",
+    "psicoemocional": "Dificuldade em proteger-se emocionalmente, medo de envolvimento profundo."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial atravessando o peritoneo.",
+    "interpretação_clinica": "Risco de inflamação crónica, aderências ou processos infecciosos repetidos.",
+    "psicoemocional": "Stress profundo associado a laços familiares, tendência a absorver o sofrimento alheio."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre o peritoneo.",
+    "interpretação_clinica": "Memória de infeção, inflamação antiga ou processos cicatriciais.",
+    "psicoemocional": "Tendência a racionalizar a dor emocional, dificuldade em digerir perdas."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico no peritoneo.",
+    "interpretação_clinica": "Tensão crónica abdominal, risco de dor difusa ou espasmos.",
+    "psicoemocional": "Ansiedade perante emoções profundas, medo de perder a proteção afetiva."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas no setor do peritoneo.",
+    "interpretação_clinica": "Boa defesa abdominal, menor risco de inflamação crónica.",
+    "psicoemocional": "Capacidade de enfrentar emoções intensas e transformar sofrimento em crescimento."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico no peritoneo.",
+    "interpretação_clinica": "Congestão linfática abdominal, risco de infeção ou inflamação.",
+    "psicoemocional": "Defesas elevadas quando confrontado com perdas ou envolvimento afetivo profundo."
+  }
+],
+
+"Pelve": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras da zona da pelve.",
+    "interpretação_clinica": "Predisposição a dor pélvica crónica, fragilidade ligamentar ou risco de prolapso.",
+    "psicoemocional": "Dificuldade em enraizar-se, sensação de instabilidade ou medo do abandono."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial atravessando a pelve.",
+    "interpretação_clinica": "Sinal de stress crónico, risco de inflamação pélvica, dor ou congestão.",
+    "psicoemocional": "Medo de enfrentar temas ligados à sexualidade ou maternidade/paternidade, bloqueio emocional na área instintiva."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre a zona da pelve.",
+    "interpretação_clinica": "Memória de inflamação, trauma ou cirurgia pélvica, propensão a alterações hormonais.",
+    "psicoemocional": "Tendência a racionalizar temas de sexualidade, receio de assumir desejos ou necessidades profundas."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico sobre a pelve.",
+    "interpretação_clinica": "Tensão muscular pélvica crónica, propensão a dor, espasmos ou perturbação da circulação local.",
+    "psicoemocional": "Ansiedade perante novos relacionamentos ou temas ligados ao prazer e reprodução."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na pelve.",
+    "interpretação_clinica": "Boa estabilidade pélvica, menor risco de lesão ou dor crónica.",
+    "psicoemocional": "Segurança nos próprios instintos, facilidade em lidar com mudanças e novos ciclos."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico na zona da pelve.",
+    "interpretação_clinica": "Congestão linfática pélvica, risco de infeções, inflamação ou edema.",
+    "psicoemocional": "Defesa emocional quando confrontado com questões de identidade, sexualidade ou pertença."
+  }
+],
+
+"Ovários\\testiculos": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras sobre os ovários/testículos.",
+    "interpretação_clinica": "Predisposição a alterações hormonais, infertilidade, dor crónica ou quistos/quistos testiculares.",
+    "psicoemocional": "Dificuldade em aceitar a sexualidade, receio de rejeição, bloqueios na expressão dos desejos."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial atravessando ovários/testículos.",
+    "interpretação_clinica": "Sinal de stress antigo, risco de inflamação, quistos, alterações hormonais ou infeção.",
+    "psicoemocional": "Bloqueio emocional ligado à fertilidade, stress com o papel sexual ou reprodutivo."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento na área dos ovários/testículos.",
+    "interpretação_clinica": "Memória de infeção, inflamação ou alteração hormonal, tendência a pigmentação irregular.",
+    "psicoemocional": "Tendência a racionalizar questões íntimas, dificuldade em assumir vulnerabilidades na esfera sexual."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico sobre ovários/testículos.",
+    "interpretação_clinica": "Tensão muscular pélvica persistente, propensão a dor, cãibras ou disfunção sexual.",
+    "psicoemocional": "Ansiedade perante temas de fertilidade, prazer ou desempenho sexual."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas em ovários/testículos.",
+    "interpretação_clinica": "Boa resistência glandular, menor risco de lesão, dor ou infertilidade.",
+    "psicoemocional": "Confiança na sexualidade, aceitação dos próprios instintos e desejos."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico sobre ovários/testículos.",
+    "interpretação_clinica": "Congestão linfática gonadal, risco de infeção ou inflamação local.",
+    "psicoemocional": "Defesa elevada quando a sexualidade ou fertilidade é ameaçada, necessidade de segurança afetiva."
+  }
+],
+"Abdomen Superior": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras da zona do abdómen superior.",
+    "interpretação_clinica": "Predisposição a disfunção gástrica, úlceras, dor epigástrica ou perturbações digestivas crónicas.",
+    "psicoemocional": "Dificuldade em digerir emoções, medo do fracasso, ansiedade perante desafios."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial na zona do abdómen superior.",
+    "interpretação_clinica": "Sinal de stress digestivo crónico, risco de inflamação ou intoxicação.",
+    "psicoemocional": "Stress antigo por não se sentir 'valorizado', tensão ao assumir responsabilidades novas."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre o abdómen superior.",
+    "interpretação_clinica": "Memória de intoxicação alimentar, infeção antiga ou disfunção metabólica.",
+    "psicoemocional": "Racionalização de emoções ligadas à digestão, dificuldade em aceitar mudanças."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico no abdómen superior.",
+    "interpretação_clinica": "Tensão muscular persistente, propensão a dor, espasmos ou distensão abdominal.",
+    "psicoemocional": "Ansiedade perante situações novas, medo do fracasso físico ou emocional."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas no abdómen superior.",
+    "interpretação_clinica": "Boa defesa gástrica, menor risco de úlcera ou inflamação.",
+    "psicoemocional": "Segurança nas decisões, facilidade em lidar com imprevistos."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico no abdómen superior.",
+    "interpretação_clinica": "Congestão linfática, risco de infeção ou inflamação.",
+    "psicoemocional": "Defesa emocional perante críticas, necessidade de proteger o próprio espaço vital."
+  }
+],
+
+"Baço": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras do setor do baço.",
+    "interpretação_clinica": "Predisposição a infeções, fragilidade imunitária, hematomas ou défice de eliminação.",
+    "psicoemocional": "Dificuldade em libertar emoções antigas, tendência a guardar ressentimentos."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial na zona do baço.",
+    "interpretação_clinica": "Risco de infeção, fragilidade imunitária ou inflamação crónica.",
+    "psicoemocional": "Stress persistente ligado ao passado, receio de se magoar novamente."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre o baço.",
+    "interpretação_clinica": "Memória de infeção, intoxicação ou trauma antigo.",
+    "psicoemocional": "Tendência a racionalizar mágoas antigas, dificuldade em esquecer o passado."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico sobre o baço.",
+    "interpretação_clinica": "Tensão emocional persistente, propensão a contraturas ou dor no hipocôndrio esquerdo.",
+    "psicoemocional": "Ansiedade ao enfrentar situações imprevistas, receio de desilusão."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas sobre o baço.",
+    "interpretação_clinica": "Boa imunidade, menor risco de infeção ou hemorragia.",
+    "psicoemocional": "Confiança em si próprio, capacidade de recuperar após perdas."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico no setor do baço.",
+    "interpretação_clinica": "Congestão linfática esplénica, risco de infeção ou inflamação.",
+    "psicoemocional": "Defesa emocional perante novas relações, tendência ao isolamento."
+  }
+],
+
+"Braço": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras do setor do braço.",
+    "interpretação_clinica": "Predisposição a lesão muscular, tendinites, fraqueza ou rigidez.",
+    "psicoemocional": "Dificuldade em agir, medo de tomar iniciativa, receio de ser julgado."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial no braço.",
+    "interpretação_clinica": "Sinal de stress mecânico ou trauma, risco de lesão por esforço repetido.",
+    "psicoemocional": "Ansiedade por não conseguir agir a tempo, medo de não ser útil."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre o braço.",
+    "interpretação_clinica": "Memória de trauma, infeção ou lesão antiga.",
+    "psicoemocional": "Tendência a racionalizar a dor, dificuldade em perdoar a si próprio."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico sobre o braço.",
+    "interpretação_clinica": "Tensão muscular crónica, propensão a espasmos, dor ou fraqueza.",
+    "psicoemocional": "Ansiedade perante novos desafios, medo de assumir responsabilidades."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas sobre o braço.",
+    "interpretação_clinica": "Boa força muscular, menor risco de lesão crónica.",
+    "psicoemocional": "Facilidade de agir, confiança nas próprias capacidades."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico na área do braço.",
+    "interpretação_clinica": "Congestão linfática, risco de infeção ou inflamação.",
+    "psicoemocional": "Defesas elevadas perante desafios físicos, necessidade de proteção no contacto interpessoal."
+  }
+],
+
+"Mão": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras da zona da mão.",
+    "interpretação_clinica": "Predisposição a fraqueza muscular, dor articular, lesão tendinosa ou perda de destreza.",
+    "psicoemocional": "Dificuldade em expressar sentimentos através do toque, medo de rejeição ou de perder contacto."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial na zona da mão.",
+    "interpretação_clinica": "Sinal de trauma antigo, propensão a lesão por esforço repetido ou dor crónica.",
+    "psicoemocional": "Stress associado à ação, medo de não ser capaz de alcançar o que deseja."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre a mão.",
+    "interpretação_clinica": "Memória de infeção, inflamação ou trauma antigo.",
+    "psicoemocional": "Tendência a racionalizar o toque, dificuldade em aceitar ajuda dos outros."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico sobre a mão.",
+    "interpretação_clinica": "Tensão muscular, risco de cãibras, dor ou rigidez articular.",
+    "psicoemocional": "Ansiedade perante o dar ou receber, medo de ser rejeitado através do contacto físico."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na mão.",
+    "interpretação_clinica": "Boa destreza e força manual, menor risco de lesão.",
+    "psicoemocional": "Segurança no dar e receber, capacidade de cuidar dos outros."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico sobre a mão.",
+    "interpretação_clinica": "Congestão linfática, risco de infeção, edema ou inflamação local.",
+    "psicoemocional": "Defesas elevadas perante o contacto, tendência ao retraimento físico em situações desafiantes."
+  }
+],
+
+"Plexo solar": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras do setor do plexo solar.",
+    "interpretação_clinica": "Predisposição a perturbações digestivas, úlcera, dispepsia, sensação de 'nó' no estômago.",
+    "psicoemocional": "Dificuldade em gerir emoções, medo de exposição, baixa autoestima."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial no plexo solar.",
+    "interpretação_clinica": "Sinal de stress emocional crónico, risco de gastrite, colite ou alterações metabólicas.",
+    "psicoemocional": "Stress ligado ao poder pessoal, medo de falhar perante os outros."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento no plexo solar.",
+    "interpretação_clinica": "Memória de intoxicação alimentar, disfunção digestiva antiga ou infeção.",
+    "psicoemocional": "Racionalização das emoções, dificuldade em assumir o próprio valor."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico no plexo solar.",
+    "interpretação_clinica": "Tensão persistente, risco de dor abdominal, espasmos ou dificuldade respiratória.",
+    "psicoemocional": "Ansiedade perante exposição, medo de críticas ou julgamentos."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas no plexo solar.",
+    "interpretação_clinica": "Boa defesa emocional, menor risco de inflamação ou dor crónica.",
+    "psicoemocional": "Confiança nas decisões, facilidade em liderar e assumir responsabilidades."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico no plexo solar.",
+    "interpretação_clinica": "Congestão linfática abdominal, risco de infeção ou inflamação.",
+    "psicoemocional": "Defesa emocional perante pressão social, necessidade de criar barreiras em situações exigentes."
+  }
+],
+"Bronquíolos": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras na zona dos bronquíolos.",
+    "interpretação_clinica": "Predisposição a bronquites, infeções respiratórias recorrentes, fragilidade das vias aéreas.",
+    "psicoemocional": "Dificuldade em comunicar sentimentos, medo de não ser ouvido, sensação de sufoco emocional."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial atravessando a área dos bronquíolos.",
+    "interpretação_clinica": "Sinal de intoxicação respiratória, risco de inflamação, alergia ou bloqueio das vias aéreas.",
+    "psicoemocional": "Stress antigo relacionado à expressão, medo de se manifestar livremente."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre os bronquíolos.",
+    "interpretação_clinica": "Memória de infeção, inflamação ou alergia respiratória antiga.",
+    "psicoemocional": "Tendência a racionalizar a tristeza, dificuldade em libertar emoções reprimidas."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico na zona dos bronquíolos.",
+    "interpretação_clinica": "Tensão muscular respiratória, propensão a broncospasmos ou sensação de aperto torácico.",
+    "psicoemocional": "Ansiedade perante a exposição, medo de falar em público ou expressar opiniões."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas sobre os bronquíolos.",
+    "interpretação_clinica": "Boa resistência respiratória, menor risco de infeções ou alergias.",
+    "psicoemocional": "Facilidade em comunicar, confiança na própria voz e expressão pessoal."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico na zona dos bronquíolos.",
+    "interpretação_clinica": "Congestão linfática respiratória, propensão a alergias, infeções ou asma.",
+    "psicoemocional": "Defesas elevadas perante críticas ou ambientes hostis, necessidade de proteção verbal."
+  }
+],
+
+"Aorta": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras sobre a área da aorta.",
+    "interpretação_clinica": "Predisposição a fragilidade vascular, tendência a hipertensão, aterosclerose ou risco cardiovascular aumentado.",
+    "psicoemocional": "Dificuldade em lidar com a pressão, medo de assumir grandes responsabilidades."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial na área da aorta.",
+    "interpretação_clinica": "Sinal de stress vascular, risco de bloqueio ou doença cardíaca.",
+    "psicoemocional": "Stress antigo perante decisões importantes, sensação de sobrecarga emocional."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre a aorta.",
+    "interpretação_clinica": "Memória de trauma cardiovascular, tendência a alterações do colesterol ou triglicerídeos.",
+    "psicoemocional": "Racionalização das emoções ligadas ao coração, medo de amar intensamente."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico sobre a aorta.",
+    "interpretação_clinica": "Tensão crónica dos grandes vasos, propensão a hipertensão ou rigidez arterial.",
+    "psicoemocional": "Ansiedade perante decisões cruciais, medo de mudanças profundas."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na área da aorta.",
+    "interpretação_clinica": "Boa integridade vascular, menor risco de doença crónica.",
+    "psicoemocional": "Estabilidade emocional, capacidade de gerir emoções fortes."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico junto à aorta.",
+    "interpretação_clinica": "Congestão linfática torácica, propensão a infeções cardíacas ou edema.",
+    "psicoemocional": "Defesa emocional perante stress intenso ou ambientes opressores."
+  }
+],
+
+"Coração": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras do setor cardíaco.",
+    "interpretação_clinica": "Predisposição a insuficiência cardíaca, arritmias, dor precordial ou fadiga crónica.",
+    "psicoemocional": "Dificuldade em amar ou aceitar amor, medo da entrega afetiva, bloqueio sentimental."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial no setor do coração.",
+    "interpretação_clinica": "Sinal de stress cardíaco crónico, risco de enfarte, arritmia ou inflamação.",
+    "psicoemocional": "Stress antigo ligado a relações amorosas, medo de se magoar afetivamente."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre o coração.",
+    "interpretação_clinica": "Memória de infeção, trauma cardíaco ou inflamação antiga.",
+    "psicoemocional": "Tendência a racionalizar os afetos, dificuldade em expressar sentimentos profundos."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico sobre o coração.",
+    "interpretação_clinica": "Tensão crónica do músculo cardíaco, risco de hipertensão, arritmia ou dor.",
+    "psicoemocional": "Ansiedade perante relações íntimas, medo de abrir o coração."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na zona cardíaca.",
+    "interpretação_clinica": "Boa resistência e vitalidade cardíaca.",
+    "psicoemocional": "Segurança afetiva, facilidade em amar e aceitar o amor dos outros."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico junto ao coração.",
+    "interpretação_clinica": "Congestão linfática torácica, risco de infeções, inflamação ou edema cardíaco.",
+    "psicoemocional": "Defesas elevadas perante mágoas antigas ou situações de abandono afetivo."
+  }
+],
+
+"Joelho": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras do setor do joelho.",
+    "interpretação_clinica": "Predisposição a lesão articular, dor crónica, inflamação ou instabilidade.",
+    "psicoemocional": "Dificuldade em ser flexível perante desafios, medo de ceder ou adaptar-se a mudanças."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial na zona do joelho.",
+    "interpretação_clinica": "Sinal de bloqueio energético, risco de trauma, inflamação ou artrose.",
+    "psicoemocional": "Stress profundo ligado a mudanças de percurso, insegurança na tomada de decisões."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre o joelho.",
+    "interpretação_clinica": "Memória de trauma, infeção ou inflamação antiga.",
+    "psicoemocional": "Racionalização do medo de mudanças, dificuldade em aceitar imprevistos."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico sobre o joelho.",
+    "interpretação_clinica": "Tensão muscular persistente, propensão a dor, rigidez ou cãibras.",
+    "psicoemocional": "Ansiedade perante novos desafios, medo de não ser suficientemente flexível."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas no joelho.",
+    "interpretação_clinica": "Boa estabilidade articular, menor risco de lesão ou dor crónica.",
+    "psicoemocional": "Confiança na capacidade de adaptação, segurança nas decisões tomadas."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico junto ao joelho.",
+    "interpretação_clinica": "Congestão linfática do membro inferior, risco de infeção, edema ou inflamação.",
+    "psicoemocional": "Defesas elevadas perante obstáculos, necessidade de proteção quando enfrenta novas situações."
+  }
+],
+
+"Pé": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras da zona do pé.",
+    "interpretação_clinica": "Predisposição a dor, lesão ou fadiga crónica, fraqueza ligamentar ou articular.",
+    "psicoemocional": "Dificuldade em avançar na vida, medo do desconhecido, bloqueio perante novos caminhos."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial atravessando o pé.",
+    "interpretação_clinica": "Sinal de bloqueio energético, risco de trauma, inflamação ou infeção repetida.",
+    "psicoemocional": "Stress antigo relacionado à base de apoio, medo de perder segurança."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento na zona do pé.",
+    "interpretação_clinica": "Memória de lesão, infeção ou inflamação, tendência a alterações cutâneas.",
+    "psicoemocional": "Tendência a racionalizar medos, dificuldade em confiar no próprio caminho."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico sobre o pé.",
+    "interpretação_clinica": "Tensão muscular crónica, propensão a dor, rigidez ou cãibras.",
+    "psicoemocional": "Ansiedade ao iniciar novos percursos, receio de dar o passo seguinte."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas no pé.",
+    "interpretação_clinica": "Boa estabilidade e suporte, menor risco de lesão ou dor crónica.",
+    "psicoemocional": "Confiança na jornada, capacidade de avançar com determinação."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico junto ao pé.",
+    "interpretação_clinica": "Congestão linfática do membro inferior, risco de infeção, edema ou inflamação.",
+    "psicoemocional": "Defesas elevadas ao enfrentar o desconhecido, necessidade de proteção ao iniciar novas etapas."
+  }
+],
+"Vagina": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras na zona da vagina.",
+    "interpretação_clinica": "Predisposição a infeções, fragilidade da mucosa, dor ou secura vaginal, disfunção sexual.",
+    "psicoemocional": "Dificuldade em aceitar a intimidade, medo de exposição, receio de rejeição sexual."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial atravessando a vagina.",
+    "interpretação_clinica": "Sinal de sobrecarga tóxica, risco de infeção, inflamação crónica ou dor.",
+    "psicoemocional": "Stress antigo ligado à sexualidade, bloqueios emocionais perante relações íntimas."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre a área vaginal.",
+    "interpretação_clinica": "Memória de infeção, inflamação antiga ou trauma, tendência a candidíase ou irritação.",
+    "psicoemocional": "Tendência a racionalizar sentimentos íntimos, dificuldade em assumir o prazer."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico na zona da vagina.",
+    "interpretação_clinica": "Tensão muscular pélvica crónica, propensão a dor, espasmos ou disfunção sexual.",
+    "psicoemocional": "Ansiedade perante temas de sexualidade, medo da entrega afetiva."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na vagina.",
+    "interpretação_clinica": "Boa resistência e integridade mucosa, menor risco de infeção ou dor.",
+    "psicoemocional": "Confiança na própria sexualidade, capacidade de desfrutar o prazer."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico na zona da vagina.",
+    "interpretação_clinica": "Congestão linfática pélvica, risco de infeção, edema ou inflamação.",
+    "psicoemocional": "Defesas elevadas perante ameaças à intimidade ou confiança."
+  }
+],
+
+"Próstata\\útero": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras sobre a próstata/útero.",
+    "interpretação_clinica": "Predisposição a inflamação, quistos, miomas, prostatite ou disfunção reprodutiva.",
+    "psicoemocional": "Dificuldade em aceitar a fertilidade, medo de responsabilidades familiares, bloqueio criativo."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial na zona da próstata/útero.",
+    "interpretação_clinica": "Sinal de sobrecarga tóxica, risco de infeção, inflamação ou dor crónica.",
+    "psicoemocional": "Stress antigo ligado à sexualidade, bloqueios perante a parentalidade ou relações longas."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre a próstata/útero.",
+    "interpretação_clinica": "Memória de infeção, trauma antigo ou alteração hormonal.",
+    "psicoemocional": "Tendência a racionalizar temas reprodutivos, dificuldade em assumir a função parental."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico sobre a próstata/útero.",
+    "interpretação_clinica": "Tensão muscular pélvica persistente, propensão a dor, cãibras ou disfunção sexual/reprodutiva.",
+    "psicoemocional": "Ansiedade perante o papel parental, medo de falhar no compromisso familiar."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na próstata/útero.",
+    "interpretação_clinica": "Boa integridade glandular e muscular, menor risco de lesão, dor ou infertilidade.",
+    "psicoemocional": "Confiança no papel reprodutivo, aceitação dos próprios instintos e desejos familiares."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico na próstata/útero.",
+    "interpretação_clinica": "Congestão linfática pélvica, risco de infeção, inflamação ou edema.",
+    "psicoemocional": "Defesa elevada quando a fertilidade ou sexualidade é ameaçada, necessidade de segurança afetiva."
+  }
+],
+
+"Ânus": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras do setor do ânus.",
+    "interpretação_clinica": "Predisposição a fissuras, hemorróidas, dor ou infeção local.",
+    "psicoemocional": "Dificuldade em libertar o que já não serve, medo de exposição ou julgamento."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial atravessando o ânus.",
+    "interpretação_clinica": "Sinal de intoxicação crónica, risco de infeção, dor ou obstipação.",
+    "psicoemocional": "Stress antigo relacionado a perdas, bloqueios ao 'deixar ir' emoções antigas."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre a zona do ânus.",
+    "interpretação_clinica": "Memória de inflamação, infeção ou trauma local.",
+    "psicoemocional": "Tendência a racionalizar a vergonha, dificuldade em aceitar limites pessoais."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico no ânus.",
+    "interpretação_clinica": "Tensão muscular crónica, propensão a dor, espasmos ou obstipação.",
+    "psicoemocional": "Ansiedade perante o desapego, medo de perder controlo sobre a vida."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na zona do ânus.",
+    "interpretação_clinica": "Boa integridade muscular, menor risco de lesão ou dor crónica.",
+    "psicoemocional": "Facilidade em aceitar finais, confiança para libertar o que não serve."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico no ânus.",
+    "interpretação_clinica": "Congestão linfática perianal, risco de infeção, edema ou inflamação.",
+    "psicoemocional": "Defesas elevadas perante críticas, necessidade de proteção em situações vulneráveis."
+  }
+],
+
+"Reto": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras na zona do reto.",
+    "interpretação_clinica": "Predisposição a inflamação, dor, obstipação ou distúrbios evacuativos.",
+    "psicoemocional": "Dificuldade em terminar processos, medo do fim, receio de perder controlo."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial atravessando o reto.",
+    "interpretação_clinica": "Sinal de intoxicação, inflamação ou infeção crónica do reto.",
+    "psicoemocional": "Stress ligado a perdas antigas, bloqueio emocional ao concluir etapas."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento no setor do reto.",
+    "interpretação_clinica": "Memória de infeção, inflamação ou cirurgia antiga.",
+    "psicoemocional": "Tendência a racionalizar finais, dificuldade em aceitar mudanças bruscas."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico sobre o reto.",
+    "interpretação_clinica": "Tensão crónica, propensão a dor, espasmos ou obstipação.",
+    "psicoemocional": "Ansiedade perante finais, receio de perder segurança emocional."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas no reto.",
+    "interpretação_clinica": "Boa integridade tecidular, menor risco de inflamação ou lesão crónica.",
+    "psicoemocional": "Capacidade de aceitar e integrar finais, confiança em novos recomeços."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico junto ao reto.",
+    "interpretação_clinica": "Congestão linfática local, risco de infeção ou inflamação.",
+    "psicoemocional": "Defesa emocional ao encerrar ciclos, necessidade de proteção em momentos de transição."
+  }
+],
+
+"Escroto": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras do setor do escroto.",
+    "interpretação_clinica": "Predisposição a infeção, dor, inflamação ou fragilidade testicular.",
+    "psicoemocional": "Dificuldade em aceitar a vulnerabilidade, medo de exposição íntima."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial atravessando o escroto.",
+    "interpretação_clinica": "Sinal de stress antigo, risco de infeção, inflamação ou trauma local.",
+    "psicoemocional": "Stress ligado à sexualidade, ansiedade perante o desempenho sexual."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre a área do escroto.",
+    "interpretação_clinica": "Memória de infeção, inflamação ou lesão antiga.",
+    "psicoemocional": "Tendência a racionalizar inseguranças, dificuldade em aceitar a própria sexualidade."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico no escroto.",
+    "interpretação_clinica": "Tensão muscular pélvica crónica, propensão a dor, cãibras ou edema.",
+    "psicoemocional": "Ansiedade perante situações íntimas, medo de falhar ou de ser julgado."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas no escroto.",
+    "interpretação_clinica": "Boa resistência tecidular, menor risco de lesão, dor ou infertilidade.",
+    "psicoemocional": "Segurança na intimidade, aceitação dos próprios limites e desejos."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico no escroto.",
+    "interpretação_clinica": "Congestão linfática escrotal, risco de infeção ou inflamação local.",
+    "psicoemocional": "Defesa emocional quando se sente vulnerável na intimidade, necessidade de proteção reforçada."
+  }
+],
+
+"Períneo": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras do setor do períneo.",
+    "interpretação_clinica": "Predisposição a dor, inflamação, infeção ou fragilidade pélvica.",
+    "psicoemocional": "Dificuldade em confiar nas próprias bases, medo de perder controlo sobre instintos."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial atravessando o períneo.",
+    "interpretação_clinica": "Sinal de bloqueio energético, risco de infeção, trauma ou dor crónica.",
+    "psicoemocional": "Stress profundo ligado à sexualidade, insegurança perante relações íntimas."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre o períneo.",
+    "interpretação_clinica": "Memória de trauma, infeção ou inflamação antiga.",
+    "psicoemocional": "Tendência a racionalizar instintos, dificuldade em aceitar o lado animal da existência."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico na zona do períneo.",
+    "interpretação_clinica": "Tensão muscular crónica, propensão a dor, espasmos ou perturbação da circulação local.",
+    "psicoemocional": "Ansiedade perante a exposição íntima, medo de perder a segurança emocional."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas no períneo.",
+    "interpretação_clinica": "Boa estabilidade pélvica, menor risco de lesão, dor ou inflamação.",
+    "psicoemocional": "Segurança na própria sexualidade, aceitação dos instintos e emoções básicas."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico no períneo.",
+    "interpretação_clinica": "Congestão linfática perineal, risco de infeção ou edema.",
+    "psicoemocional": "Defesas reforçadas ao sentir-se exposto ou em risco afetivo, necessidade de proteção das raízes emocionais."
+  }
+],
+"Adrenal": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras do setor da suprarrenal (adrenal).",
+    "interpretação_clinica": "Predisposição a fadiga suprarrenal, dificuldade em responder ao stress, alterações do sono e energia.",
+    "psicoemocional": "Dificuldade em lidar com pressões prolongadas, medo do fracasso, sensação de esgotamento."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial atravessando a área da adrenal.",
+    "interpretação_clinica": "Sinal de stress crónico, risco de exaustão, alterações hormonais, ansiedade ou irritabilidade.",
+    "psicoemocional": "Stress antigo por excesso de responsabilidade, receio de não conseguir cumprir todas as tarefas."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre a suprarrenal.",
+    "interpretação_clinica": "Memória de intoxicação, infeção ou trauma, predisposição a desequilíbrios hormonais.",
+    "psicoemocional": "Tendência a racionalizar o cansaço, dificuldade em aceitar limites pessoais."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico sobre a adrenal.",
+    "interpretação_clinica": "Tensão muscular lombar, risco de dor, cãibras ou fadiga crónica.",
+    "psicoemocional": "Ansiedade persistente, receio de não ser capaz de aguentar pressão constante."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na zona da adrenal.",
+    "interpretação_clinica": "Boa resistência ao stress, menor risco de fadiga crónica.",
+    "psicoemocional": "Confiança na própria capacidade de superar desafios, resiliência emocional."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico junto à suprarrenal.",
+    "interpretação_clinica": "Congestão linfática lombar, risco de infeção, inflamação ou edema.",
+    "psicoemocional": "Defesas elevadas perante exigências, necessidade de proteção quando pressionado."
+  }
+],
+
+"Coxa": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras da zona da coxa.",
+    "interpretação_clinica": "Predisposição a lesão muscular, fraqueza, dor crónica ou rigidez.",
+    "psicoemocional": "Dificuldade em avançar com confiança, medo de seguir em frente, bloqueio perante novos desafios."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial na coxa.",
+    "interpretação_clinica": "Risco de bloqueio energético, trauma ou inflamação muscular.",
+    "psicoemocional": "Stress persistente ao iniciar novos percursos, insegurança nas escolhas pessoais."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre a coxa.",
+    "interpretação_clinica": "Memória de lesão, infeção ou inflamação, tendência a cicatrização difícil.",
+    "psicoemocional": "Tendência a racionalizar as dificuldades, medo de errar ao tomar decisões."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico na zona da coxa.",
+    "interpretação_clinica": "Tensão muscular crónica, propensão a dor, rigidez ou cãibras.",
+    "psicoemocional": "Ansiedade perante desafios físicos, receio de não corresponder às expectativas."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na coxa.",
+    "interpretação_clinica": "Boa resistência e força muscular, menor risco de lesão ou dor crónica.",
+    "psicoemocional": "Facilidade em avançar, confiança em si próprio para enfrentar desafios."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico na coxa.",
+    "interpretação_clinica": "Congestão linfática do membro inferior, risco de infeção ou edema.",
+    "psicoemocional": "Defesa emocional ao mudar de rumo, necessidade de proteção ao tomar novas direções."
+  }
+],
+
+"Rim": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras do setor renal.",
+    "interpretação_clinica": "Predisposição a infeções urinárias, nefrites, cistites ou dificuldade na eliminação.",
+    "psicoemocional": "Dificuldade em lidar com o medo, tendência a ansiedade e insegurança."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial atravessando o rim.",
+    "interpretação_clinica": "Sinal de intoxicação, risco de infeção ou inflamação renal crónica.",
+    "psicoemocional": "Stress antigo ligado a perdas, bloqueio emocional ao deixar ir o passado."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre o rim.",
+    "interpretação_clinica": "Memória de infeção, inflamação ou trauma renal, tendência a edema ou insuficiência.",
+    "psicoemocional": "Racionalização de inseguranças, dificuldade em confiar no fluxo da vida."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico sobre o rim.",
+    "interpretação_clinica": "Tensão lombar persistente, propensão a dor, espasmos ou obstipação.",
+    "psicoemocional": "Ansiedade perante mudanças, medo de perder o controlo do corpo e emoções."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na zona renal.",
+    "interpretação_clinica": "Boa capacidade de filtração e eliminação, menor risco de doença crónica.",
+    "psicoemocional": "Confiança em si, abertura ao novo, coragem para enfrentar desafios."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico junto ao rim.",
+    "interpretação_clinica": "Congestão linfática renal, risco de infeção, edema ou inflamação.",
+    "psicoemocional": "Defesa emocional quando sente insegurança, necessidade de proteção em fases de mudança."
+  }
+],
+"Ureter": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras da zona do ureter.",
+    "interpretação_clinica": "Predisposição a infeções urinárias, cólicas renais, dor ou bloqueio na eliminação.",
+    "psicoemocional": "Dificuldade em libertar emoções antigas, medo do desapego, receio de mudanças."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial atravessando o ureter.",
+    "interpretação_clinica": "Sinal de bloqueio energético, risco de infeção, inflamação ou dor pélvica.",
+    "psicoemocional": "Stress antigo ligado à perda, bloqueios emocionais ao deixar ir pessoas ou situações."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento na área do ureter.",
+    "interpretação_clinica": "Memória de infeção, inflamação ou cicatriz, tendência a bloqueios urinários.",
+    "psicoemocional": "Tendência a racionalizar separações, dificuldade em aceitar finais."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico no ureter.",
+    "interpretação_clinica": "Tensão muscular pélvica, propensão a dor ou espasmos.",
+    "psicoemocional": "Ansiedade perante mudanças, medo de perder controlo emocional."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas no ureter.",
+    "interpretação_clinica": "Boa condução e eliminação, menor risco de infeção ou dor.",
+    "psicoemocional": "Facilidade em libertar emoções, confiança no fluxo natural da vida."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico no ureter.",
+    "interpretação_clinica": "Congestão linfática pélvica, risco de infeção ou edema.",
+    "psicoemocional": "Defesa emocional reforçada em momentos de separação ou perda."
+  }
+],
+
+"Bexiga": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras do setor vesical.",
+    "interpretação_clinica": "Predisposição a infeções urinárias, cistites, dor ou fragilidade do músculo vesical.",
+    "psicoemocional": "Dificuldade em libertar emoções negativas, medo de ser vulnerável, insegurança nas relações afetivas."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial atravessando a bexiga.",
+    "interpretação_clinica": "Sinal de bloqueio energético, risco de infeção ou inflamação urinária.",
+    "psicoemocional": "Stress profundo por retenção de mágoas, dificuldade em relaxar em situações íntimas."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento na bexiga.",
+    "interpretação_clinica": "Memória de infeção, inflamação ou cirurgia, tendência a alterações urinárias.",
+    "psicoemocional": "Racionalização de sentimentos, dificuldade em libertar ressentimentos."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico na bexiga.",
+    "interpretação_clinica": "Tensão muscular persistente, propensão a dor ou distensão vesical.",
+    "psicoemocional": "Ansiedade em ambientes sociais, medo de ser julgado ou rejeitado."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na bexiga.",
+    "interpretação_clinica": "Boa resistência vesical, menor risco de infeção ou dor.",
+    "psicoemocional": "Confiança em si, facilidade em adaptar-se a novas relações e ambientes."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico na bexiga.",
+    "interpretação_clinica": "Congestão linfática vesical, risco de infeção ou inflamação.",
+    "psicoemocional": "Defesas elevadas perante desafios emocionais, necessidade de proteção em situações íntimas."
+  }
+],
+
+"Uretra": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras na zona da uretra.",
+    "interpretação_clinica": "Predisposição a infeções, dor ou dificuldade urinária, risco de estenose.",
+    "psicoemocional": "Dificuldade em expressar emoções, medo de exposição íntima."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial na uretra.",
+    "interpretação_clinica": "Sinal de bloqueio energético, risco de infeção, dor ou inflamação recorrente.",
+    "psicoemocional": "Stress antigo ao expressar desejos, medo de críticas ou rejeição."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento na uretra.",
+    "interpretação_clinica": "Memória de infeção, inflamação ou trauma local.",
+    "psicoemocional": "Tendência a racionalizar bloqueios, dificuldade em partilhar sentimentos íntimos."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico na uretra.",
+    "interpretação_clinica": "Tensão muscular crónica, propensão a dor, cãibras ou dificuldade em relaxar.",
+    "psicoemocional": "Ansiedade perante a entrega íntima, medo de não ser aceite."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na uretra.",
+    "interpretação_clinica": "Boa condução urinária, menor risco de infeção ou dor.",
+    "psicoemocional": "Facilidade em comunicar sentimentos íntimos, confiança no próprio valor."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico na uretra.",
+    "interpretação_clinica": "Congestão linfática pélvica, risco de infeção ou inflamação.",
+    "psicoemocional": "Defesa emocional ao expor-se, necessidade de proteção na intimidade."
+  }
+],
+
+"Quadril": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras do setor do quadril.",
+    "interpretação_clinica": "Predisposição a dor, rigidez ou instabilidade articular, maior risco de lesão ou artrose.",
+    "psicoemocional": "Dificuldade em adaptar-se a mudanças, medo de seguir novos caminhos."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial atravessando o quadril.",
+    "interpretação_clinica": "Sinal de bloqueio energético, trauma antigo ou propensão a dor crónica.",
+    "psicoemocional": "Stress ligado a decisões de percurso, receio de iniciar novas rotas na vida."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre o quadril.",
+    "interpretação_clinica": "Memória de lesão, inflamação ou cirurgia antiga.",
+    "psicoemocional": "Tendência a racionalizar mudanças, dificuldade em aceitar imprevistos."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico no quadril.",
+    "interpretação_clinica": "Tensão muscular ou articular crónica, propensão a dor, rigidez ou limitação.",
+    "psicoemocional": "Ansiedade perante decisões importantes, medo de errar ao mudar de rumo."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas no quadril.",
+    "interpretação_clinica": "Boa estabilidade articular, menor risco de dor ou lesão crónica.",
+    "psicoemocional": "Segurança em novas etapas, facilidade em enfrentar mudanças."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico no quadril.",
+    "interpretação_clinica": "Congestão linfática, risco de infeção, inflamação ou edema.",
+    "psicoemocional": "Defesa emocional ao sair da zona de conforto, necessidade de proteção perante novidades."
+  }
+],
+
+"Coluna cervical": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras da zona da coluna cervical.",
+    "interpretação_clinica": "Predisposição a dor cervical, hérnias, rigidez, limitação da mobilidade ou inflamação.",
+    "psicoemocional": "Dificuldade em ser flexível, medo de mudanças rápidas, tendência a controlar tudo."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial atravessando a coluna cervical.",
+    "interpretação_clinica": "Sinal de bloqueio energético, trauma ou tensão acumulada, risco de nevralgia ou dor crónica.",
+    "psicoemocional": "Stress antigo perante desafios inesperados, ansiedade em ambientes desconhecidos."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento na coluna cervical.",
+    "interpretação_clinica": "Memória de trauma, inflamação ou lesão antiga.",
+    "psicoemocional": "Tendência a racionalizar bloqueios, dificuldade em aceitar críticas ou mudanças."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico na coluna cervical.",
+    "interpretação_clinica": "Tensão muscular crónica, propensão a dor, cãibras ou restrição de movimento.",
+    "psicoemocional": "Ansiedade perante imprevistos, receio de não ser capaz de adaptar-se."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na coluna cervical.",
+    "interpretação_clinica": "Boa flexibilidade cervical, menor risco de lesão crónica.",
+    "psicoemocional": "Facilidade de adaptação, confiança perante novos desafios."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico na coluna cervical.",
+    "interpretação_clinica": "Congestão linfática cervical, risco de infeção, edema ou dor crónica.",
+    "psicoemocional": "Defesa elevada em ambientes de mudança, necessidade de segurança perante desafios inesperados."
+  }
+],
+
+"Coluna torácica": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras da coluna torácica.",
+    "interpretação_clinica": "Predisposição a dor intercostal, bloqueios posturais, rigidez ou hérnia.",
+    "psicoemocional": "Dificuldade em lidar com pressões familiares, medo de ser sobrecarregado."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial atravessando a coluna torácica.",
+    "interpretação_clinica": "Sinal de bloqueio energético, propensão a dor, rigidez ou trauma antigo.",
+    "psicoemocional": "Stress perante exigências dos outros, receio de não corresponder às expectativas."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre a coluna torácica.",
+    "interpretação_clinica": "Memória de lesão, infeção ou inflamação antiga.",
+    "psicoemocional": "Tendência a racionalizar o peso emocional, dificuldade em libertar responsabilidades excessivas."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico na coluna torácica.",
+    "interpretação_clinica": "Tensão muscular crónica, propensão a dor, bloqueio ou fadiga postural.",
+    "psicoemocional": "Ansiedade perante pressão social, medo de desiludir quem depende de si."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na coluna torácica.",
+    "interpretação_clinica": "Boa estabilidade postural, menor risco de lesão ou dor crónica.",
+    "psicoemocional": "Confiança perante responsabilidades, capacidade de apoiar outros sem se perder."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico na coluna torácica.",
+    "interpretação_clinica": "Congestão linfática torácica, risco de infeção, dor ou fadiga.",
+    "psicoemocional": "Defesa emocional ao lidar com sobrecarga, necessidade de apoio externo."
+  }
+],
+
+"Coluna lombar": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras do setor lombar.",
+    "interpretação_clinica": "Predisposição a dor lombar, hérnia discal, limitação funcional ou inflamação.",
+    "psicoemocional": "Dificuldade em sustentar responsabilidades, medo de falhar perante desafios grandes."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial atravessando a coluna lombar.",
+    "interpretação_clinica": "Sinal de bloqueio energético, trauma antigo, risco de lesão ou fadiga crónica.",
+    "psicoemocional": "Stress antigo ao enfrentar cargas pesadas, receio de não aguentar o ritmo da vida."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre a coluna lombar.",
+    "interpretação_clinica": "Memória de trauma, inflamação ou cirurgia antiga.",
+    "psicoemocional": "Tendência a racionalizar o peso das obrigações, dificuldade em pedir ajuda."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico na coluna lombar.",
+    "interpretação_clinica": "Tensão muscular crónica, propensão a dor, rigidez ou fadiga postural.",
+    "psicoemocional": "Ansiedade perante desafios físicos ou familiares, medo de não ser suficiente."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na coluna lombar.",
+    "interpretação_clinica": "Boa estabilidade e resistência lombar, menor risco de lesão.",
+    "psicoemocional": "Facilidade em sustentar desafios, confiança para enfrentar novas responsabilidades."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico na coluna lombar.",
+    "interpretação_clinica": "Congestão linfática lombar, risco de infeção, dor ou edema.",
+    "psicoemocional": "Defesa emocional perante sobrecarga, necessidade de apoio e descanso."
+  }
+],
+
+"Coluna sagrada": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras do setor sagrado (sacro).",
+    "interpretação_clinica": "Predisposição a dor sacra, bloqueios pélvicos, lesão ou rigidez na base da coluna.",
+    "psicoemocional": "Dificuldade em confiar na própria base, medo de perder apoio ou proteção."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial atravessando o sacro.",
+    "interpretação_clinica": "Sinal de bloqueio energético, risco de lesão, dor ou inflamação pélvica.",
+    "psicoemocional": "Stress antigo perante perdas afetivas ou familiares, receio de desapego."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre o sacro.",
+    "interpretação_clinica": "Memória de trauma, infeção ou inflamação antiga.",
+    "psicoemocional": "Tendência a racionalizar perdas profundas, dificuldade em aceitar mudanças de base."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico no sacro.",
+    "interpretação_clinica": "Tensão muscular pélvica crónica, propensão a dor, espasmos ou rigidez.",
+    "psicoemocional": "Ansiedade perante desapego, medo de ficar sem base ou referência."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas no sacro.",
+    "interpretação_clinica": "Boa estabilidade da base, menor risco de lesão crónica.",
+    "psicoemocional": "Segurança em novas fases da vida, confiança para reconstruir bases emocionais."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico na coluna sagrada.",
+    "interpretação_clinica": "Congestão linfática pélvica, risco de infeção, dor ou edema.",
+    "psicoemocional": "Defesa elevada perante perdas, necessidade de proteção ao enfrentar o desconhecido."
+  }
+],
+
+"Coluna coccígea": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras do coccix.",
+    "interpretação_clinica": "Predisposição a dor coccígea, lesão por queda, inflamação ou rigidez na base da coluna.",
+    "psicoemocional": "Dificuldade em lidar com finais, medo de perder o chão, receio de novas fases."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial atravessando o coccix.",
+    "interpretação_clinica": "Sinal de bloqueio energético, risco de dor, inflamação ou trauma por queda.",
+    "psicoemocional": "Stress antigo perante despedidas, bloqueio ao encerrar ciclos."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre o coccix.",
+    "interpretação_clinica": "Memória de trauma, inflamação ou infeção antiga.",
+    "psicoemocional": "Tendência a racionalizar finais, dificuldade em aceitar o fim de ciclos importantes."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico na coluna coccígea.",
+    "interpretação_clinica": "Tensão muscular crónica, propensão a dor, rigidez ou espasmos na base.",
+    "psicoemocional": "Ansiedade perante mudanças inevitáveis, medo de perder o que sustenta."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas no coccix.",
+    "interpretação_clinica": "Boa resistência da base da coluna, menor risco de lesão crónica.",
+    "psicoemocional": "Confiança ao iniciar novas fases, capacidade de recomeçar com estrutura sólida."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico na coluna coccígea.",
+    "interpretação_clinica": "Congestão linfática do coccix, risco de infeção, dor ou edema.",
+    "psicoemocional": "Defesas reforçadas ao iniciar novos ciclos, necessidade de proteção na base emocional."
+  }
+],
+"Dente": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras da zona do dente.",
+    "interpretação_clinica": "Predisposição a infeção, fragilidade dentária, cáries, dor ou abcesso.",
+    "psicoemocional": "Dificuldade em assumir decisões, medo de perder força pessoal, receio de enfrentar desafios duros."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial atravessando a área dentária.",
+    "interpretação_clinica": "Sinal de inflamação crónica, risco de infeção, dor ou sensibilidade dentária.",
+    "psicoemocional": "Stress antigo ligado a confrontos, dificuldade em enfrentar situações agressivas."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento na área do dente.",
+    "interpretação_clinica": "Memória de infeção, trauma ou intoxicação dentária.",
+    "psicoemocional": "Tendência a racionalizar decisões difíceis, medo de perder estrutura."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico na área dentária.",
+    "interpretação_clinica": "Tensão mandibular persistente, propensão a dor, bruxismo ou desgaste dentário.",
+    "psicoemocional": "Ansiedade perante conflitos, receio de expressar agressividade ou insatisfação."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas nos dentes.",
+    "interpretação_clinica": "Boa resistência dentária, menor risco de cáries ou infeção.",
+    "psicoemocional": "Força interior, facilidade em lidar com desafios estruturais."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico junto ao dente.",
+    "interpretação_clinica": "Congestão linfática maxilar, risco de infeção ou inflamação.",
+    "psicoemocional": "Defesas elevadas perante ameaças diretas, necessidade de proteção em discussões."
+  }
+],
+
+"Gengiva": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras da zona da gengiva.",
+    "interpretação_clinica": "Predisposição a gengivite, sangramento, dor ou inflamação crónica.",
+    "psicoemocional": "Dificuldade em aceitar mudanças, medo de perder suporte emocional."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial atravessando a gengiva.",
+    "interpretação_clinica": "Sinal de inflamação, propensão a dor, infeção ou retração gengival.",
+    "psicoemocional": "Stress antigo ligado ao suporte emocional, receio de perder base afetiva."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre a gengiva.",
+    "interpretação_clinica": "Memória de inflamação, infeção ou cirurgia antiga.",
+    "psicoemocional": "Tendência a racionalizar perdas, dificuldade em confiar nos outros."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico sobre a gengiva.",
+    "interpretação_clinica": "Tensão crónica, propensão a dor, retração ou sangramento.",
+    "psicoemocional": "Ansiedade perante mudanças no suporte emocional, medo de perder estabilidade."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na gengiva.",
+    "interpretação_clinica": "Boa integridade gengival, menor risco de infeção ou dor.",
+    "psicoemocional": "Estabilidade emocional, facilidade em criar novos laços afetivos."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico na gengiva.",
+    "interpretação_clinica": "Congestão linfática oral, risco de infeção, inflamação ou edema.",
+    "psicoemocional": "Defesas elevadas perante perdas afetivas, necessidade de proteção emocional."
+  }
+],
+
+"Língua": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras da zona da língua.",
+    "interpretação_clinica": "Predisposição a infeção, glossite, aftas, alteração do paladar ou dor lingual.",
+    "psicoemocional": "Dificuldade em comunicar sentimentos, medo de ser mal interpretado, receio de críticas."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial atravessando a língua.",
+    "interpretação_clinica": "Sinal de stress comunicacional, risco de dor, infeção ou alteração funcional.",
+    "psicoemocional": "Stress antigo ligado à comunicação, medo de se expor verbalmente."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento na língua.",
+    "interpretação_clinica": "Memória de inflamação, infeção ou alteração do paladar.",
+    "psicoemocional": "Tendência a racionalizar a expressão, dificuldade em assumir desejos."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico sobre a língua.",
+    "interpretação_clinica": "Tensão muscular crónica, propensão a dor, cãibras ou alteração do paladar.",
+    "psicoemocional": "Ansiedade perante o diálogo, medo de errar ao comunicar-se."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na língua.",
+    "interpretação_clinica": "Boa flexibilidade e resistência, menor risco de infeção ou lesão.",
+    "psicoemocional": "Facilidade em comunicar, confiança na própria expressão."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico na língua.",
+    "interpretação_clinica": "Congestão linfática oral, risco de infeção ou inflamação.",
+    "psicoemocional": "Defesa emocional em contextos de exposição, necessidade de proteção ao falar."
+  }
+],
+
+"Faringe": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras do setor da faringe.",
+    "interpretação_clinica": "Predisposição a faringite, dor de garganta, infeções ou inflamação crónica.",
+    "psicoemocional": "Dificuldade em expressar sentimentos reprimidos, medo de críticas ou julgamentos."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial na zona da faringe.",
+    "interpretação_clinica": "Sinal de stress, risco de infeção, dor ou alteração da voz.",
+    "psicoemocional": "Stress antigo ao ser confrontado, dificuldade em dialogar abertamente."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento na faringe.",
+    "interpretação_clinica": "Memória de inflamação, infeção ou trauma vocal.",
+    "psicoemocional": "Tendência a racionalizar emoções reprimidas, receio de expor a vulnerabilidade."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico na faringe.",
+    "interpretação_clinica": "Tensão muscular crónica, propensão a dor, rouquidão ou dificuldade de engolir.",
+    "psicoemocional": "Ansiedade perante conversas difíceis, medo de enfrentar críticas."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na faringe.",
+    "interpretação_clinica": "Boa resistência, menor risco de infeção ou rouquidão.",
+    "psicoemocional": "Facilidade em dialogar, abertura a novas experiências comunicacionais."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico na faringe.",
+    "interpretação_clinica": "Congestão linfática cervical, risco de infeção, dor ou edema.",
+    "psicoemocional": "Defesa elevada perante desafios verbais, necessidade de proteção emocional ao dialogar."
+  }
+],
+
+"Laringe": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras da laringe.",
+    "interpretação_clinica": "Predisposição a laringite, rouquidão, dor ou inflamação vocal.",
+    "psicoemocional": "Dificuldade em expor a própria voz, medo de não ser ouvido, receio de falhar perante o público."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial atravessando a laringe.",
+    "interpretação_clinica": "Sinal de inflamação vocal, risco de dor, infeção ou alteração da voz.",
+    "psicoemocional": "Stress antigo perante a exposição, medo de falar em público."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento na área da laringe.",
+    "interpretação_clinica": "Memória de inflamação, infeção ou lesão vocal.",
+    "psicoemocional": "Tendência a racionalizar o medo de falhar, dificuldade em assumir opiniões."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico sobre a laringe.",
+    "interpretação_clinica": "Tensão muscular persistente, propensão a rouquidão, dor ou alteração vocal.",
+    "psicoemocional": "Ansiedade perante a exposição verbal, receio de errar em público."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na laringe.",
+    "interpretação_clinica": "Boa resistência vocal, menor risco de infeção ou lesão.",
+    "psicoemocional": "Facilidade em falar em público, segurança ao expor opiniões."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico na laringe.",
+    "interpretação_clinica": "Congestão linfática cervical, risco de infeção, dor ou edema.",
+    "psicoemocional": "Defesa emocional ao expor-se, necessidade de proteção perante desafios comunicativos."
+  }
+],
+
+"Nariz": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras do setor nasal.",
+    "interpretação_clinica": "Predisposição a rinites, sinusites, infeções ou bloqueios nasais.",
+    "psicoemocional": "Dificuldade em lidar com cheiros fortes (metafórica ou literalmente), receio de enfrentar situações novas."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial atravessando o nariz.",
+    "interpretação_clinica": "Sinal de bloqueio energético, propensão a infeção, alergia ou trauma nasal.",
+    "psicoemocional": "Stress antigo ligado a ambientes tóxicos, medo de enfrentar novidades."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre o nariz.",
+    "interpretação_clinica": "Memória de infeção, inflamação ou trauma antigo.",
+    "psicoemocional": "Tendência a racionalizar impressões, dificuldade em confiar no próprio instinto."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico sobre o nariz.",
+    "interpretação_clinica": "Tensão muscular nasal, propensão a dor, espasmos ou congestão.",
+    "psicoemocional": "Ansiedade perante situações novas, receio de enfrentar desafios desconhecidos."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas no nariz.",
+    "interpretação_clinica": "Boa integridade nasal, menor risco de infeção ou dor crónica.",
+    "psicoemocional": "Facilidade em aceitar novas experiências, abertura ao desconhecido."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico no nariz.",
+    "interpretação_clinica": "Congestão linfática nasal, risco de infeção, edema ou alergia.",
+    "psicoemocional": "Defesa emocional perante ambientes tóxicos, necessidade de proteção ao sentir-se invadido."
+  }
+],
+
+"Seio nasal": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras do setor dos seios nasais.",
+    "interpretação_clinica": "Predisposição a sinusite, dor, congestão ou infeção crónica.",
+    "psicoemocional": "Dificuldade em lidar com pressões, medo de exposição ao ambiente externo."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial atravessando os seios nasais.",
+    "interpretação_clinica": "Sinal de bloqueio energético, propensão a infeção ou inflamação crónica.",
+    "psicoemocional": "Stress antigo ligado a ambientes fechados, dificuldade em libertar mágoas."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento nos seios nasais.",
+    "interpretação_clinica": "Memória de infeção, inflamação ou cirurgia antiga.",
+    "psicoemocional": "Tendência a racionalizar pressões, dificuldade em aceitar novas ideias."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico nos seios nasais.",
+    "interpretação_clinica": "Tensão persistente, propensão a dor, pressão ou congestão.",
+    "psicoemocional": "Ansiedade perante situações opressivas, medo de ambientes hostis."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas nos seios nasais.",
+    "interpretação_clinica": "Boa defesa nasal, menor risco de infeção ou dor crónica.",
+    "psicoemocional": "Confiança em ambientes diferentes, facilidade de adaptação."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico nos seios nasais.",
+    "interpretação_clinica": "Congestão linfática local, risco de infeção ou edema.",
+    "psicoemocional": "Defesa elevada perante ambientes opressivos, necessidade de proteção interior."
+  }
+],
+"Olho": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras do setor do olho.",
+    "interpretação_clinica": "Predisposição a infeções, conjuntivites, alterações visuais ou sensibilidade à luz.",
+    "psicoemocional": "Dificuldade em ver a realidade tal como ela é, medo de enfrentar a verdade, tendência a evitar o confronto visual."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial atravessando o setor do olho.",
+    "interpretação_clinica": "Sinal de bloqueio energético, risco de inflamação, infeção ou alteração visual.",
+    "psicoemocional": "Stress antigo ligado ao olhar dos outros, receio de ser julgado ou vigiado."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre o setor ocular.",
+    "interpretação_clinica": "Memória de infeção, inflamação ou trauma ocular.",
+    "psicoemocional": "Tendência a racionalizar impressões visuais, dificuldade em confiar no próprio julgamento."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico sobre o olho.",
+    "interpretação_clinica": "Tensão muscular ocular, propensão a fadiga visual, dor ou espasmos.",
+    "psicoemocional": "Ansiedade perante a exposição pública, medo de ser observado."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas no olho.",
+    "interpretação_clinica": "Boa resistência ocular, menor risco de infeção ou fadiga visual.",
+    "psicoemocional": "Facilidade em aceitar novas visões e perspetivas, abertura ao desconhecido."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico na área ocular.",
+    "interpretação_clinica": "Congestão linfática ocular, risco de infeção ou edema.",
+    "psicoemocional": "Defesas elevadas perante críticas visuais, necessidade de proteção em ambientes competitivos."
+  }
+],
+
+"Testa": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras da zona da testa.",
+    "interpretação_clinica": "Predisposição a cefaleias, tensão frontal, enxaquecas ou congestão sinusal.",
+    "psicoemocional": "Dificuldade em planear o futuro, receio de errar, excesso de preocupação mental."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial atravessando a testa.",
+    "interpretação_clinica": "Sinal de stress intelectual, risco de dor de cabeça, fadiga ou bloqueio criativo.",
+    "psicoemocional": "Stress antigo ligado a pressão mental, medo de não corresponder às expectativas."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre a testa.",
+    "interpretação_clinica": "Memória de trauma, inflamação ou infeção antiga.",
+    "psicoemocional": "Tendência a racionalizar preocupações, dificuldade em libertar o passado."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico na testa.",
+    "interpretação_clinica": "Tensão muscular frontal, propensão a dor, fadiga ou rigidez.",
+    "psicoemocional": "Ansiedade perante desafios intelectuais, receio de falhar mentalmente."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na testa.",
+    "interpretação_clinica": "Boa resistência intelectual, menor risco de cefaleia crónica.",
+    "psicoemocional": "Facilidade em planear e adaptar-se a novas ideias."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico na testa.",
+    "interpretação_clinica": "Congestão linfática frontal, risco de infeção, edema ou dor.",
+    "psicoemocional": "Defesa emocional perante críticas mentais, necessidade de proteção do espaço intelectual."
+  }
+],
+
+"Têmpora": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras na zona da têmpora.",
+    "interpretação_clinica": "Predisposição a dor temporomandibular, cefaleias, inflamação ou tensão muscular.",
+    "psicoemocional": "Dificuldade em aceitar mudanças rápidas, medo de decisões súbitas."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial atravessando a têmpora.",
+    "interpretação_clinica": "Sinal de stress, risco de dor de cabeça lateral, trauma ou bloqueio energético.",
+    "psicoemocional": "Stress antigo perante mudanças bruscas, receio de imprevistos."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento na têmpora.",
+    "interpretação_clinica": "Memória de inflamação, infeção ou lesão antiga.",
+    "psicoemocional": "Tendência a racionalizar decisões rápidas, dificuldade em aceitar surpresas."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico na têmpora.",
+    "interpretação_clinica": "Tensão muscular temporomandibular, propensão a dor, espasmos ou rigidez.",
+    "psicoemocional": "Ansiedade perante novidades, medo de não conseguir acompanhar o ritmo da vida."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na têmpora.",
+    "interpretação_clinica": "Boa flexibilidade e resistência muscular, menor risco de dor ou bloqueio.",
+    "psicoemocional": "Facilidade em lidar com mudanças e novas situações."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico na têmpora.",
+    "interpretação_clinica": "Congestão linfática lateral, risco de infeção, dor ou edema.",
+    "psicoemocional": "Defesa emocional perante mudanças repentinas, necessidade de proteção em situações inesperadas."
+  }
+],
+
+"Fala adquirida": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras da zona da fala adquirida.",
+    "interpretação_clinica": "Predisposição a gaguez, bloqueios comunicativos, dificuldade em articular palavras.",
+    "psicoemocional": "Dificuldade em exprimir ideias novas, medo de ser mal interpretado."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial na área da fala adquirida.",
+    "interpretação_clinica": "Sinal de stress comunicativo, risco de bloqueio verbal ou alteração da fala.",
+    "psicoemocional": "Stress antigo perante aprendizagem, ansiedade ao falar em público."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre a área da fala.",
+    "interpretação_clinica": "Memória de trauma verbal, dificuldade em articular emoções.",
+    "psicoemocional": "Tendência a racionalizar bloqueios comunicativos, dificuldade em assumir a própria voz."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico na zona da fala adquirida.",
+    "interpretação_clinica": "Tensão muscular ao falar, propensão a fadiga vocal, rouquidão ou bloqueio.",
+    "psicoemocional": "Ansiedade perante a comunicação, medo de errar em público."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na fala adquirida.",
+    "interpretação_clinica": "Boa articulação e resistência vocal, menor risco de bloqueio.",
+    "psicoemocional": "Facilidade em aprender novas línguas, confiança ao exprimir-se."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico na área da fala.",
+    "interpretação_clinica": "Congestão linfática oral, risco de infeção, dor ou edema.",
+    "psicoemocional": "Defesa emocional perante críticas à expressão verbal."
+  }
+],
+
+"Pressão do Ego": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras na área da pressão do ego.",
+    "interpretação_clinica": "Predisposição a cefaleias de tensão, rigidez de ideias ou dificuldade em aceitar críticas.",
+    "psicoemocional": "Dificuldade em adaptar-se a opiniões diferentes, medo de perder controlo das situações."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial na zona da pressão do ego.",
+    "interpretação_clinica": "Sinal de stress mental, risco de bloqueio emocional ou conflito interior.",
+    "psicoemocional": "Stress antigo perante confronto de ideias, ansiedade em ambientes competitivos."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre a área da pressão do ego.",
+    "interpretação_clinica": "Memória de trauma emocional, tendência à inflexibilidade ou isolamento.",
+    "psicoemocional": "Tendência a racionalizar emoções de inferioridade, dificuldade em lidar com falhas."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico na zona da pressão do ego.",
+    "interpretação_clinica": "Tensão muscular frontal, propensão a dor de cabeça ou bloqueio cognitivo.",
+    "psicoemocional": "Ansiedade perante competição, medo de não ser reconhecido."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na zona do ego.",
+    "interpretação_clinica": "Boa resistência mental, menor risco de bloqueio emocional.",
+    "psicoemocional": "Facilidade em liderar e tomar decisões, confiança interior."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico na área do ego.",
+    "interpretação_clinica": "Congestão linfática frontal, risco de inflamação, dor ou edema.",
+    "psicoemocional": "Defesa emocional perante situações de pressão, necessidade de proteção perante críticas."
+  }
+],
+
+"Habilidade mental": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras da zona da habilidade mental.",
+    "interpretação_clinica": "Predisposição a défices cognitivos, dificuldades de aprendizagem ou bloqueios criativos.",
+    "psicoemocional": "Dificuldade em acreditar nas próprias capacidades, medo de errar em tarefas intelectuais."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial na área da habilidade mental.",
+    "interpretação_clinica": "Sinal de stress intelectual, risco de bloqueio criativo ou dificuldade de concentração.",
+    "psicoemocional": "Stress antigo perante desafios mentais, ansiedade por não ser suficientemente capaz."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento na zona da habilidade mental.",
+    "interpretação_clinica": "Memória de trauma cognitivo, dificuldade de aprendizagem antiga.",
+    "psicoemocional": "Tendência a racionalizar fracassos, dificuldade em reconhecer talentos."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico na habilidade mental.",
+    "interpretação_clinica": "Tensão muscular frontal, propensão a dor de cabeça, fadiga mental ou bloqueio.",
+    "psicoemocional": "Ansiedade perante exames ou avaliações, medo de não corresponder às expectativas."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na área mental.",
+    "interpretação_clinica": "Boa capacidade cognitiva, menor risco de bloqueios ou falhas de memória.",
+    "psicoemocional": "Confiança no próprio intelecto, abertura ao conhecimento."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico na habilidade mental.",
+    "interpretação_clinica": "Congestão linfática cerebral, risco de infeção, dor ou cansaço.",
+    "psicoemocional": "Defesa emocional perante desafios intelectuais, necessidade de proteção mental."
+  }
+],
+
+"Sexualidade mental": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras do setor da sexualidade mental.",
+    "interpretação_clinica": "Predisposição a bloqueios de expressão sexual, inibição ou dificuldade em assumir desejos.",
+    "psicoemocional": "Dificuldade em aceitar a sexualidade, medo do julgamento social ou interno."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial na área da sexualidade mental.",
+    "interpretação_clinica": "Sinal de stress psicossexual, risco de bloqueios, tabus ou medo de exposição.",
+    "psicoemocional": "Stress antigo perante experiências negativas, receio de assumir fantasias ou desejos."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento na sexualidade mental.",
+    "interpretação_clinica": "Memória de trauma, abuso ou repressão sexual.",
+    "psicoemocional": "Tendência a racionalizar desejos, dificuldade em assumir prazer e espontaneidade."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico na sexualidade mental.",
+    "interpretação_clinica": "Tensão muscular frontal ou temporal, propensão a ansiedade ou bloqueios emocionais.",
+    "psicoemocional": "Ansiedade perante temas íntimos, receio de ser descoberto ou julgado."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na sexualidade mental.",
+    "interpretação_clinica": "Boa integração entre desejo e pensamento, menor risco de bloqueios psicossexuais.",
+    "psicoemocional": "Facilidade em assumir desejos e integrá-los de forma saudável na vida mental."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico na sexualidade mental.",
+    "interpretação_clinica": "Congestão linfática frontal, risco de infeção ou dor de cabeça.",
+    "psicoemocional": "Defesa emocional perante tabus e críticas internas, necessidade de aceitação e compreensão."
+  }
+],
+"Vitalidade": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras da zona da vitalidade.",
+    "interpretação_clinica": "Predisposição a cansaço crónico, baixa energia, dificuldade em recuperar após esforço.",
+    "psicoemocional": "Dificuldade em manter o entusiasmo, medo de não conseguir dar resposta à vida, sensação de desânimo."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial na área da vitalidade.",
+    "interpretação_clinica": "Sinal de esgotamento energético, risco de colapso físico ou emocional, tendência à exaustão.",
+    "psicoemocional": "Stress antigo por excesso de responsabilidades, bloqueio emocional ao sentir-se sobrecarregado."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento sobre a zona da vitalidade.",
+    "interpretação_clinica": "Memória de doença, fadiga ou trauma antigo, tendência a letargia.",
+    "psicoemocional": "Tendência a racionalizar o cansaço, dificuldade em aceitar limites energéticos."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico na área da vitalidade.",
+    "interpretação_clinica": "Tensão muscular crónica, propensão a fadiga, cãibras ou dor persistente.",
+    "psicoemocional": "Ansiedade perante exigências contínuas, medo de não ser suficiente."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na zona da vitalidade.",
+    "interpretação_clinica": "Boa resistência e energia, capacidade de recuperação rápida.",
+    "psicoemocional": "Facilidade em manter motivação, confiança na própria força vital."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico na zona da vitalidade.",
+    "interpretação_clinica": "Congestão linfática generalizada, risco de infeção, fadiga ou edema.",
+    "psicoemocional": "Defesas elevadas perante exigências excessivas, necessidade de proteção da energia pessoal."
+  }
+],
+
+"5 sentidos": [
+  {
+    "nome": "**Lacuna**",
+    "descricao": "Abertura nas fibras na área dos 5 sentidos.",
+    "interpretação_clinica": "Predisposição a alterações sensoriais, défices auditivos, visuais, olfativos, gustativos ou táteis.",
+    "psicoemocional": "Dificuldade em conectar-se ao mundo, medo de ser invadido por estímulos externos."
+  },
+  {
+    "nome": "**Raio Solaris**",
+    "descricao": "Sulco radial na zona dos 5 sentidos.",
+    "interpretação_clinica": "Sinal de bloqueio sensorial, tendência a alergias, hipersensibilidade ou stress sensorial.",
+    "psicoemocional": "Stress antigo ligado à sobrecarga de estímulos, necessidade de criar barreiras à perceção."
+  },
+  {
+    "nome": "**Pigmento (Mancha psórica)**",
+    "descricao": "Pigmento na zona dos 5 sentidos.",
+    "interpretação_clinica": "Memória de trauma sensorial, infeção antiga ou défice funcional.",
+    "psicoemocional": "Tendência a racionalizar perceções, dificuldade em confiar nos próprios sentidos."
+  },
+  {
+    "nome": "**Anel de Tensão**",
+    "descricao": "Arco concêntrico sobre os 5 sentidos.",
+    "interpretação_clinica": "Tensão muscular ou nervosa, propensão a bloqueios sensoriais ou irritabilidade.",
+    "psicoemocional": "Ansiedade perante estímulos intensos, medo de perder o controlo da perceção."
+  },
+  {
+    "nome": "**Fibras Radiadas**",
+    "descricao": "Fibras densas e alinhadas na área dos 5 sentidos.",
+    "interpretação_clinica": "Boa perceção e integração sensorial, menor risco de défices ou hipersensibilidade.",
+    "psicoemocional": "Facilidade em adaptar-se a diferentes estímulos, abertura à experiência sensorial."
+  },
+  {
+    "nome": "**Rosário Linfático**",
+    "descricao": "Rosário periférico nos 5 sentidos.",
+    "interpretação_clinica": "Congestão linfática craniana, risco de infeção, alergia ou fadiga sensorial.",
+    "psicoemocional": "Defesa elevada perante excesso de estímulos, necessidade de limites na perceção externa."
+  }
+]
+}

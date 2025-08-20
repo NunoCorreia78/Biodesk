@@ -1,0 +1,63 @@
+# PROTOCOLO PERSONALIZADO - NUNO CORREIA
+
+**Nome do Paciente:** {{nome_paciente}}
+**Data:** {{data_hoje}} às {{hora_atual}}
+**Profissional:** {{nome_profissional}}
+
+---
+
+## ⚠️ IMPORTANTE
+
+Este protocolo é de carácter complementar e individualizado. Não substitui avaliação médica.
+Deve ser sempre adaptado à condição clínica e estilo de vida do paciente.
+
+**Clínica:** {{nome_clinica}}
+**Contacto:** {{telefone_clinica}} | {{email_clinica}}
+
+---
+
+## 🎯 OBJETIVOS DO PROTOCOLO
+
+[COLE AQUI OS OBJETIVOS DO SEU PROTOCOLO]
+
+---
+
+## 📋 ORIENTAÇÕES PRINCIPAIS
+
+[COLE AQUI O CONTEÚDO PRINCIPAL DO SEU PROTOCOLO - TEXTO COMPLETO DAS 4 PÁGINAS]
+
+[Pode incluir:]
+- Orientações alimentares
+- Protocolos de suplementação  
+- Exercícios e alongamentos
+- Fitoterapia
+- Cronogramas
+- Tabelas de horários
+
+---
+
+## 🖼️ IMAGENS DE REFERÊNCIA (opcional)
+
+<!-- Para adicionar imagens: -->
+<!-- 1. Coloque as imagens na pasta templates/orientacoes/imagens/ -->
+<!-- 2. Use {{imagem_1}}, {{imagem_2}}, {{imagem_3}} onde quiser que apareçam -->
+
+{{imagem_1}}
+{{imagem_2}}
+{{imagem_3}}
+
+---
+
+## 📅 SEGUIMENTO
+
+**Próxima consulta:** {{proxima_consulta}}
+**Observações específicas:** {{observacoes_especificas}}
+
+---
+
+**Criado em:** {{data_hoje}} às {{hora_atual}}
+**{{saudacao}}, {{nome_paciente}}!**
+
+---
+*{{nome_profissional}} - {{especialidade_profissional}}*
+*Naturopatia • Osteopatia • Medicina Quântica*

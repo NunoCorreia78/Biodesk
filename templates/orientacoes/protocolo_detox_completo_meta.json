@@ -1,0 +1,27 @@
+{
+  "nome": "Protocolo Detox Hepático Completo - Nuno Correia",
+  "categoria": "orientacoes",
+  "tipo": "template_editavel",
+  "variaveis": [
+    "nome_paciente",
+    "data_hoje",
+    "hora_atual",
+    "nome_profissional",
+    "nome_clinica",
+    "telefone_clinica",
+    "email_clinica",
+    "email_profissional",
+    "contacto_urgente",
+    "proxima_consulta",
+    "observacoes_especificas",
+    "saudacao",
+    "especialidade_profissional",
+    "imagem_1",
+    "imagem_2",
+    "imagem_3"
+  ],
+  "arquivo_conteudo": "templates\\orientacoes\\protocolo_detox_completo.txt",
+  "suporte_imagens": true,
+  "pasta_imagens": "templates\\orientacoes\\imagens",
+  "descricao": "Template completo com capa ASCII do protocolo de detox hepático de 4 páginas"
+}

@@ -1,0 +1,287 @@
+# 🔬 PROTOCOLO DE DETOX HEPÁTICO
+
+```
+╔══════════════════════════════════════════════════════════════╗
+║                                                              ║
+║                    🌿 NUNO CORREIA 🌿                       ║
+║                                                              ║
+║              NATUROPATIA • OSTEOPATIA • MEDICINA QUÂNTICA   ║
+║                                                              ║
+║                  📋 PROTOCOLO DE DETOX HEPÁTICO             ║
+║                                                              ║
+║              Paciente: {{nome_paciente}}                    ║
+║              Data: {{data_hoje}} às {{hora_atual}}          ║
+║              Duração: 21 dias (ajustável)                   ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+```
+
+---
+
+## ⚠️ IMPORTANTE
+
+Este protocolo é de carácter complementar e individualizado. Não substitui avaliação médica.
+Deve ser sempre adaptado à condição clínica e estilo de vida do paciente.
+
+**Clínica:** {{nome_clinica}}
+**Contacto:** {{telefone_clinica}} | {{email_clinica}}
+
+---
+
+## 🎯 Objetivos do Protocolo
+
+### 1. 🔄 Desintoxicação Hepática
+- Estimular a função hepatobiliar e biliar
+- Apoiar os processos de biotransformação hepática (Fase I e Fase II)  
+- Reduzir carga tóxica sistémica
+- Melhorar digestão, metabolismo e vitalidade geral
+
+---
+
+## 🥗 Chás e Bebidas (diariamente)
+
+| Bebida / Infusão | Frequência recomendada | Função principal |
+|------------------|------------------------|------------------|
+| Chá de dente-de-leão | 1 chávena 2x/dia (manhã/tarde) | Estimulo hepático-biliar e diurético |
+| Chá de boldo | 1 chávena após o jantar | Apoio digestivo e biliar |
+| Chá de alcachofra | 1 chávena por dia | Proteção hepática e digestiva |
+| Água morna com limão em jejum | 1 copo ao acordar | Ativação digestiva e limpeza |
+| Infusão detox personalizada (se aplicável) | Conforme orientação específica | Efeito combinado depurativo |
+
+**Nota:** As infusões devem ser preparadas em água a ferver, infundindo 5 a 10 minutos. Não adoçar, ou usar adoçante natural em pequena quantidade, se necessário.
+
+---
+
+## 🌿 FITOTERAPIA ESPECÍFICA
+
+### Plantas Medicinais Recomendadas:
+
+#### 🍃 **Dente-de-leão** (Taraxacum officinale)
+{{imagem_1}}
+- **Função:** Estimulante hepatobiliar e diurético
+- **Uso:** Chá ou tintura
+- **Dosagem:** 2-3 chávenas/dia
+
+#### 🍃 **Boldo** (Peumus boldus)  
+{{imagem_2}}
+- **Função:** Proteção hepática e digestiva
+- **Uso:** Chá após refeições
+- **Dosagem:** 1 chávena após jantar
+
+#### 🍃 **Alcachofra** (Cynara scolymus)
+{{imagem_3}}
+- **Função:** Hepatoprotetor e colagogo
+- **Uso:** Chá ou extrato
+- **Dosagem:** 1 chávena/dia
+
+---
+
+## 🥙 ORIENTAÇÕES ALIMENTARES
+
+### ✅ **ALIMENTOS RECOMENDADOS:**
+
+#### **Vegetais Desintoxicantes (Diários):**
+- Brócolos, couve-flor, couve de Bruxelas
+- Rúcula, agrião, espinafres
+- Beterraba, cenoura, aipo
+- **Porção:** 2-3 chávenas por dia
+
+#### **Proteínas Leves:**
+- Peixe selvagem (3x/semana)
+- Leguminosas (feijão, lentilhas)
+- Ovos biológicos (2-3x/semana)
+
+#### **Gorduras Saudáveis:**
+- Azeite extra virgem
+- Abacate, nozes, sementes
+- Ómega-3 (peixes gordos)
+
+### ❌ **ALIMENTOS A EVITAR:**
+
+- Álcool e bebidas açucaradas
+- Alimentos processados e fritos
+- Açúcar refinado e adoçantes artificiais
+- Carnes vermelhas em excesso
+- Laticínios (temporariamente)
+
+---
+
+## 💧 HIDRATAÇÃO E DRENAGEM
+
+### **Protocolo Diário:**
+- **Manhã:** 500ml água morna com limão (jejum)
+- **Durante o dia:** 1,5-2L água filtrada
+- **Tarde:** Chás hepatoprotetores
+- **Noite:** Chá digestivo (boldo/camomila)
+
+### **Drenagem Linfática:**
+- Escovagem seca da pele (5 min/manhã)
+- Duche alternado (quente/frio)
+- Movimento/exercício diário
+
+---
+
+## 🏃‍♂️ EXERCÍCIO E MOVIMENTO
+
+### **Programa Mínimo Diário:**
+- **Manhã:** 10-15 min caminhada ou alongamentos
+- **Tarde:** 20-30 min atividade moderada
+- **Noite:** 5-10 min respiração/relaxamento
+
+### **Exercícios Específicos:**
+- Torções espinhais (estimulam órgãos)
+- Respiração diafragmática
+- Yoga ou pilates (2-3x/semana)
+
+---
+
+## 💊 SUPLEMENTAÇÃO (se aplicável)
+
+### **Suplementos Hepatoprotetores:**
+- **Cardo Mariano:** 200-400mg/dia
+- **Cúrcuma:** 500-1000mg/dia  
+- **Vitamina C:** 500-1000mg/dia
+- **Complexo B:** Conforme orientação
+- **Magnésio:** 200-400mg/dia
+
+**Nota:** Suplementação deve ser sempre personalizada e orientada.
+
+---
+
+## ⏰ CRONOGRAMA DIÁRIO SUGERIDO
+
+### **🌅 MANHÃ (7h-9h):**
+- Água morna com limão (jejum)
+- Pequeno-almoço leve e nutritivo
+- Chá de dente-de-leão
+
+### **🌞 MEIO-DIA (12h-14h):**
+- Almoço rico em vegetais
+- Hidratação contínua
+- Movimento pós-refeição
+
+### **🌇 TARDE (16h-18h):**
+- Lanche saudável (frutos/nozes)
+- Chá hepatoprotetor
+- Atividade física
+
+### **🌙 NOITE (19h-21h):**
+- Jantar leve e precoce
+- Chá de boldo (digestão)
+- Relaxamento/preparação sono
+
+---
+
+## 📊 MONITORIZAÇÃO E SINAIS
+
+### **Sinais Positivos (Detox a funcionar):**
+- ✅ Aumento de energia
+- ✅ Melhoria digestão
+- ✅ Sono mais reparador
+- ✅ Pele mais limpa
+- ✅ Humor equilibrado
+
+### **Sinais de Alerta (Contactar profissional):**
+- ⚠️ Fadiga extrema persistente
+- ⚠️ Dores abdominais intensas
+- ⚠️ Náuseas/vómitos constantes
+- ⚠️ Alterações urinárias significativas
+
+---
+
+## 📅 PLANEAMENTO SEMANAL
+
+### **SEMANA 1-2:** Adaptação
+- Introdução gradual das mudanças
+- Foco na hidratação e chás
+- Eliminação toxinas evidentes
+
+### **SEMANA 3:** Intensificação  
+- Protocolo completo implementado
+- Monitorização mais rigorosa
+- Ajustes conforme necessário
+
+### **SEMANA 4+:** Manutenção
+- Consolidação dos hábitos
+- Transição para estilo de vida
+- Planeamento seguimento
+
+---
+
+## 🎯 OBJETIVOS ESPECÍFICOS POR FASE
+
+### **FASE I - MOBILIZAÇÃO (Semana 1):**
+- Ativar sistemas de eliminação
+- Aumentar consumo água/chás
+- Reduzir toxinas externas
+
+### **FASE II - CONJUGAÇÃO (Semana 2-3):**
+- Suporte nutricional intensivo
+- Fitoterapia específica
+- Otimização digestão
+
+### **FASE III - ELIMINAÇÃO (Semana 4):**
+- Drenagem linfática
+- Exercício regular
+- Consolidação resultados
+
+---
+
+## 📋 SEGUIMENTO E REAVALIAÇÃO
+
+**Próxima consulta:** {{proxima_consulta}}
+**Observações específicas:** {{observacoes_especificas}}
+
+### **Parâmetros a Monitorizar:**
+- Energia e vitalidade geral
+- Qualidade do sono
+- Função digestiva
+- Hidratação e eliminação
+- Bem-estar emocional
+
+### **Registos Recomendados:**
+- Diário alimentar (primeiros 7 dias)
+- Sintomas/sensações diárias
+- Qualidade sono (escala 1-10)
+- Níveis energia (escala 1-10)
+
+---
+
+## 📞 CONTACTOS E APOIO
+
+**Profissional:** {{nome_profissional}}
+**Especialidade:** {{especialidade_profissional}}
+**Clínica:** {{nome_clinica}}
+**Telefone:** {{telefone_clinica}}
+**Email:** {{email_clinica}}
+**Emergência:** {{contacto_urgente}}
+
+### **Disponibilidade:**
+- Consultas presenciais: [definir horários]
+- Contacto telefónico: [definir horários] 
+- Email: Resposta em 24-48h
+- Urgências: Contacto direto
+
+---
+
+**Documento criado em:** {{data_hoje}} às {{hora_atual}}
+**{{saudacao}}, {{nome_paciente}}!**
+
+---
+
+```
+╔══════════════════════════════════════════════════════════════╗
+║                                                              ║
+║                   🌿 NUNO CORREIA 🌿                        ║
+║                                                              ║
+║         NATUROPATIA • OSTEOPATIA • MEDICINA QUÂNTICA        ║
+║                                                              ║
+║              📧 {{email_profissional}}                      ║
+║              📞 {{telefone_clinica}}                        ║
+║                                                              ║
+║          "Saúde Integral através da Medicina Natural"       ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+```
+
+*Protocolo personalizado - Sistema Biodesk {{data_hoje}}*

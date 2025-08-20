@@ -1,0 +1,86 @@
+[
+  {
+    "text": "Apagar a lista de tarefas depois da conclusão do programa",
+    "completed": false,
+    "created_date": "2025-08-05 22:45",
+    "priority": "Baixa"
+  },
+  {
+    "text": "Desenvolver o sistema de mensagens e ou de email, incluindo o agendamento dessas mensagens",
+    "completed": true,
+    "created_date": "2025-08-05 22:46",
+    "priority": "Alta"
+  },
+  {
+    "text": "desenvolver a terapia quantica. Deve ser igual entre pacientes e anónimo",
+    "completed": true,
+    "created_date": "2025-08-05 22:49",
+    "priority": "Normal"
+  },
+  {
+    "text": "integrar fichas de anamnese, templates de exercicios, dietas especificas, alongamentos",
+    "completed": true,
+    "created_date": "2025-08-05 22:50",
+    "priority": "Alta"
+  },
+  {
+    "text": "Possibilidade de app movel para acompanhamento de pacientes",
+    "completed": false,
+    "created_date": "2025-08-05 22:51",
+    "priority": "Baixa"
+  },
+  {
+    "text": "integrar corretor ortográfico",
+    "completed": false,
+    "created_date": "2025-08-05 23:00",
+    "priority": "Normal"
+  },
+  {
+    "text": "Certificar que a assinatura funciona com caneta digital",
+    "completed": false,
+    "created_date": "2025-08-06 10:19",
+    "priority": "Alta"
+  },
+  {
+    "text": "apagar biotip e estado emocional da ficha de pacientes",
+    "completed": true,
+    "created_date": "2025-08-06 11:36",
+    "priority": "Alta"
+  },
+  {
+    "text": "verificar o porquê de algumas zonas da iris não abrirem os diferentes sinais",
+    "completed": true,
+    "created_date": "2025-08-08 13:25",
+    "priority": "Alta"
+  },
+  {
+    "text": "Perguntar se é necessária a sub sub aba Status web app",
+    "completed": true,
+    "created_date": "2025-08-12 13:29",
+    "priority": "Alta"
+  },
+  {
+    "text": "Limpar e procurar ficheiros .py ou outros no workspace que apenas sejam lixo ou não sirvam para nada",
+    "completed": true,
+    "created_date": "2025-08-12 13:30",
+    "priority": "Alta"
+  },
+  {
+    "text": "COPIAR O MODELO DE GERAR PDF FINAL PARA O BOTÃO GUARDAR E APAGA ESSE BOTÃO",
+    "completed": true,
+    "created_date": "2025-08-18 10:30",
+    "priority": "Alta"
+  },
+  {
+    "text": "Questionar se os botões de assinatura e de guardar não podem funcionar apenas em um.\nPor exemplo assinar a declaração de saúde e depois, nesse canvas de assinatura estar algo como guardar documento, que faz logo o papel do botão guardar e introduz a assinatura....",
+    "completed": true,
+    "created_date": "2025-08-18 16:08",
+    "priority": "Alta"
+  },
+  {
+    "text": "Desenvolver inicialmente a terapia com o chatgpt de forma a poupar pedidos premium",
+    "completed": false,
+    "created_date": "2025-08-18 22:54",
+    "priority": "Alta"
+  }
+]

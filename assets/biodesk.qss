@@ -1,66 +1,114 @@
-/* Biodesk QSS - estilo moderno */
+/* Biodesk QSS - estilo moderno profissional */
 QWidget {
-    background: #f7f9fa;
-    font-family: 'Segoe UI', Arial, sans-serif;
-    color: #222;
+    background: #fafbfc;
+    font-family: 'Inter', 'Montserrat', 'Segoe UI', Arial, sans-serif;
+    color: #2c3e50;
 }
-QPushButton, QToolButton {
-    background-color: #007ACC;
-    color: white;
-    border-radius: 8px;
-    padding: 6px 18px;
-    font-size: 14px;
-    font-weight: bold;
-    min-height: 32px;
-    // box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-    border: none;
-    // transition: background 0.2s, color 0.2s;
-}
-QPushButton:hover, QToolButton:hover {
-    background-color: #eaf3fa;
-    color: #007ACC;
-}
-QPushButton:pressed, QToolButton:pressed {
-    background-color: #003E70;
-    color: white;
-}
+
+/* Botões principais - removido para permitir estilos individuais */
 QPushButton::menu-indicator { image: none; }
+
+/* Botões secundários - cinza suave */
+QPushButton[class="secondary"] {
+    background-color: #ecf0f1;
+    color: #2c3e50;
+    border-radius: 12px;
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 500;
+}
+QPushButton[class="secondary"]:hover {
+    background-color: #d5dbdb;
+}
+
+/* Botões de perigo/apagar - vermelho suave */
+QPushButton[class="danger"] {
+    background-color: #d67373;
+    color: white;
+    border-radius: 12px;
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 600;
+}
+QPushButton[class="danger"]:hover {
+    background-color: #c55a5a;
+}
+
+/* Botões de sucesso - verde suave */
+QPushButton[class="success"] {
+    background-color: #6ba36b;
+    color: white;
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-size: 15px;
+    font-weight: 600;
+}
+QPushButton[class="success"]:hover {
+    background-color: #7bb87b;
+}
+
 QLabel {
-    color: #234;
+    color: #2c3e50;
+    font-weight: 400;
 }
 QMainWindow {
-    background: #f7f9fa;
+    background: #fafbfc;
 }
+
+/* Painéis laterais com diferenciação visual */
+QWidget[class="side-panel"] {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 8px;
+}
+
 QListWidget {
     font-size: 15px;
     margin: 8px;
-    border-radius: 6px;
-    background: #f7f9fa;
+    border-radius: 8px;
+    background: #ffffff;
+    border: 1px solid #e9ecef;
+    padding: 4px;
 }
 QListWidget::item {
-    padding: 12px 8px;
-    border-bottom: 1px solid #e0e0e0;
-    min-height: 32px;
+    padding: 14px 12px;
+    border-bottom: 1px solid #f1f3f4;
+    min-height: 36px;
+    border-radius: 6px;
+    margin: 2px;
 }
 QListWidget::item:selected {
-    background: #eaf3fa;
-    color: #007ACC;
+    background: #e8f1f5;
+    color: #5a9ab8;
+    border: 1px solid #5a9ab8;
+}
+QListWidget::item:hover {
+    background: #f5f5f5;
 }
 QTabWidget::pane {
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    background: #ffffff;
+    padding: 8px;
 }
 QTabBar::tab {
-    background: #f7f9fa;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px 8px 0 0;
-    padding: 8px 24px;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 10px 10px 0 0;
+    padding: 12px 28px;
     font-size: 16px;
-    color: #234;
+    font-weight: 500;
+    color: #2c3e50;
+    margin-right: 4px;
 }
 QTabBar::tab:selected {
-    background: #eaf3fa;
-    color: #007ACC;
-    border-bottom: 2px solid #007ACC;
+    background: #ffffff;
+    color: #5a9ab8;
+    border-bottom: 3px solid #5a9ab8;
+    font-weight: 600;
+}
+QTabBar::tab:hover:!selected {
+    background: #ecf0f1;
 } 

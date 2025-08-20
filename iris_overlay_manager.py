@@ -297,9 +297,13 @@ class IrisOverlayManager:
         from PyQt6.QtWidgets import QGraphicsPathItem
         # Remove splines anteriores
         if hasattr(self, '_spline_items'):
-            for item in self._spline_items:
-                if item in self.scene.items():
-                    self.scene.removeItem(item)
+            for item in list(self._spline_items):
+                try:
+                    if item.scene() is not None:
+                        self.scene.removeItem(item)
+                except RuntimeError:
+                    # Item já foi deletado, ignorar
+                    pass
         self._spline_items = []
 
         if not getattr(self, 'individual_mode', False):
@@ -326,6 +330,19 @@ class IrisOverlayManager:
         if len(pupil_handles) >= 3:
             pts = [h.pos() for h in pupil_handles]
             spline_pts = catmull_rom_spline(pts, samples=12)
+            
+            # 🆕 NOVO: Armazenar pontos da spline da pupila com ângulos para uso no morphing
+            import math
+            centro = self.centro_iris or [400, 300]
+            self.pupil_spline_pts = []
+            for x, y in spline_pts:
+                dx = x - centro[0]
+                dy = y - centro[1]
+                ang = (math.degrees(math.atan2(-dy, dx))) % 360
+                self.pupil_spline_pts.append((x, y, ang))
+            # Ordenar por ângulo para interpolação correta
+            self.pupil_spline_pts.sort(key=lambda p: p[2])
+            
             path = QPainterPath()
             if spline_pts:
                 path.moveTo(spline_pts[0][0], spline_pts[0][1])
@@ -343,6 +360,19 @@ class IrisOverlayManager:
         if len(iris_handles) >= 3:
             pts = [h.pos() for h in iris_handles]
             spline_pts = catmull_rom_spline(pts, samples=12)
+            
+            # 🆕 NOVO: Armazenar pontos da spline da íris com ângulos para uso no morphing
+            import math
+            centro = self.centro_iris or [400, 300]
+            self.iris_spline_pts = []
+            for x, y in spline_pts:
+                dx = x - centro[0]
+                dy = y - centro[1]
+                ang = (math.degrees(math.atan2(-dy, dx))) % 360
+                self.iris_spline_pts.append((x, y, ang))
+            # Ordenar por ângulo para interpolação correta
+            self.iris_spline_pts.sort(key=lambda p: p[2])
+            
             path = QPainterPath()
             if spline_pts:
                 path.moveTo(spline_pts[0][0], spline_pts[0][1])
@@ -367,11 +397,17 @@ class IrisOverlayManager:
         self._calibracao_teste_pan = teste_pan
         # Remove todos os overlays antigos (exceto fundo estático)
         for item in list(self.scene.items()):
-            if isinstance(item, QGraphicsEllipseItem) and not (hasattr(item, 'data') and item.data(0) == "FUNDO_ESTATICO"):
-                self.scene.removeItem(item)
-            # Remove splines antigos
-            if hasattr(item, 'zValue') and item.zValue() == 10:
-                self.scene.removeItem(item)
+            try:
+                if isinstance(item, QGraphicsEllipseItem) and not (hasattr(item, 'data') and item.data(0) == "FUNDO_ESTATICO"):
+                    if item.scene() is not None:
+                        self.scene.removeItem(item)
+                # Remove splines antigos
+                if hasattr(item, 'zValue') and item.zValue() == 10:
+                    if item.scene() is not None:
+                        self.scene.removeItem(item)
+            except RuntimeError:
+                # Item já foi deletado, ignorar
+                pass
         self.clear_calibration()
         # Usa valores existentes se não forem fornecidos
         if centro_iris is not None:
@@ -500,6 +536,8 @@ class IrisOverlayManager:
         elif handle.handle_type in ('pupil', 'iris') and self.individual_mode:
             self.redraw_spline_circles()
             self.update_calibration_circles()  # Atualiza círculos tracejados em tempo real
+            # 🆕 NOVO: Atualizar zonas em tempo real durante ajuste fino
+            self.update_zones_for_fine_tuning()
 
         # Modo normal: recalcula raio global
         elif handle.handle_type == 'pupil':
@@ -532,10 +570,11 @@ class IrisOverlayManager:
             self.update_calibration_circles()
             self.redraw_spline_circles()
 
-        # Recalcula zonas em tempo real se não for um teste
-        if not self._calibracao_teste_basico and not self._calibracao_teste_pan:
-            if hasattr(self, 'zonas_json') and self.zonas_json:
-                self.recalculate_zones()
+        # ✅ CORREÇÃO CRÍTICA: Sempre recalcular zonas em tempo real durante calibração
+        # Removemos a condição que impedia a atualização das zonas
+        if hasattr(self, 'zonas_json') and self.zonas_json:
+            self.recalculate_zones()
+            print(f"🔄 Zonas atualizadas em tempo real: Centro({self.centro_iris[0]:.1f}, {self.centro_iris[1]:.1f}), Pupila={self.raio_pupila:.1f}, Íris={self.raio_anel:.1f}")
 
     def update_individual_pupil_shape(self):
         """
@@ -671,14 +710,22 @@ class IrisOverlayManager:
     def clear_calibration(self):
         """Remove todos os handles e círculos de calibração."""
         # Remove handles de calibração
-        for h in getattr(self, '_calib_handles', []):
-            if h in self.scene.items():
-                self.scene.removeItem(h)
+        for h in list(getattr(self, '_calib_handles', [])):
+            try:
+                if h.scene() is not None:
+                    self.scene.removeItem(h)
+            except RuntimeError:
+                # Handle já foi deletado, ignorar
+                pass
         
         # Remove itens de calibração (círculos tracejados)
-        for i in getattr(self, '_calib_items', []):
-            if i in self.scene.items():
-                self.scene.removeItem(i)
+        for i in list(getattr(self, '_calib_items', [])):
+            try:
+                if i.scene() is not None:
+                    self.scene.removeItem(i)
+            except RuntimeError:
+                # Item já foi deletado, ignorar
+                pass
         
         # Limpa listas
         self._calib_handles = []
@@ -701,6 +748,10 @@ class IrisOverlayManager:
         self.individual_pupil_positions = {}  # {handle: (x, y)}
         self.individual_iris_positions = {}   # {handle: (x, y)}
         
+        # 🆕 NOVO: Inicializar listas de pontos das splines
+        self.iris_spline_pts = []     # Lista de (x, y, angulo) da spline da íris
+        self.pupil_spline_pts = []    # Lista de (x, y, angulo) da spline da pupila
+        
         # Armazenamento para os deslocamentos manuais dos handles
         self.deslocamentos_pontos = {}  # formato: {(zona_idx, ponto_idx): (dx, dy)}
         
@@ -717,7 +768,7 @@ class IrisOverlayManager:
         Aplica morphing em um ponto, combinando escala proporcional com ajuste livre.
         
         Args:
-            p_original: ponto original do JSON (x, y)
+            p_original: ponto original do JSON (x, y) ou {"angulo": ..., "raio": ...}
             centro_original: centro usado no JSON
             centro_atual: novo centro calibrado
             raio_x/y_original: raios originais
@@ -727,9 +778,26 @@ class IrisOverlayManager:
         Returns:
             Tuplo (novo_x, novo_y) com as coordenadas atualizadas
         """
+        # Verificar se é coordenada polar ou cartesiana
+        if isinstance(p_original, dict) and 'angulo' in p_original and 'raio' in p_original:
+            # Converter coordenadas polares para cartesianas primeiro
+            import math
+            angulo = p_original['angulo']
+            raio_norm = p_original['raio']
+            
+            # Converter para coordenadas cartesianas usando calibração original
+            raio_real_original = self.raio_pupila + (raio_norm * (raio_x_original - self.raio_pupila))
+            rad = math.radians(angulo)
+            x_original = centro_original[0] + raio_real_original * math.cos(rad)
+            y_original = centro_original[1] - raio_real_original * math.sin(rad)
+            p_cartesiano = (x_original, y_original)
+        else:
+            # Já é coordenada cartesiana
+            p_cartesiano = p_original
+        
         # Normalização para percentagens relativas ao centro e raios originais
-        frac_x = (p_original[0] - centro_original[0]) / raio_x_original if raio_x_original else 0
-        frac_y = (p_original[1] - centro_original[1]) / raio_y_original if raio_y_original else 0
+        frac_x = (p_cartesiano[0] - centro_original[0]) / raio_x_original if raio_x_original else 0
+        frac_y = (p_cartesiano[1] - centro_original[1]) / raio_y_original if raio_y_original else 0
 
         # Morphing proporcional + livre (aplica o movimento do handle)
         novo_x = centro_atual[0] + frac_x * raio_x_atual + deslocamento_handle[0]
@@ -770,18 +838,33 @@ class IrisOverlayManager:
         self.draw_overlay()
 
     def draw_overlay(self):
-        """Redesenha todos os polígonos/zonas usando self.zonas_json e aplicando morphing livre."""
+        """
+        Redesenha todos os polígonos/zonas usando self.zonas_json.
+        
+        ✅ IMPLEMENTAÇÃO OBRIGATÓRIA:
+        - Se valores originais = valores atuais, usa coordenadas absolutas do JSON
+        - Caso contrário, aplica morphing para calibração visual
+        """
         from PyQt6.QtWidgets import QGraphicsPolygonItem
         from PyQt6.QtGui import QPolygonF, QColor, QBrush, QPen
         from PyQt6.QtCore import QPointF
         self.clear()
         self._hover_callback = None
         self._item_to_zonadata = {}
+        print("🔄 Redesenhando overlay de zonas...")
         
         # Obter os valores atuais de centro e raio
         centro_atual = self.centro_iris
         raio_x_atual = self.raio_anel  # Assumindo raio circular por enquanto
         raio_y_atual = self.raio_anel
+        
+        # Definir valores padrão se não estiverem definidos
+        if centro_atual is None:
+            centro_atual = [400, 300]  # Valores padrão
+        if raio_x_atual is None:
+            raio_x_atual = 120  # Valor padrão
+        if raio_y_atual is None:
+            raio_y_atual = 120  # Valor padrão
         
         # Se não temos valores originais, usar os atuais
         if self.centro_original is None:
@@ -791,62 +874,126 @@ class IrisOverlayManager:
         if self.raio_y_original is None:
             self.raio_y_original = raio_y_atual
         
+        # ✅ VERIFICAR SE PRECISA DE MORPHING (calibração ativa)
+        # 🆕 CORREÇÃO: Sempre forçar morphing quando em modo individual (ajuste fino)
+        precisa_morphing = (
+            self.centro_original != centro_atual or 
+            self.raio_x_original != raio_x_atual or 
+            self.raio_y_original != raio_y_atual or
+            any(offset != (0, 0) for offset in self.deslocamentos_pontos.values()) or
+            getattr(self, 'individual_mode', False)  # 🆕 NOVO: Forçar morphing no ajuste fino
+        )
+        
+        print(f"🎯 Morphing necessário: {precisa_morphing}")
+        if not precisa_morphing:
+            print("   → Usando coordenadas absolutas do JSON")
+        else:
+            print("   → Aplicando transformação para calibração visual")
+        
+        print(f"[DEBUG] Iniciando desenho das zonas. Total no JSON: {len(self.zonas_json)}")
         for idx_zona, zona_data in enumerate(self.zonas_json):
             if not isinstance(zona_data, dict):
                 print(f"[IrisOverlayManager] Ignorando zona inválida: {zona_data}")
                 continue
+            print(f"[DEBUG] Desenhando zona {idx_zona}: {zona_data.get('nome', 'sem nome')}")
+            
+            # 🔥 CORREÇÃO: Processar TODAS as partes de uma zona
+            partes = zona_data.get('partes', [])
+            if not partes and zona_data.get('pontos'):
+                # Formato antigo - apenas uma parte
+                partes = [zona_data.get('pontos')]
+            
+            print(f"[DEBUG]   Zona tem {len(partes)} partes")
+            
+            # Criar um item gráfico para cada parte da zona
+            for parte_idx, pontos_originais in enumerate(partes):
+                if not pontos_originais:
+                    continue
+                    
+                print(f"[DEBUG]   Processando parte {parte_idx + 1}/{len(partes)} com {len(pontos_originais)} pontos")
                 
-            # Aplicar morphing a cada ponto da zona
-            pontos_originais = zona_data.get('pontos', [])
-            pontos_morphed = []
-            
-            for idx_ponto, ponto_original in enumerate(pontos_originais):
-                # Verifica se já existe um deslocamento para este ponto
-                chave_ponto = (idx_zona, idx_ponto)
-                if chave_ponto not in self.deslocamentos_pontos:
-                    self.deslocamentos_pontos[chave_ponto] = (0, 0)
+                pontos_morphed = []
+                for idx_ponto, ponto_original in enumerate(pontos_originais):
+                    if not precisa_morphing:
+                        # ✅ Usar coordenadas absolutas diretamente (sem morphing)
+                        # Verificar se é coordenada polar ou cartesiana
+                        if isinstance(ponto_original, dict) and 'angulo' in ponto_original and 'raio' in ponto_original:
+                            # Converter de polar para cartesiano
+                            angulo = ponto_original['angulo']
+                            raio_norm = ponto_original['raio']
+                            
+                            # Usar centro e raio atuais para conversão
+                            import math
+                            raio_real = self.raio_pupila + (raio_norm * (raio_x_atual - self.raio_pupila))
+                            rad = math.radians(angulo)
+                            x = centro_atual[0] + raio_real * math.cos(rad)
+                            y = centro_atual[1] - raio_real * math.sin(rad)  # -sin para sentido horário
+                        else:
+                            # Assumir que é coordenada cartesiana
+                            x, y = ponto_original
+                        
+                        # Garantir que são números
+                        x, y = float(x), float(y)
+                    else:
+                        # Aplicar morphing para calibração visual
+                        if getattr(self, 'individual_mode', False):
+                            # 🆕 NOVO: Usar transformação baseada em handles para ajuste fino
+                            x, y = self.calculate_fine_tuning_transform(ponto_original)
+                            # Debug apenas para primeiro ponto de cada zona para reduzir spam
+                            if idx_ponto == 0:
+                                print(f"[DEBUG]   Ajuste fino aplicado: {ponto_original} → ({x:.1f}, {y:.1f})")
+                        else:
+                            # Morphing tradicional baseado em deslocamentos
+                            chave_ponto = (idx_zona, idx_ponto)
+                            if chave_ponto not in self.deslocamentos_pontos:
+                                self.deslocamentos_pontos[chave_ponto] = (0, 0)
+                            # Aplica morphing (proporcional + livre)
+                            x, y = self.morph_ponto_livre(
+                                ponto_original,
+                                self.centro_original,
+                                centro_atual,
+                                self.raio_x_original,
+                                self.raio_y_original,
+                                raio_x_atual,
+                                raio_y_atual,
+                                self.deslocamentos_pontos[chave_ponto]
+                            )
+                        # Garantir que são números
+                        x, y = float(x), float(y)
+                    
+                    pontos_morphed.append(QPointF(x, y))
                 
-                # Aplica morphing (proporcional + livre)
-                x, y = self.morph_ponto_livre(
-                    ponto_original,
-                    self.centro_original,
-                    centro_atual,
-                    self.raio_x_original,
-                    self.raio_y_original,
-                    raio_x_atual,
-                    raio_y_atual,
-                    self.deslocamentos_pontos[chave_ponto]
-                )
+                print(f"[DEBUG]   Parte {parte_idx + 1}: {len(pontos_morphed)} pontos processados")
                 
-                pontos_morphed.append(QPointF(x, y))
-            
-            # Importa a classe ZonaReflexa para criar os polígonos
-            from iris_canvas import ZonaReflexa, pontos_para_polygon
-            
-            # Extrair parâmetros para criar ZonaReflexa
-            cx, cy = centro_atual if centro_atual else (0, 0)
-            raio_pupila = self.raio_pupila if hasattr(self, 'raio_pupila') else 50
-            raio_anel = raio_x_atual if raio_x_atual else 120
-            
-            # Criar uma instância de ZonaReflexa com os dados da zona
-            zona_data_completa = zona_data.copy()  # Copia para não modificar o original
-            
-            # Garantir que temos um dicionário de estilo
-            if 'estilo' not in zona_data_completa:
-                zona_data_completa['estilo'] = {}
+                # Criar ZonaReflexa para esta parte específica
+                from iris_canvas import ZonaReflexa, pontos_para_polygon
+                cx, cy = centro_atual if centro_atual else (0, 0)
+                raio_pupila = self.raio_pupila if hasattr(self, 'raio_pupila') else 50
+                raio_anel = raio_x_atual if raio_x_atual else 120
                 
-            # Adicionar pontos morphed como pontos da zona
-            zona_data_completa['pontos'] = [(p.x(), p.y()) for p in pontos_morphed]
-            
-            # Criar a zona reflexa que já terá os eventos de hover implementados
-            item = ZonaReflexa(zona_data_completa, cx, cy, raio_pupila, raio_anel)
-            
-            # Armazena referência à zona original em dicionário auxiliar
-            self._item_to_zonadata[item] = zona_data_completa
-            
-            # Eventos de hover serão conectados em enable_hover_tooltip
-            self.scene.addItem(item)
-            self.zonas.append(item)
+                # Preparar dados para esta parte específica
+                zona_data_parte = zona_data.copy()  # Copia para não modificar o original
+                if 'estilo' not in zona_data_parte:
+                    zona_data_parte['estilo'] = {}
+                zona_data_parte['pontos'] = [(p.x(), p.y()) for p in pontos_morphed]
+                
+                # Adicionar identificador da parte se há múltiplas partes
+                if len(partes) > 1:
+                    zona_data_parte['nome_parte'] = f"{zona_data.get('nome', 'Zona')} (Parte {parte_idx + 1})"
+                
+                try:
+                    item = ZonaReflexa(zona_data_parte, cx, cy, raio_pupila, raio_anel)
+                    self._item_to_zonadata[item] = zona_data_parte
+                    if hasattr(self, 'iris_canvas') and self.iris_canvas is not None:
+                        item.set_iris_canvas(self.iris_canvas)
+                        print(f"✅ Tooltip configurado para '{item.dados_originais.get('nome', 'zona desconhecida')}'")
+                    else:
+                        print(f"⚠️  Tooltip não configurado para '{item.dados_originais.get('nome', 'zona desconhecida')}'")
+                    self.scene.addItem(item)
+                    self.zonas.append(item)
+                    print(f"[DEBUG]   Zona '{item.dados_originais.get('nome', 'zona desconhecida')}' parte {parte_idx + 1} adicionada à cena.")
+                except Exception as e:
+                    print(f"[ERRO] Falha ao criar/adicionar zona '{zona_data.get('nome', 'sem nome')}' parte {parte_idx + 1}: {e}")
 
     def enable_hover_tooltip(self, callback: Callable[[Any], None]):
         """Armazena callback para hover, mas não sobrescreve os métodos da ZonaReflexa.
@@ -958,8 +1105,13 @@ class IrisOverlayManager:
     def clear_handles(self):
         """Remove todos os handles de ajuste livre de pontos."""
         # Remove objetos gráficos dos handles
-        for h in getattr(self, 'handles', []):
-            self.scene.removeItem(h)
+        for h in list(getattr(self, 'handles', [])):
+            try:
+                if h.scene() is not None:
+                    self.scene.removeItem(h)
+            except RuntimeError:
+                # Handle já foi deletado, ignorar
+                pass
         
         # Limpa as listas e dicionários de handles
         self.handles = []
@@ -999,15 +1151,31 @@ class IrisOverlayManager:
 
     def clear(self):
         """Limpa todos os itens do scene relacionados ao overlay."""
-        for item in self.zonas:
-            self.scene.removeItem(item)
+        # Limpeza segura das zonas
+        for item in list(self.zonas):  # Usar lista para evitar modificação durante iteração
+            try:
+                if item.scene() is not None:  # Verificar se o item ainda existe na cena
+                    self.scene.removeItem(item)
+            except RuntimeError:
+                # Item já foi deletado, ignorar
+                pass
         self.zonas = []
-        # Remove handles e limpa dicionário auxiliar
-        for h in getattr(self, 'handles', []):
-            self.scene.removeItem(h)
+        
+        # Limpeza segura dos handles
+        for h in list(getattr(self, 'handles', [])):
+            try:
+                if h.scene() is not None:  # Verificar se o handle ainda existe na cena
+                    self.scene.removeItem(h)
+            except RuntimeError:
+                # Handle já foi deletado, ignorar
+                pass
         self.handles = []
+        
+        # Limpar dicionários auxiliares
         if hasattr(self, '_handle_to_indices'):
             self._handle_to_indices.clear()
+        if hasattr(self, '_item_to_zonadata'):
+            self._item_to_zonadata.clear()
     
     def reset_deslocamentos(self):
         """Reinicia todos os deslocamentos manuais, voltando ao morphing puramente proporcional."""
@@ -1042,3 +1210,274 @@ class IrisOverlayManager:
     def is_calibrating(self):
         """Verifica se está em modo de calibração"""
         return hasattr(self, '_calib_handles') and len(self._calib_handles) > 0
+    
+    def update_iris_canvas_references(self):
+        """
+        Atualiza as referências do IrisCanvas em todas as zonas.
+        Deve ser chamado após recarregar zonas ou após calibração.
+        """
+        # Busca o IrisCanvas que contém esta cena
+        iris_canvas = None
+        for view in self.scene.views():
+            current = view
+            while current:
+                if hasattr(current, 'atualizar_painel_zona') and hasattr(current, 'limpar_painel_zona'):
+                    iris_canvas = current
+                    break
+                current = current.parent()
+        
+        # Se encontrou, atualiza todas as zonas
+        if iris_canvas:
+            for zona in self.zonas:
+                if hasattr(zona, 'set_iris_canvas'):
+                    zona.set_iris_canvas(iris_canvas)
+            print(f"✅ Referências ao IrisCanvas atualizadas para {len(self.zonas)} zonas")
+        else:
+            print("⚠️ Não foi possível encontrar o IrisCanvas para atualizar referências")
+
+    def update_zones_for_fine_tuning(self):
+        """
+        🆕 NOVA FUNCIONALIDADE: Atualiza as zonas em tempo real durante o ajuste fino.
+        Esta função recalcula a posição das zonas baseada na deformação atual dos handles
+        de calibração no modo individual (ajuste fino).
+        """
+        if not self.individual_mode or not hasattr(self, '_calib_handles'):
+            return
+
+        # Só procede se as zonas estão visíveis e há dados para trabalhar
+        if not self.zonas or not self.zonas_json:
+            return
+
+        # Remover zonas antigas
+        for item in list(self.zonas):
+            try:
+                if item.scene() is not None:
+                    self.scene.removeItem(item)
+            except RuntimeError:
+                pass
+        self.zonas.clear()
+
+        # Recalcular e redesenhar zonas com a deformação atual
+        self.draw_overlay()
+        
+        # Atualizar referências do IrisCanvas se necessário
+        self.update_iris_canvas_references()
+        
+        print("🔍 Zonas atualizadas para ajuste fino")
+
+    def get_current_radius(self, angle_deg, shape='iris'):
+        """
+        🆕 NOVA FUNCIONALIDADE: Obtém o raio atual de uma spline (íris ou pupila) para um determinado ângulo.
+        Usa interpolação entre os pontos mais próximos da spline deformada.
+        
+        Args:
+            angle_deg: Ângulo em graus (0-360)
+            shape: 'iris' ou 'pupil'
+            
+        Returns:
+            float: Raio interpolado, ou None se spline não disponível
+        """
+        import math
+        
+        # Garante ângulo no intervalo 0-360
+        angle = angle_deg % 360.0
+        centro = self.centro_iris
+        pts = getattr(self, 'iris_spline_pts', []) if shape == 'iris' else getattr(self, 'pupil_spline_pts', [])
+        
+        if not pts or centro is None:
+            return None
+            
+        # Encontrar pontos antes e depois do ângulo
+        before = None
+        after = None
+        
+        for (x, y, ang_pt) in pts:
+            if ang_pt <= angle:
+                before = (x, y, ang_pt)
+            else:
+                after = (x, y, ang_pt)
+                break
+                
+        # Tratar casos de wraparound (ângulo 0/360)
+        if before is None:
+            before = pts[-1]  # Último ponto
+        if after is None:
+            after = pts[0]    # Primeiro ponto
+            
+        # Calcular raio de cada ponto
+        dist_before = math.hypot(before[0] - centro[0], before[1] - centro[1])
+        dist_after = math.hypot(after[0] - centro[0], after[1] - centro[1])
+        
+        ang_before = before[2]
+        ang_after = after[2]
+        
+        # Tratar wraparound para interpolação
+        if ang_after < ang_before:
+            ang_after += 360
+            if angle < ang_before:
+                angle += 360
+                
+        # Interpolar raio
+        if ang_after == ang_before:
+            t = 0.0
+        else:
+            t = (angle - ang_before) / (ang_after - ang_before)
+            
+        return dist_before + t * (dist_after - dist_before)
+
+    def calculate_fine_tuning_transform(self, ponto_original):
+        """
+        🆕 NOVA FUNCIONALIDADE MELHORADA: Calcula a transformação baseada nas splines deformadas
+        da íris e pupila, não apenas nos handles de calibração.
+        
+        Esta implementação substitui o morphing baseado em handles pela interpolação geométrica
+        real das splines Catmull-Rom, garantindo que o mapa acompanhe perfeitamente a deformação
+        visível da íris.
+        """
+        if not self.individual_mode:
+            return ponto_original
+        
+        # Converter ponto para coordenadas cartesianas se necessário
+        if isinstance(ponto_original, dict) and 'angulo' in ponto_original and 'raio' in ponto_original:
+            import math
+            angulo = ponto_original['angulo']
+            raio_norm = ponto_original['raio']  # Valor normalizado 0.0-1.0
+            
+            # 🆕 USAR SPLINES DEFORMADAS: Obter raios atuais das splines
+            R_i = self.get_current_radius(angulo, 'iris')    # Raio da íris na spline
+            R_p = self.get_current_radius(angulo, 'pupil')   # Raio da pupila na spline
+            
+            # Debug das splines (apenas ocasionalmente para evitar spam)
+            if hasattr(self, '_debug_counter'):
+                self._debug_counter += 1
+            else:
+                self._debug_counter = 0
+                
+            if self._debug_counter % 50 == 0:  # Debug a cada 50 pontos
+                iris_pts_count = len(getattr(self, 'iris_spline_pts', []))
+                pupil_pts_count = len(getattr(self, 'pupil_spline_pts', []))
+                print(f"[DEBUG SPLINES] Íris: {iris_pts_count} pontos, Pupila: {pupil_pts_count} pontos")
+                print(f"[DEBUG SPLINES] Para ângulo {angulo:.1f}°: R_i={R_i}, R_p={R_p}")
+            
+            # Fallback para valores padrão se as splines não estiverem disponíveis
+            if R_i is None or R_p is None:
+                if self._debug_counter % 50 == 0:  # Debug apenas ocasionalmente
+                    print(f"[DEBUG] Fallback para valores padrão - íris: {self.raio_anel}, pupila: {self.raio_pupila}")
+                R_i = self.raio_anel or 120
+                R_p = self.raio_pupila or 50
+            
+            # Calcular raio atual baseado na interpolação entre pupila e íris deformadas
+            R_atual = R_p + raio_norm * (R_i - R_p)
+            
+            # Converter para cartesiano usando centro atual e raio da spline deformada
+            centro = self.centro_iris or [400, 300]
+            rad = math.radians(angulo)
+            x = centro[0] + R_atual * math.cos(rad)
+            y = centro[1] - R_atual * math.sin(rad)  # -sin para sentido horário
+            
+        else:
+            # Caso raro: ponto já está em cartesiano - aplicar transformação suave baseada em handles
+            x, y = self.apply_handle_based_transform(ponto_original)
+        
+        # Aplicar qualquer deslocamento manual adicional (se houver)
+        # Este sistema permite micro-ajustes manuais além da deformação das splines
+        # (não implementado no código atual, mas preparado para extensões futuras)
+        
+        return (x, y)
+    
+    def apply_handle_based_transform(self, ponto):
+        """
+        🆕 Aplica transformação SUAVE baseada na posição atual dos handles de calibração
+        no modo individual (ajuste fino).
+        VERSÃO MELHORADA: Mais responsiva mas ainda conservadora.
+        """
+        import math
+        
+        if not hasattr(self, '_calib_handles'):
+            return ponto
+        
+        x, y = ponto
+        centro_x, centro_y = self.centro_iris or [400, 300]
+        
+        # Calcular distância do ponto ao centro
+        dist_to_center = math.sqrt((x - centro_x)**2 + (y - centro_y)**2)
+        
+        # Se muito próximo do centro, aplicar deformação muito reduzida
+        if dist_to_center < 10:
+            return ponto
+        
+        # Encontrar handles de íris (principais para deformação)
+        iris_handles = [h for h in self._calib_handles if h.handle_type == 'iris']
+        
+        if not iris_handles or len(iris_handles) < 3:
+            return ponto
+        
+        # Calcular ângulo do ponto
+        angle = math.degrees(math.atan2(-(y - centro_y), x - centro_x))
+        if angle < 0:
+            angle += 360
+        
+        # Encontrar os 2 handles mais próximos para interpolação
+        handle_distances = []
+        for h in iris_handles:
+            h_angle = getattr(h, 'original_angle', 0)
+            angle_diff = abs(angle - h_angle)
+            if angle_diff > 180:
+                angle_diff = 360 - angle_diff
+            handle_distances.append((h, angle_diff))
+        
+        # Ordenar por distância angular e pegar os 2 mais próximos
+        handle_distances.sort(key=lambda x: x[1])
+        
+        if len(handle_distances) < 2:
+            return ponto
+        
+        # Usar os 2 handles mais próximos para interpolação
+        h1, diff1 = handle_distances[0]
+        h2, diff2 = handle_distances[1]
+        
+        # Calcular pesos para interpolação (handle mais próximo tem mais peso)
+        total_diff = diff1 + diff2
+        if total_diff == 0:
+            weight1, weight2 = 1.0, 0.0
+        else:
+            weight1 = (total_diff - diff1) / total_diff
+            weight2 = (total_diff - diff2) / total_diff
+        
+        # Calcular deslocamentos dos handles
+        def get_handle_displacement(handle):
+            handle_pos = handle.pos()
+            expected_radius = getattr(self, 'raio_anel', 200)
+            h_angle = getattr(handle, 'original_angle', 0)
+            expected_x = centro_x + expected_radius * math.cos(math.radians(h_angle))
+            expected_y = centro_y - expected_radius * math.sin(math.radians(h_angle))
+            return handle_pos.x() - expected_x, handle_pos.y() - expected_y
+        
+        dx1, dy1 = get_handle_displacement(h1)
+        dx2, dy2 = get_handle_displacement(h2)
+        
+        # Interpolar deslocamentos
+        dx_interpolated = weight1 * dx1 + weight2 * dx2
+        dy_interpolated = weight1 * dy1 + weight2 * dy2
+        
+        # Limitar deslocamento máximo para evitar bizarrices
+        max_displacement = 25.0  # Ligeiramente menos conservador
+        dx_interpolated = max(-max_displacement, min(max_displacement, dx_interpolated))
+        dy_interpolated = max(-max_displacement, min(max_displacement, dy_interpolated))
+        
+        # Aplicar fator de redução baseado na distância do centro
+        expected_radius = getattr(self, 'raio_anel', 200)
+        distance_factor = min(1.0, dist_to_center / (expected_radius * 0.8))  # Começa a aplicar mais cedo
+        
+        # Fator de intensidade global melhorado
+        intensity = 0.15  # Aumentado de 5% para 15% para melhor resposta
+        
+        # Calcular deslocamento final
+        final_dx = dx_interpolated * distance_factor * intensity
+        final_dy = dy_interpolated * distance_factor * intensity
+        
+        # Aplicar transformação suave
+        new_x = x + final_dx
+        new_y = y + final_dy
+        
+        return (new_x, new_y)

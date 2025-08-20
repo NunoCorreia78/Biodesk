@@ -1,0 +1,28 @@
+[
+  {
+    "data": "2025-08-15T09:40:28.401368",
+    "tipo": "envio_pdfs_diretos",
+    "paciente": "João Silva (TESTE)",
+    "email_destinatario": "teste@exemplo.com",
+    "documentos_enviados": [
+      {
+        "titulo": "Protocolo de Detox Hepático",
+        "categoria": "orientacoes",
+        "arquivo": "c:\\Users\\Nuno Correia\\OneDrive\\Documentos\\Biodesk\\templates\\orientacoes_pdf\\protocolo_detox_hepatico.pdf"
+      },
+      {
+        "titulo": "Programa de Exercícios",
+        "categoria": "exercicios",
+        "arquivo": "c:\\Users\\Nuno Correia\\OneDrive\\Documentos\\Biodesk\\templates\\exercicios_pdf\\programa_exercicios.pdf"
+      }
+    ],
+    "assunto_email": "Documentos Personalizados (2) - João Silva (TESTE)",
+    "num_documentos": 2,
+    "titulos_enviados": [
+      "Protocolo de Detox Hepático",
+      "Programa de Exercícios"
+    ],
+    "metodo": "PDF_DIRETO",
+    "observacoes": "Enviados 2 PDF(s) direto(s) com títulos no email"
+  }
+]
