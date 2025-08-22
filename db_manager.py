@@ -61,6 +61,10 @@ class DBManager:
                 self._add_column_if_not_exists(cursor, 'pacientes', 'declaracao_saude_data', 'TEXT')
                 self._add_column_if_not_exists(cursor, 'pacientes', 'declaracao_saude_assinada', 'BOOLEAN DEFAULT 0')
                 self._add_column_if_not_exists(cursor, 'pacientes', 'declaracao_saude_data_assinatura', 'TEXT')
+                self._add_column_if_not_exists(cursor, 'pacientes', 'declaracao_saude_dados', 'TEXT')  # JSON dos dados do formulário
+                self._add_column_if_not_exists(cursor, 'pacientes', 'declaracao_saude_primeira_criacao', 'TEXT')  # Data primeiro preenchimento
+                self._add_column_if_not_exists(cursor, 'pacientes', 'declaracao_saude_ultima_alteracao', 'TEXT')  # Data última alteração
+                self._add_column_if_not_exists(cursor, 'pacientes', 'declaracao_saude_hash', 'TEXT')  # Hash para detectar alterações
                 
                 # ═══════════════ MIGRAÇÃO SEGURA: OBSERVAÇÕES ═══════════════
                 # Adicionar campo de observações na tabela pacientes

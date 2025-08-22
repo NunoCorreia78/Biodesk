@@ -5,12 +5,13 @@ Design moderno e elegante seguindo a identidade visual
 
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, 
-    QTextEdit, QLineEdit, QMessageBox, QWidget, QFrame,
+    QTextEdit, QLineEdit, QWidget, QFrame,
     QScrollArea, QComboBox, QSpinBox, QCheckBox, QTextBrowser
 )
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QFont, QPixmap, QIcon, QColor, QPalette
 import os
+from biodesk_dialogs import BiodeskMessageBox
 
 
 class BiodeskDialog(QDialog):

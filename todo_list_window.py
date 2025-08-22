@@ -1,17 +1,20 @@
-"""
-To-Do List Window para Biodesk
-Lista de tarefas integrada de forma não-intrusiva
-"""
 import json
 import os
 from datetime import datetime
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QPushButton, 
-    QListWidget, QListWidgetItem, QCheckBox, QLabel, QTextEdit,
-    QDialog, QDialogButtonBox, QMessageBox, QSplitter, QFrame
-)
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont, QIcon
+from biodesk_dialogs import BiodeskMessageBox
+    import sys
+from biodesk_ui_kit import BiodeskUIKit
+"""
+To-Do List Window para Biodesk
+Lista de tarefas integrada de forma não-intrusiva
+"""
+    QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QPushButton, 
+    QListWidget, QListWidgetItem, QCheckBox, QLabel, QTextEdit,
+    QDialog, QDialogButtonBox, QSplitter, QFrame
+)
 
 class TodoItem:
     def __init__(self, text, completed=False, created_date=None, priority="Normal"):
@@ -162,56 +165,17 @@ class TodoListWindow(QWidget):
         btn_layout = QHBoxLayout()
         
         add_btn = QPushButton("➕ Nova Tarefa")
-        add_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #4CAF50;
-                color: white;
-                border: none;
-                padding: 10px 20px;
-                border-radius: 6px;
-                font-weight: bold;
-                font-size: 14px;
-            }
-            QPushButton:hover {
-                background-color: #45a049;
-            }
-        """)
+        BiodeskUIKit.apply_universal_button_style(add_btn)
         add_btn.clicked.connect(self.add_todo)
         btn_layout.addWidget(add_btn)
         
         clear_completed_btn = QPushButton("🗑️ Limpar Concluídas")
-        clear_completed_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #ff9800;
-                color: white;
-                border: none;
-                padding: 10px 20px;
-                border-radius: 6px;
-                font-weight: bold;
-                font-size: 14px;
-            }
-            QPushButton:hover {
-                background-color: #f57c00;
-            }
-        """)
+        BiodeskUIKit.apply_universal_button_style(clear_completed_btn)
         clear_completed_btn.clicked.connect(self.clear_completed)
         btn_layout.addWidget(clear_completed_btn)
         
         delete_btn = QPushButton("❌ Deletar Selecionada")
-        delete_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #f44336;
-                color: white;
-                border: none;
-                padding: 10px 20px;
-                border-radius: 6px;
-                font-weight: bold;
-                font-size: 14px;
-            }
-            QPushButton:hover {
-                background-color: #d32f2f;
-            }
-        """)
+        BiodeskUIKit.apply_universal_button_style(delete_btn)
         delete_btn.clicked.connect(self.delete_selected_item)
         btn_layout.addWidget(delete_btn)
         
@@ -257,16 +221,15 @@ class TodoListWindow(QWidget):
     def clear_completed(self):
         completed_count = sum(1 for todo in self.todos if todo.completed)
         if completed_count == 0:
-            QMessageBox.information(self, "Info", "Não há tarefas concluídas para limpar.")
+            BiodeskMessageBox.information(self, "Info", "Não há tarefas concluídas para limpar.")
             return
         
-        reply = QMessageBox.question(
+        reply = BiodeskMessageBox.question(
             self, "Confirmar", 
-            f"Deseja remover {completed_count} tarefa(s) concluída(s)?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+            f"Deseja remover {completed_count} tarefa(s) concluída(s)?"
         )
         
-        if reply == QMessageBox.StandardButton.Yes:
+        if reply:
             self.todos = [todo for todo in self.todos if not todo.completed]
             self.save_todos()
             self.refresh_list()
@@ -360,13 +323,12 @@ class TodoListWindow(QWidget):
                 )
                 if 0 <= index < len(sorted_todos):
                     todo_to_delete = sorted_todos[index]
-                    reply = QMessageBox.question(
+                    reply = BiodeskMessageBox.question(
                         self, "Confirmar", 
-                        f"Deseja deletar a tarefa:\n'{todo_to_delete.text}'?",
-                        QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+                        f"Deseja deletar a tarefa:\n'{todo_to_delete.text}'?"
                     )
                     
-                    if reply == QMessageBox.StandardButton.Yes:
+                    if reply:
                         self.todos.remove(todo_to_delete)
                         self.save_todos()
                         self.refresh_list()
@@ -403,5 +365,4 @@ class TodoListWindow(QWidget):
 if __name__ == "__main__":
     print("⚠️  Este módulo deve ser executado através do main_window.py")
     print("🚀 Execute: python main_window.py")
-    import sys
     sys.exit(1)

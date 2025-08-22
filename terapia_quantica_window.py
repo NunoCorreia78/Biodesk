@@ -3,11 +3,12 @@ Janela de Terapia Quântica - Versão Zero
 Interface mínima para começar do zero
 """
 from PyQt6.QtWidgets import (
-    QMainWindow, QWidget, QVBoxLayout, QLabel, QPushButton, QMessageBox
+    QMainWindow, QWidget, QVBoxLayout, QLabel, QPushButton
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon
 import os
+from biodesk_dialogs import BiodeskMessageBox
 
 # Import da classe base mínima
 from terapia_quantica import TerapiaQuantica
@@ -154,7 +155,7 @@ class TerapiaQuanticaWindow(QMainWindow):
     
     def teste_zero(self):
         """Teste da versão zero"""
-        QMessageBox.information(
+        BiodeskMessageBox.information(
             self,
             "Sistema Zero Funcionando",
             """✅ TERAPIA QUÂNTICA - VERSÃO ZERO FUNCIONANDO!

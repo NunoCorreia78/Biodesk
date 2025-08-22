@@ -1,17 +1,19 @@
+import os
+import sys
+from pathlib import Path
+from PyQt6.QtWidgets import (
+from PyQt6.QtCore import Qt, QUrl
+from PyQt6.QtGui import QDesktopServices
+from biodesk_dialogs import BiodeskMessageBox
+from biodesk_ui_kit import BiodeskUIKit
 """
 Sistema de Visualização de PDFs para Biodesk
 Permite visualizar PDFs gerados diretamente na interface
 """
 
-import os
-import sys
-from pathlib import Path
-from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, 
-    QLabel, QFrame, QMessageBox, QDialog
+    QLabel, QFrame, QDialog
 )
-from PyQt6.QtCore import Qt, QUrl
-from PyQt6.QtGui import QDesktopServices
 
 try:
     # Desabilitar QWebEngineView para evitar janela que pisca
@@ -67,42 +69,12 @@ class PDFViewer(QDialog):
         # Botões melhorados
         btn_open_external = QPushButton("🔗 Abrir Externa")
         btn_open_external.clicked.connect(self.open_external)
-        btn_open_external.setStyleSheet("""
-            QPushButton {
-                background-color: rgba(255, 255, 255, 0.2);
-                color: white;
-                border: 1px solid rgba(255, 255, 255, 0.3);
-                padding: 6px 12px;
-                border-radius: 4px;
-                font-weight: bold;
-                font-size: 12px;
-            }
-            QPushButton:hover {
-                background-color: rgba(255, 255, 255, 0.3);
-            }
-            }
-            QPushButton:hover {
-                background-color: #0056b3;
-            }
-        """)
+        BiodeskUIKit.apply_universal_button_style(btn_open_external)
         header_layout.addWidget(btn_open_external)
         
         btn_close = QPushButton("❌ Fechar")
         btn_close.clicked.connect(self.close)
-        btn_close.setStyleSheet("""
-            QPushButton {
-                background-color: rgba(255, 255, 255, 0.2);
-                color: white;
-                border: 1px solid rgba(255, 255, 255, 0.3);
-                padding: 6px 12px;
-                border-radius: 4px;
-                font-weight: bold;
-                font-size: 12px;
-            }
-            QPushButton:hover {
-                background-color: rgba(255, 0, 0, 0.3);
-            }
-        """)
+        BiodeskUIKit.apply_universal_button_style(btn_close)
         header_layout.addWidget(btn_close)
         
         layout.addWidget(header)
@@ -219,25 +191,7 @@ class PDFViewer(QDialog):
         btn_open_big = QPushButton("🔗 Abrir PDF no Visualizador Externo")
         btn_open_big.setFixedHeight(60)
         btn_open_big.clicked.connect(self.open_external)
-        btn_open_big.setStyleSheet("""
-            QPushButton {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #4CAF50, stop:1 #45a049);
-                color: white;
-                border: none;
-                border-radius: 8px;
-                font-size: 18px;
-                font-weight: bold;
-                margin-top: 20px;
-            }
-            QPushButton:hover {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #45a049, stop:1 #3d8b40);
-            }
-            QPushButton:pressed {
-                background: #3d8b40;
-            }
-        """)
+        BiodeskUIKit.apply_universal_button_style(btn_open_big)
         info_layout.addWidget(btn_open_big)
         
         layout.addWidget(info_frame)
@@ -248,9 +202,9 @@ class PDFViewer(QDialog):
             if os.path.exists(self.pdf_path):
                 QDesktopServices.openUrl(QUrl.fromLocalFile(os.path.abspath(self.pdf_path)))
             else:
-                QMessageBox.warning(self, "Erro", "Ficheiro PDF não encontrado!")
+                BiodeskMessageBox.warning(self, "Erro", "Ficheiro PDF não encontrado!")
         except Exception as e:
-            QMessageBox.critical(self, "Erro", f"Erro ao abrir PDF:\n{str(e)}")
+            BiodeskMessageBox.critical(self, "Erro", f"Erro ao abrir PDF:\n{str(e)}")
 
 
 def mostrar_pdf(pdf_path: str, parent=None) -> bool:
@@ -259,7 +213,7 @@ def mostrar_pdf(pdf_path: str, parent=None) -> bool:
     Retorna True se foi possível mostrar, False caso contrário
     """
     if not os.path.exists(pdf_path):
-        QMessageBox.warning(parent, "Erro", "Ficheiro PDF não encontrado!")
+        BiodeskMessageBox.warning(parent, "Erro", "Ficheiro PDF não encontrado!")
         return False
     
     try:
@@ -267,7 +221,7 @@ def mostrar_pdf(pdf_path: str, parent=None) -> bool:
         viewer.exec()
         return True
     except Exception as e:
-        QMessageBox.critical(parent, "Erro", f"Erro ao abrir visualizador de PDF:\n{str(e)}")
+        BiodeskMessageBox.critical(parent, "Erro", f"Erro ao abrir visualizador de PDF:\n{str(e)}")
         return False
 
 

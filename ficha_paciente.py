@@ -1,303 +1,33 @@
 
+# ⚡ IMPORTS OTIMIZADOS - APENAS O ESSENCIAL NO STARTUP
 import sys
 import os
-import traceback
-# Lazy import do cv2 para evitar janela que pisca
-# import cv2
-import time
-import threading
-import unicodedata
 import json
-import socket
+import unicodedata
 from pathlib import Path
-from PyQt6.QtWidgets import *
-from PyQt6.QtCore import *
-from PyQt6.QtGui import *
-from PyQt6.QtWebEngineWidgets import QWebEngineView
-from datetime import datetime, timedelta
+
+# PyQt6 - APENAS o básico para definir classes
+from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QTabWidget, QLabel, QLineEdit, QTextEdit, QComboBox, QDateEdit, QPushButton, QScrollArea, QFrame, QSplitter, QFileDialog, QCheckBox, QSpinBox, QToolBar, QApplication, QDialog, QListWidget, QListWidgetItem
+from PyQt6.QtCore import Qt, QDate, QTimer, pyqtSignal, QByteArray, QBuffer, QIODevice
+from PyQt6.QtGui import QFont, QPixmap, QIcon, QAction, QShortcut, QKeySequence, QPainter, QPen, QColor, QPainterPath
+
+# Imports essenciais para a classe principal
 from db_manager import DBManager
-from apscheduler.schedulers.background import BackgroundScheduler
-from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
-from apscheduler.executors.pool import ThreadPoolExecutor
-# Lazy import do editor_documentos para evitar inicialização prematura do QWebEngine
-# from editor_documentos import EditorDocumentos
-from services.styles import (
-    estilizar_botao_iris, estilizar_botao_principal, estilizar_botao_secundario,
-    estilizar_botao_perigo, estilizar_botao_sucesso, estilizar_botao_fusao,
-    lighten_color, darken_color, style_button, style_combo, style_input
-)
 from modern_date_widget import ModernDateWidget
-from biodesk_styled_dialogs import BiodeskStyledDialog, BiodeskMessageBox
+from sistema_assinatura import abrir_dialogo_assinatura
 
-
-def send_followup_job_static(paciente_id, tipo_followup, dias_apos, attempt=1, max_attempts=3):
-    """
-    Função independente para envio de follow-up que pode ser serializada pelo APScheduler.
-    Esta função não depende de instâncias de classe e pode ser guardada na BD.
-    """
-    try:
-        # Verificar conectividade
-        def is_online(timeout=3):
-            try:
-                import socket
-                socket.create_connection(("8.8.8.8", 53), timeout=timeout)
-                return True
-            except Exception:
-                return False
-
-        # Inicializar BD
-        db = DBManager()
-        paciente = db.obter_paciente(paciente_id)
-
-        if not paciente:
-            print(f"❌ Paciente {paciente_id} não encontrado — abortando envio")
-            return
-
-        to_email = paciente.get('email', '').strip()
-        if not to_email:
-            print(f"❌ Paciente {paciente_id} sem email — abortando envio")
-            return
-
-        # Checar ligação à Internet
-        if not is_online():
-            print(f"⚠️ Sem internet — tentativa {attempt}/{max_attempts}. Reagendando...")
-            
-            # Sistema de retry mais inteligente
-            if attempt < max_attempts:
-                # Usar delay mais curto nas primeiras tentativas, depois delay maior
-                if attempt <= 3:
-                    delay_minutes = 2 * attempt  # 2, 4, 6 minutos
-                else:
-                    delay_minutes = 15  # 15 minutos para tentativas posteriores
-                    
-                run_at = datetime.now() + timedelta(minutes=delay_minutes)
-            else:
-                # Após máximo de tentativas, reagendar para verificar de hora a hora
-                delay_minutes = 60  # Verificar de hora a hora
-                run_at = datetime.now() + timedelta(minutes=delay_minutes)
-                # Resetar contador para manter tentativas infinitas
-                attempt = 1
-                print(f"🔄 Modo standby: Verificando conectividade de hora a hora...")
-                
-            # Reinicializar scheduler para reagendar
-            try:
-                from apscheduler.schedulers.background import BackgroundScheduler
-                from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
-                
-                jobstores = {'default': SQLAlchemyJobStore(url='sqlite:///followup_jobs.db')}
-                scheduler = BackgroundScheduler(jobstores=jobstores)
-                scheduler.start()
-                
-                job_id = f"followup_retry_{paciente_id}_{int(time.time())}"
-                scheduler.add_job(
-                    func=send_followup_job_static,
-                    trigger='date',
-                    run_date=run_at,
-                    args=[paciente_id, tipo_followup, dias_apos, attempt + 1, max_attempts],
-                    id=job_id,
-                    replace_existing=False
-                )
-                print(f"📅 Reagendado para {run_at} (job_id={job_id})")
-                scheduler.shutdown(wait=False)
-            except Exception as e:
-                print(f"❌ Erro ao reagendar: {e}")
-            return
-
-        # Gerar email usando o sistema de templates
-        try:
-            from email_templates_biodesk import gerar_email_followup
-            email_data = gerar_email_followup(
-                nome_paciente=paciente.get('nome', 'Paciente'),
-                tipo_followup=tipo_followup,
-                dias_apos=dias_apos
-            )
-            assunto = email_data['assunto']
-            corpo = email_data['corpo']
-        except ImportError:
-            # Fallback se não conseguir importar
-            assunto = f"Acompanhamento de Consulta - {paciente.get('nome', 'Paciente')}"
-            corpo = f"Olá {paciente.get('nome', 'Paciente')},\n\nComo se tem sentido desde a nossa última consulta?\n\nCumprimentos,\nNuno Correia"
-
-        # Enviar email
-        try:
-            from email_sender import EmailSender
-            sender = EmailSender()
-            sucesso, mensagem = sender.send_email(
-                to_email=to_email,
-                subject=assunto,
-                body=corpo,
-                nome_destinatario=paciente.get('nome', 'Paciente')
-            )
-
-            if sucesso:
-                print(f"✅ Follow-up enviado a {to_email} (paciente {paciente_id})")
-                # Registar envio no histórico do paciente
-                try:
-                    historico_txt = f"[{datetime.now().strftime('%d/%m/%Y %H:%M')}] Enviado follow-up automático: {tipo_followup}"
-                    db.adicionar_historico(paciente_id, historico_txt)
-                except Exception:
-                    pass
-            else:
-                print(f"❌ Falha no envio follow-up: {mensagem} — tentativa {attempt}/{max_attempts}")
-                if attempt < max_attempts:
-                    # reagenda tentativa
-                    delay_minutes = 3 * attempt
-                    run_at = datetime.now() + timedelta(minutes=delay_minutes)
-                    
-                    try:
-                        from apscheduler.schedulers.background import BackgroundScheduler
-                        from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
-                        
-                        jobstores = {'default': SQLAlchemyJobStore(url='sqlite:///followup_jobs.db')}
-                        scheduler = BackgroundScheduler(jobstores=jobstores)
-                        scheduler.start()
-                        
-                        job_id = f"followup_retry_{paciente_id}_{int(time.time())}"
-                        scheduler.add_job(
-                            func=send_followup_job_static,
-                            trigger='date',
-                            run_date=run_at,
-                            args=[paciente_id, tipo_followup, dias_apos, attempt + 1, max_attempts],
-                            id=job_id,
-                            replace_existing=False
-                        )
-                        print(f"📅 Reagendado para {run_at} (job_id={job_id})")
-                        scheduler.shutdown(wait=False)
-                    except Exception as e:
-                        print(f"❌ Erro ao reagendar: {e}")
-                else:
-                    try:
-                        db.registar_envio_falhado(paciente_id, assunto, corpo, str(datetime.now()), erro=mensagem)
-                    except Exception:
-                        pass
-
-        except ImportError:
-            print(f"❌ EmailSender não disponível — simulando envio de follow-up para {to_email}")
-            # Registar como enviado mesmo assim (simulação)
-            try:
-                historico_txt = f"[{datetime.now().strftime('%d/%m/%Y %H:%M')}] Follow-up simulado: {tipo_followup}"
-                db.adicionar_historico(paciente_id, historico_txt)
-            except Exception:
-                pass
-
-    except Exception as e:
-        print(f"❌ Erro no job de follow-up: {e}")
-        import traceback
-        traceback.print_exc()
-
-
-class SignatureCanvas(QWidget):
-    """
-    Widget melhorado para capturar assinaturas com o mouse
-    """
-    def __init__(self, parent=None, aspect_ratio=3.5):
-        super().__init__(parent)
-        self.path = QPainterPath()
-        self.drawing = False
-        self.aspect_ratio = aspect_ratio
-        
-        # Definir tamanho baseado na proporção mais adequada para visualização
-        width = 500  # Largura reduzida para melhor visualização
-        height = int(width / aspect_ratio)
-        
-        self.setMinimumSize(width, height)
-        self.setMaximumSize(width + 100, height + 50)  # Pequena margem para flexibilidade
-        
-        self.setStyleSheet("""
-            SignatureCanvas {
-                background-color: white;
-                border: 2px solid #28a745;
-                border-radius: 8px;
-            }
-        """)
-        
-        # Configurar cursor de caneta para melhor UX
-        self.setCursor(Qt.CursorShape.CrossCursor)
-        
-    def mousePressEvent(self, event):
-        if event.button() == Qt.MouseButton.LeftButton:
-            self.drawing = True
-            self.path.moveTo(event.position())
-            
-    def mouseMoveEvent(self, event):
-        if self.drawing and event.buttons() & Qt.MouseButton.LeftButton:
-            self.path.lineTo(event.position())
-            self.update()
-            
-    def mouseReleaseEvent(self, event):
-        if event.button() == Qt.MouseButton.LeftButton:
-            self.drawing = False
-            
-    def paintEvent(self, event):
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        
-        # Fundo branco
-        painter.fillRect(self.rect(), Qt.GlobalColor.white)
-        
-        # Desenhar linha guia (discreta) se não há assinatura
-        if self.path.isEmpty():
-            pen_guia = QPen(QColor("#e0e0e0"), 1, Qt.PenStyle.DashLine)
-            painter.setPen(pen_guia)
-            y_center = self.height() // 2
-            painter.drawLine(20, y_center, self.width() - 20, y_center)
-            
-            # Texto de instrução discreto
-            painter.setPen(QColor("#999999"))
-            painter.setFont(QFont("Segoe UI", 9))
-            painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, "Assine aqui")
-        
-        # Desenhar a assinatura
-        pen = QPen(Qt.GlobalColor.black, 2, Qt.PenStyle.SolidLine, 
-                   Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin)
-        painter.setPen(pen)
-        painter.drawPath(self.path)
-        
-    def clear(self):
-        """Limpa a assinatura"""
-        self.path = QPainterPath()
-        self.update()
-        
-    def clear_signature(self):
-        """Alias para compatibilidade - limpa a assinatura"""
-        self.clear()
-        
-    def isEmpty(self):
-        """Verifica se há assinatura"""
-        return self.path.isEmpty()
-        
-    def is_empty(self):
-        """Alias para compatibilidade - verifica se há assinatura"""
-        return self.isEmpty()
-        
-    def get_signature_image(self):
-        """Retorna a imagem da assinatura como QPixmap"""
-        return self.toPixmap()
-        
-    def toPixmap(self):
-        """Converte a assinatura para QPixmap"""
-        pixmap = QPixmap(self.size())
-        pixmap.fill(Qt.GlobalColor.white)
-        painter = QPainter(pixmap)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        pen = QPen(Qt.GlobalColor.black, 2)
-        painter.setPen(pen)
-        painter.drawPath(self.path)
-        painter.end()
-        return pixmap
-        
-    def get_signature_bytes(self):
-        """Converte a assinatura para bytes (compatibilidade)"""
-        try:
-            from PyQt6.QtCore import QByteArray, QBuffer, QIODevice
-            pixmap = self.toPixmap()
-            byte_array = QByteArray()
-            buffer = QBuffer(byte_array)
-            buffer.open(QIODevice.OpenModeFlag.WriteOnly)
-            pixmap.save(buffer, "PNG")
-            return bytes(byte_array)
-        except Exception:
-            return None
+# LAZY IMPORTS para módulos especializados
+def importar_modulos_especializados():
+    """Importa módulos especializados apenas quando necessário"""
+    from ficha_paciente.dados_pessoais import DadosPessoaisWidget
+    from ficha_paciente.historico_clinico import HistoricoClinicoWidget  
+    from ficha_paciente.templates_manager import TemplatesManagerWidget
+    from ficha_paciente.comunicacao_manager import ComunicacaoManagerWidget
+    from ficha_paciente.gestao_documentos import GestaoDocumentosWidget
+    from ficha_paciente.declaracao_saude import DeclaracaoSaudeWidget
+    from ficha_paciente.consentimentos import ConsentimentosWidget
+    from ficha_paciente.pesquisa_pacientes import PesquisaPacientesManager
+    return DadosPessoaisWidget, HistoricoClinicoWidget, TemplatesManagerWidget, ComunicacaoManagerWidget, GestaoDocumentosWidget, DeclaracaoSaudeWidget, ConsentimentosWidget, PesquisaPacientesManager
 
 class FichaPaciente(QMainWindow):
     def __init__(self, paciente_data=None, parent=None):
@@ -305,6 +35,7 @@ class FichaPaciente(QMainWindow):
         super().__init__(parent)
         
         # APENAS o essencial durante __init__
+        # ✅ USAR DADOS FORNECIDOS OU CRIAR FICHA VAZIA
         self.paciente_data = paciente_data or {}
         self.dirty = False
         
@@ -326,16 +57,10 @@ class FichaPaciente(QMainWindow):
         self.setMinimumSize(1200, 800)
         self.resize(1400, 900)
         
-        # Inicializar scheduler para follow-ups (apenas uma instância global)
-        self._init_scheduler_safe()
-        
         # Configurar atualização automática dos dados (otimizada)
         self.setup_data_refresh()
         
-        # Armazenar referências das assinaturas digitais
-        self.signature_canvas_paciente = None
-        self.signature_canvas_terapeuta = None
-        
+        # Sistema modular de assinaturas
         # Armazenar assinaturas capturadas por tipo de consentimento
         self.assinaturas_por_tipo = {}  # {'rgpd': {'paciente': bytes, 'terapeuta': bytes}, ...}
         self.assinatura_paciente_data = None
@@ -347,7 +72,28 @@ class FichaPaciente(QMainWindow):
         # ✨ CONSTRUIR UI DIRETAMENTE - SEM COMPLICAÇÕES
         self.init_ui()
         self.load_data()
-        self.inicializar_templates_padrao()
+    
+    # ====== CALLBACKS PARA MÓDULOS ESPECIALIZADOS ======
+    def on_template_selecionado(self, template_data):
+        """Callback quando template é selecionado no módulo especializado"""
+        print(f"📄 Template selecionado: {template_data.get('nome', 'N/A')}")
+    
+    def on_followup_agendado(self, tipo_followup, dias):
+        """Callback quando follow-up é agendado no módulo de comunicação"""
+        print(f"📅 Follow-up agendado: {tipo_followup} em {dias} dias")
+    
+    def on_protocolo_adicionado(self, protocolo):
+        """Callback quando protocolo é adicionado no módulo de templates"""
+        print(f"📋 Protocolo adicionado: {protocolo}")
+    
+    def on_template_gerado(self, template_data):
+        """Callback quando template é gerado no módulo de templates"""
+        print(f"📄 Template gerado: {template_data.get('nome', 'N/A')}")
+    
+    def data_atual(self):
+        """Retorna a data atual formatada"""
+        from datetime import datetime
+        return datetime.now().strftime('%d/%m/%Y')
     
     def selecionar_imagem_galeria(self, img):
         """Seleciona a imagem da galeria visual, atualiza canvas e aplica destaque visual"""
@@ -529,11 +275,8 @@ class FichaPaciente(QMainWindow):
         
         # Inicializar sub-abas
         self.init_sub_dados_pessoais()
-        self.init_sub_declaracao_saude()
-        self.init_sub_consentimentos()
-        
-        # Forçar aplicação de estilos modernos nos botões de assinatura
-        self._aplicar_estilos_modernos_assinatura()
+        self.init_sub_declaracao_saude_modular()
+        self.init_sub_consentimentos_modular()
 
     def init_tab_clinico_comunicacao(self):
         """
@@ -585,6 +328,9 @@ class FichaPaciente(QMainWindow):
         self.clinico_comunicacao_tabs.addTab(self.sub_centro_comunicacao, '📧 Email')
         self.clinico_comunicacao_tabs.addTab(self.sub_gestao_documentos, '📂 Gestão de Documentos')
         
+        # Conectar sinal de mudança de aba para refresh automático
+        self.clinico_comunicacao_tabs.currentChanged.connect(self._on_tab_clinico_changed)
+        
         main_layout.addWidget(self.clinico_comunicacao_tabs)
         
         # Inicializar sub-abas
@@ -592,900 +338,163 @@ class FichaPaciente(QMainWindow):
         self.init_sub_templates_prescricoes()
         self.init_sub_iris_analise()
         self.init_sub_centro_comunicacao()
-        self.init_sub_gestao_documentos()
+        self.init_sub_gestao_documentos_modular()
 
     def init_sub_dados_pessoais(self):
-        """Sub-aba: Dados Pessoais - Layout profissional otimizado"""
-        layout = QVBoxLayout(self.sub_dados_pessoais)
-        layout.setContentsMargins(25, 25, 25, 25)
-        layout.setSpacing(25)
-        
-        # Grid com larguras FIXAS para distâncias uniformes
-        grid = QGridLayout()
-        grid.setHorizontalSpacing(20)  # Espaçamento FIXO de 20px entre colunas
-        grid.setVerticalSpacing(18)    # Espaçamento vertical ligeiramente aumentado
-        
-        # LARGURAS FIXAS para garantir distâncias uniformes
-        grid.setColumnMinimumWidth(0, 160)  # Coluna labels esquerda: FIXA 160px
-        grid.setColumnMinimumWidth(1, 200)  # Coluna campos esquerda
-        grid.setColumnMinimumWidth(2, 100)  # Coluna labels centro: FIXA 100px  
-        grid.setColumnMinimumWidth(3, 200)  # Coluna campos centro
-        grid.setColumnMinimumWidth(4, 100)  # Coluna labels direita: FIXA 100px
-        grid.setColumnMinimumWidth(5, 200)  # Coluna campos direita
-        
-        # Stretch factors para ocupar espaço restante
-        grid.setColumnStretch(1, 1)  # Campos: stretch
-        grid.setColumnStretch(3, 1)  # Campos: stretch
-        grid.setColumnStretch(5, 1)  # Campos: stretch
-        
-        # ========== SEÇÃO IDENTIFICAÇÃO ==========
-        # Linha 1: Nome (span completo)
-        nome_label = QLabel("Nome:")
-        nome_label.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color: #333; min-width: 160px; }")
-        nome_label.setFixedWidth(160)  # LARGURA FIXA para alinhamento
-        grid.addWidget(nome_label, 0, 0)
-        
-        self.nome_edit = QLineEdit()
-        self.nome_edit.setPlaceholderText("Nome completo do paciente")
-        self.nome_edit.setStyleSheet("""
-            QLineEdit {
-                padding: 6px 8px;
-                font-size: 14px;
-                border: 2px solid #ddd;
-                border-radius: 5px;
-                background: white;
-                min-height: 14px;
-                max-height: 32px;
-            }
-            QLineEdit:focus { border-color: #007bff; }
-        """)
-        grid.addWidget(self.nome_edit, 0, 1, 1, 5)  # Span 5 colunas
-        
-        # Linha 2: Data nascimento | Sexo | Estado civil
-        data_label = QLabel("Data de nascimento:")
-        data_label.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color: #333; }")
-        data_label.setFixedWidth(160)  # LARGURA FIXA para alinhamento
-        grid.addWidget(data_label, 1, 0)
-        
-        self.nasc_edit = ModernDateWidget()
-        self.nasc_edit.setDate(QDate(1990, 1, 1))
-        # SEM setFixedWidth - deixar ajustar automaticamente
-        grid.addWidget(self.nasc_edit, 1, 1)
-        
-        sexo_label = QLabel("Sexo:")
-        sexo_label.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color: #333; }")
-        sexo_label.setFixedWidth(100)  # LARGURA FIXA para alinhamento
-        grid.addWidget(sexo_label, 1, 2)
-        
-        self.sexo_combo = QComboBox()
-        self.sexo_combo.addItems(['', 'Masculino', 'Feminino', 'Outro'])
-        self.sexo_combo.setMaximumWidth(130)  # LARGURA CONTROLADA
-        self.sexo_combo.setStyleSheet("""
-            QComboBox {
-                padding: 6px 8px;
-                font-size: 14px;
-                border: 2px solid #ddd;
-                border-radius: 5px;
-                background: white;
-                min-height: 14px;
-                max-height: 32px;
-            }
-            QComboBox:focus { border-color: #007bff; }
-            QComboBox::drop-down { border: 0px; width: 25px; }
-            QComboBox::down-arrow {
-                image: none;
-                border-left: 5px solid transparent;
-                border-right: 5px solid transparent;
-                border-top: 5px solid #666;
-                margin-right: 5px;
-            }
-        """)
-        grid.addWidget(self.sexo_combo, 1, 3)
-        
-        estado_label = QLabel("Estado civil:")
-        estado_label.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color: #333; }")
-        estado_label.setFixedWidth(100)  # LARGURA FIXA para alinhamento
-        grid.addWidget(estado_label, 1, 4)
-        
-        self.estado_civil_combo = QComboBox()
-        self.estado_civil_combo.addItems(['', 'Solteiro(a)', 'Casado(a)', 'Divorciado(a)', 'Viúvo(a)', 'União de facto'])
-        self.estado_civil_combo.setMaximumWidth(150)  # LARGURA CONTROLADA
-        self.estado_civil_combo.setStyleSheet("""
-            QComboBox {
-                padding: 6px 8px;
-                font-size: 14px;
-                border: 2px solid #ddd;
-                border-radius: 5px;
-                background: white;
-                min-height: 14px;
-                max-height: 32px;
-            }
-            QComboBox:focus { border-color: #007bff; }
-            QComboBox::drop-down { border: 0px; width: 25px; }
-            QComboBox::down-arrow {
-                image: none;
-                border-left: 5px solid transparent;
-                border-right: 5px solid transparent;
-                border-top: 5px solid #666;
-                margin-right: 5px;
-            }
-        """)
-        grid.addWidget(self.estado_civil_combo, 1, 5)
-        
-        # ========== SEÇÃO DADOS PESSOAIS ==========
-        # Linha 3: Naturalidade | Profissão | NIF
-        nat_label = QLabel("Naturalidade:")
-        nat_label.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color: #333; }")
-        nat_label.setFixedWidth(160)  # LARGURA FIXA para alinhamento
-        grid.addWidget(nat_label, 2, 0)
-        
-        self.naturalidade_edit = QLineEdit()
-        self.naturalidade_edit.setPlaceholderText("Cidade de nascimento")
-        # SEM setFixedWidth - deixar ajustar automaticamente
-        self.naturalidade_edit.setStyleSheet("""
-            QLineEdit {
-                padding: 6px 8px;
-                font-size: 14px;
-                border: 2px solid #ddd;
-                border-radius: 5px;
-                background: white;
-                min-height: 14px;
-                max-height: 32px;
-            }
-            QLineEdit:focus { border-color: #007bff; }
-        """)
-        grid.addWidget(self.naturalidade_edit, 2, 1)
-        
-        prof_label = QLabel("Profissão:")
-        prof_label.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color: #333; }")
-        prof_label.setFixedWidth(100)  # LARGURA FIXA para alinhamento
-        grid.addWidget(prof_label, 2, 2)
-        
-        self.profissao_edit = QLineEdit()
-        self.profissao_edit.setPlaceholderText("Ex: Enfermeira, Professor")
-        # SEM setFixedWidth - deixar ajustar automaticamente
-        self.profissao_edit.setStyleSheet("""
-            QLineEdit {
-                padding: 6px 8px;
-                font-size: 14px;
-                border: 2px solid #ddd;
-                border-radius: 5px;
-                background: white;
-                min-height: 14px;
-                max-height: 32px;
-            }
-            QLineEdit:focus { border-color: #007bff; }
-        """)
-        grid.addWidget(self.profissao_edit, 2, 3)
-        
-        nif_label = QLabel("NIF:")
-        nif_label.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color: #333; }")
-        nif_label.setFixedWidth(100)  # LARGURA FIXA para alinhamento
-        grid.addWidget(nif_label, 2, 4)
-        
-        self.nif_edit = QLineEdit()
-        self.nif_edit.setPlaceholderText("123 456 789")
-        self.nif_edit.setMaxLength(11)
-        self.nif_edit.setMaximumWidth(130)  # LARGURA CONTROLADA
-        self.nif_edit.textChanged.connect(self.formatar_nif)
-        self.nif_edit.setStyleSheet("""
-            QLineEdit {
-                padding: 6px 8px;
-                font-size: 14px;
-                border: 2px solid #ddd;
-                border-radius: 5px;
-                background: white;
-                min-height: 14px;
-                max-height: 32px;
-            }
-            QLineEdit:focus { border-color: #007bff; }
-        """)
-        grid.addWidget(self.nif_edit, 2, 5)
-        
-        # Linha 4: Contacto | Email
-        cont_label = QLabel("Contacto:")
-        cont_label.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color: #333; }")
-        cont_label.setFixedWidth(160)  # LARGURA FIXA para alinhamento
-        grid.addWidget(cont_label, 3, 0)
-        
-        self.contacto_edit = QLineEdit()
-        self.contacto_edit.setPlaceholderText("Ex: +351 912 345 678")
-        self.contacto_edit.setMaximumWidth(180)  # LARGURA CONTROLADA
-        self.contacto_edit.textChanged.connect(self.formatar_contacto)
-        self.contacto_edit.setStyleSheet("""
-            QLineEdit {
-                padding: 6px 8px;
-                font-size: 14px;
-                border: 2px solid #ddd;
-                border-radius: 5px;
-                background: white;
-                min-height: 14px;
-                max-height: 32px;
-            }
-            QLineEdit:focus { border-color: #007bff; }
-        """)
-        grid.addWidget(self.contacto_edit, 3, 1)
-        
-        email_label = QLabel("Email:")
-        email_label.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color: #333; }")
-        email_label.setFixedWidth(100)  # LARGURA FIXA para alinhamento
-        grid.addWidget(email_label, 3, 2)
-        
-        self.email_edit = QLineEdit()
-        self.email_edit.setPlaceholderText("exemplo@email.com")
-        self.email_edit.setStyleSheet("""
-            QLineEdit {
-                padding: 6px 8px;
-                font-size: 14px;
-                border: 2px solid #ddd;
-                border-radius: 5px;
-                background: white;
-                min-height: 14px;
-                max-height: 32px;
-            }
-            QLineEdit:focus { border-color: #007bff; }
-        """)
-        # ✅ CORREÇÃO: Conectar sinal para atualizar email automaticamente
-        self.email_edit.textChanged.connect(self.atualizar_email_paciente_data)
-        grid.addWidget(self.email_edit, 3, 3, 1, 3)  # Span 3 colunas
-        
-        # ========== SEÇÃO ORIGEM & REFERÊNCIA ==========
-        # Linha 5: Local habitual
-        local_label = QLabel("Local habitual:")
-        local_label.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color: #333; }")
-        local_label.setFixedWidth(160)  # LARGURA FIXA para alinhamento
-        grid.addWidget(local_label, 4, 0)
-        
-        self.local_combo = QComboBox()
-        self.local_combo.addItems(['', 'Chão de Lopes', 'Coruche', 'Campo Maior', 'Elvas', 'Samora Correia', 'Cliniprata', 'Spazzio Vita', 'Online', 'Outro'])
-        self.local_combo.setMaximumWidth(200)  # LARGURA CONTROLADA
-        self.local_combo.setStyleSheet("""
-            QComboBox {
-                padding: 6px 8px;
-                font-size: 14px;
-                border: 2px solid #ddd;
-                border-radius: 5px;
-                background: white;
-                min-height: 14px;
-                max-height: 32px;
-            }
-            QComboBox:focus { border-color: #007bff; }
-            QComboBox::drop-down { border: 0px; width: 25px; }
-            QComboBox::down-arrow {
-                image: none;
-                border-left: 5px solid transparent;
-                border-right: 5px solid transparent;
-                border-top: 5px solid #666;
-                margin-right: 5px;
-            }
-        """)
-        grid.addWidget(self.local_combo, 4, 1, 1, 2)  # Span 2 colunas
-        
-        # Linha 6: Como nos conheceu | Referenciado(a) por
-        conheceu_label = QLabel("Como nos conheceu:")
-        conheceu_label.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color: #333; }")
-        conheceu_label.setFixedWidth(160)  # LARGURA FIXA para alinhamento
-        grid.addWidget(conheceu_label, 5, 0)
-        
-        self.conheceu_combo = QComboBox()
-        self.conheceu_combo.addItems(['', 'Recomendação', 'Redes Sociais', 'Google', 'Folheto', 'Evento', 'Amigo/Familiar', 'Outro'])
-        self.conheceu_combo.setMaximumWidth(180)  # LARGURA CONTROLADA
-        self.conheceu_combo.setStyleSheet("""
-            QComboBox {
-                padding: 6px 8px;
-                font-size: 14px;
-                border: 2px solid #ddd;
-                border-radius: 5px;
-                background: white;
-                min-height: 14px;
-                max-height: 32px;
-            }
-            QComboBox:focus { border-color: #007bff; }
-            QComboBox::drop-down { border: 0px; width: 25px; }
-            QComboBox::down-arrow {
-                image: none;
-                border-left: 5px solid transparent;
-                border-right: 5px solid transparent;
-                border-top: 5px solid #666;
-                margin-right: 5px;
-            }
-        """)
-        grid.addWidget(self.conheceu_combo, 5, 1)
-        
-        ref_label = QLabel("Referenciado(a) por:")
-        ref_label.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color: #333; }")
-        ref_label.setFixedWidth(100)  # LARGURA FIXA para alinhamento
-        grid.addWidget(ref_label, 5, 2)
-        
-        self.referenciado_edit = QLineEdit()
-        self.referenciado_edit.setPlaceholderText("Nome da pessoa que referenciou")
-        self.referenciado_edit.setStyleSheet("""
-            QLineEdit {
-                padding: 6px 8px;
-                font-size: 14px;
-                border: 2px solid #ddd;
-                border-radius: 5px;
-                background: white;
-                min-height: 14px;
-                max-height: 32px;
-            }
-            QLineEdit:focus { border-color: #007bff; }
-        """)
-        grid.addWidget(self.referenciado_edit, 5, 3, 1, 3)  # Span 3 colunas
-        
-        # ========== SEÇÃO OBSERVAÇÕES ==========
-        # Linha 7: Observações (span completo)
-        obs_label = QLabel("Observações:")
-        obs_label.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color: #333; }")
-        obs_label.setFixedWidth(160)  # LARGURA FIXA para alinhamento
-        grid.addWidget(obs_label, 6, 0)
-        
-        self.observacoes_edit = QLineEdit()
-        self.observacoes_edit.setPlaceholderText("Observações sobre o paciente...")
-        self.observacoes_edit.setStyleSheet("""
-            QLineEdit {
-                padding: 6px 8px;
-                font-size: 14px;
-                border: 2px solid #ddd;
-                border-radius: 5px;
-                background: white;
-                min-height: 14px;
-                max-height: 32px;
-            }
-            QLineEdit:focus { border-color: #007bff; }
-        """)
-        grid.addWidget(self.observacoes_edit, 6, 1, 1, 5)  # Span 5 colunas
-        
-        layout.addLayout(grid)
-        layout.addSpacing(30)
-        
-        # Botão de guardar - ESTILO IRIS
-        botao_layout = QHBoxLayout()
-        botao_layout.addStretch()
-        
-        self.btn_guardar_dados = QPushButton("💾 Guardar Dados")
-        self._style_modern_button(self.btn_guardar_dados, "#28a745")
-        self.btn_guardar_dados.clicked.connect(self.guardar)
-        botao_layout.addWidget(self.btn_guardar_dados)
-        
-        layout.addLayout(botao_layout)
-        layout.addStretch()
+        """Sub-aba: Dados Pessoais - MÓDULO OTIMIZADO"""
+        try:
+            # ✅ USAR MÓDULO OTIMIZADO DE DADOS PESSOAIS
+            from ficha_paciente.dados_pessoais import DadosPessoaisWidget
+            
+            layout = QVBoxLayout(self.sub_dados_pessoais)
+            layout.setContentsMargins(0, 0, 0, 0)
+            
+            # Criar widget modular
+            self.dados_pessoais_widget = DadosPessoaisWidget(
+                self.paciente_data, 
+                self,  # parent 
+                self   # ficha_paciente (referência direta)
+            )
+            
+            # Conectar sinais para sincronização
+            self.dados_pessoais_widget.dados_alterados.connect(self.on_dados_pessoais_alterados)
+            self.dados_pessoais_widget.validacao_alterada.connect(self.on_validacao_dados_pessoais)
+            
+            layout.addWidget(self.dados_pessoais_widget)
+            
+            print("✅ Módulo de dados pessoais carregado com sucesso")
+            
+        except ImportError as e:
+            print(f"❌ ERRO CRÍTICO: Módulo dados_pessoais não encontrado: {e}")
+            # SEM FALLBACK - deve funcionar sempre
+    
+    def on_dados_pessoais_alterados(self, dados):
+        """Callback quando dados pessoais são alterados PELO USUÁRIO"""
+        # CORREÇÃO: Só marcar como dirty se não estiver carregando dados iniciais
+        if not getattr(self, '_carregando_dados', False) and dados:
+            # Atualizar dados do paciente
+            self.paciente_data.update(dados)
+            self.dirty = True
+            
+            # Atualizar título da janela se nome mudou
+            if 'nome' in dados and dados['nome']:
+                self.setWindowTitle(f"📋 Ficha do Paciente - {dados['nome']}")
+    
+    def on_validacao_dados_pessoais(self, valido):
+        """Callback quando validação dos dados pessoais muda"""
+        # Pode ser usado para ativar/desativar botões de guardar
+        pass
+
+
 
     def init_sub_historico_clinico(self):
-        """Sub-aba: Histórico Clínico (sem biotipo e estado emocional, sem Chat IA)"""
+        """Sub-aba: Histórico Clínico - Agora usando módulo otimizado"""
         layout = QVBoxLayout(self.sub_historico_clinico)
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.setSpacing(15)
-
-        # Toolbar com margens e hover
-        self.toolbar = QToolBar()
-        self.toolbar.setStyleSheet("""
-            QToolBar { 
-                margin-bottom: 8px; 
-                background-color: #f8f9fa;
-                border-radius: 6px;
-                padding: 5px;
-            }
-            QToolButton { 
-                margin-right: 6px; 
-                padding: 8px 12px; 
-                border-radius: 6px;
-                font-weight: 600;
-                min-width: 30px;
-            }
-            QToolButton:hover { 
-                background: #e9ecef; 
-            }
-            QToolButton:pressed {
-                background: #dee2e6;
-            }
-        """)
+        layout.setContentsMargins(0, 0, 0, 0)  # Zero margins para o widget ocupar tudo
         
-        self.action_bold = QAction('B', self)
-        self.action_bold.setShortcut('Ctrl+B')
-        self.action_bold.triggered.connect(lambda: self.toggle_bold())
-        
-        self.action_italic = QAction('I', self)
-        self.action_italic.setShortcut('Ctrl+I')
-        self.action_italic.triggered.connect(lambda: self.toggle_italic())
-        
-        self.action_underline = QAction('U', self)
-        self.action_underline.setShortcut('Ctrl+U')
-        self.action_underline.triggered.connect(lambda: self.toggle_underline())
-        
-        self.action_date = QAction('📅', self)
-        self.action_date.triggered.connect(self.inserir_data_negrito)
-        
-        self.toolbar.addAction(self.action_bold)
-        self.toolbar.addAction(self.action_italic)
-        self.toolbar.addAction(self.action_underline)
-        self.toolbar.addSeparator()
-        self.toolbar.addAction(self.action_date)
-        
-        # Adicionar espaço expansível para empurrar o botão guardar para a direita
-        spacer = QWidget()
-        spacer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
-        self.toolbar.addWidget(spacer)
-        
-        # Botão Guardar como QToolButton (melhor para toolbars)
-        self.btn_guardar_historico = QToolButton()
-        self.btn_guardar_historico.setText('💾 Guardar')
-        self.btn_guardar_historico.clicked.connect(self.guardar)
-        
-        # Aplicar estilo moderno padrão (fundo branco, borda colorida)
-        self.btn_guardar_historico.setStyleSheet("""
-            QToolButton {
-                background-color: #f8f9fa;
-                color: #6c757d;
-                border: 1px solid #e0e0e0;
-                border-radius: 6px;
-                padding: 8px 12px;
-                font-weight: bold;
-                min-width: 60px;
-            }
-            QToolButton:hover {
-                background-color: #4CAF50;
-                color: white;
-                border: 1px solid #4CAF50;
-            }
-        """)
-        
-        self.toolbar.addWidget(self.btn_guardar_historico)
-        
-        layout.addWidget(self.toolbar)
-
-        # Editor de histórico
-        self.historico_edit = QTextEdit()
-        self.historico_edit.setPlaceholderText(
-            "Descreva queixas, sintomas, evolução do caso ou observações clínicas relevantes...\n\n"
-            "💡 Dica: Use o botão 📅 para inserir automaticamente a data de hoje no formato correto."
-        )
-        self.historico_edit.setMinimumHeight(420)  # Aumentar altura já que não há botão em baixo
-        self._style_text_edit(self.historico_edit)
-        layout.addWidget(self.historico_edit)
-
+        try:
+            # 🚀 USAR MÓDULO OTIMIZADO
+            from ficha_paciente.historico_clinico import HistoricoClinicoWidget
+            
+            # Obter histórico atual se existe
+            historico_atual = ""
+            if hasattr(self, 'paciente_data') and self.paciente_data:
+                historico_atual = self.paciente_data.get('historico_clinico', '')
+            
+            # Criar widget otimizado
+            self.historico_widget = HistoricoClinicoWidget(historico_atual, self)
+            
+            # Conectar sinais
+            self.historico_widget.historico_alterado.connect(self.on_historico_alterado)
+            self.historico_widget.guardar_solicitado.connect(self.guardar)
+            
+            # Manter referência ao editor para compatibilidade
+            self.historico_edit = self.historico_widget.historico_edit
+            
+            layout.addWidget(self.historico_widget)
+            
+            print("✅ Módulo HistoricoClinicoWidget carregado com sucesso")
+            
+        except ImportError as e:
+            print(f"❌ ERRO CRÍTICO: Módulo historico_clinico não encontrado: {e}")
+            # SEM FALLBACK - deve funcionar sempre
+        except Exception as e:
+            print(f"❌ ERRO no módulo historico_clinico: {e}")
+            # SEM FALLBACK - deve funcionar sempre
+    
+    def on_historico_alterado(self, novo_historico):
+        """Callback quando histórico é alterado PELO USUÁRIO"""
+        # CORREÇÃO: Só marcar como dirty se não estiver carregando dados iniciais
+        if not getattr(self, '_carregando_dados', False) and hasattr(self, 'paciente_data') and self.paciente_data:
+            # Atualizar apenas o texto simples no paciente_data
+            self.paciente_data['historico_clinico'] = novo_historico
+            # Marcar como alterado
+            self.dirty = True
+    
     def init_sub_templates_prescricoes(self):
-        """Sub-aba: Templates & Prescrições - Sistema Profissional"""
-        from PyQt6.QtWidgets import QLabel, QVBoxLayout, QHBoxLayout, QFrame, QScrollArea, QWidget, QPushButton, QListWidget, QTextEdit, QStackedWidget, QSplitter
-        from PyQt6.QtCore import Qt
-        
-        layout = QVBoxLayout(self.sub_templates_prescricoes)
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.setSpacing(15)
-        
-        # Layout horizontal principal: esquerda (categorias), centro (preview), direita (botões)
-        main_horizontal = QHBoxLayout()
-        
-        # ====== ESQUERDA: CATEGORIAS COM TEMPLATES EMBAIXO ======
-        categorias_frame = QFrame()
-        categorias_frame.setFixedWidth(280)  # Reduzir largura para dar mais espaço ao preview
-        categorias_frame.setStyleSheet("""
-            QFrame {
-                background-color: #f8f9fa;
-                border: 1px solid #dee2e6;
-                border-radius: 8px;
-                padding: 10px;
-            }
-        """)
-        categorias_layout = QVBoxLayout(categorias_frame)
-        
-        # Título das categorias mais compacto
-        cat_titulo = QLabel("🩺 Protocolos Terapêuticos")
-        cat_titulo.setStyleSheet("""
-            font-size: 12px;
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 8px;
-            padding: 6px;
-            background-color: #e9ecef;
-            border-radius: 5px;
-        """)
-        cat_titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        categorias_layout.addWidget(cat_titulo)
-        
-        # Scroll area para categorias e templates
-        scroll_area = QScrollArea()
-        scroll_area.setWidgetResizable(True)
-        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        scroll_widget = QWidget()
-        scroll_layout = QVBoxLayout(scroll_widget)
-        
-        # Guardar referência ao layout para uso no toggle
-        self.categorias_scroll_layout = scroll_layout
-        
-        # Botões de categorias com área para templates - PROTOCOLOS TERAPÊUTICOS
-        self.template_categories = [
-            ("🏃", "Exercícios e Alongamentos", "exercicios", "#ffeaa7"),      
-            ("🥗", "Nutrição & Dietética", "dietas", "#a8e6cf"),              
-            ("💊", "Suplementação", "suplementos", "#ffd3e1"),    
-            ("📋", "Autocuidado e Rotinas", "orientacoes", "#e6d7ff"),
-            ("📚", "Guias Educativos", "educativos", "#e1f5fe"),
-            ("🎯", "Específicos por Condição", "condicoes", "#f3e5f5")
-        ]
-        
-        self.btn_categories = {}
-        self.templates_areas = {}  # Para armazenar áreas de templates
-        for emoji, nome, categoria, cor in self.template_categories:
-            # Container para categoria + templates
-            categoria_container = QWidget()
-            categoria_container_layout = QVBoxLayout(categoria_container)
-            categoria_container_layout.setContentsMargins(0, 0, 0, 5)
+        """Sub-aba: Templates & Prescrições - Usando módulo especializado"""
+        try:
+            from ficha_paciente.templates_manager import TemplatesManagerWidget
             
-            # Botão da categoria
-            btn = QPushButton(f"{emoji} {nome}")
-            btn.setFixedHeight(35)
-            btn.setStyleSheet(f"""
-                QPushButton {{
-                    font-size: 11px;
-                    font-weight: 600;
-                    border: none;
-                    border-radius: 6px;
-                    padding: 6px 10px;
-                    background-color: {cor};
-                    color: #2c3e50;
-                    text-align: left;
-                }}
-                QPushButton:hover {{
-                    background-color: {self._lighten_color(cor, 15)};
-                    color: #2c3e50;
-                }}
-                QPushButton:pressed {{
-                    background-color: {self._lighten_color(cor, 25)};
-                    color: #2c3e50;
-                }}
-            """)
+            # Criar widget especializado
+            self.templates_widget = TemplatesManagerWidget(self.paciente_data, self)
             
-            # Área para templates (inicialmente oculta)
-            templates_area = QWidget()
-            templates_layout = QVBoxLayout(templates_area)
-            templates_layout.setContentsMargins(15, 5, 0, 0)  # Indentado à direita
-            templates_area.setVisible(False)
+            # Layout simples para integração
+            layout = QVBoxLayout(self.sub_templates_prescricoes)
+            layout.setContentsMargins(0, 0, 0, 0)
+            layout.addWidget(self.templates_widget)
             
-            self.templates_areas[categoria] = templates_area
-            self.btn_categories[categoria] = btn
+            # Conectar sinais
+            self.templates_widget.template_selecionado.connect(self.on_template_selecionado)
+            self.templates_widget.protocolo_adicionado.connect(self.on_protocolo_adicionado)
+            self.templates_widget.template_gerado.connect(self.on_template_gerado)
             
-            # Conectar clique para expandir/colapsar
-            btn.clicked.connect(lambda checked, cat=categoria: self.toggle_categoria_templates(cat))
+            print("✅ Templates Manager carregado com sucesso")
             
-            categoria_container_layout.addWidget(btn)
-            categoria_container_layout.addWidget(templates_area)
-            
-            # ADICIONAR ESPAÇO ENTRE CATEGORIAS
-            categoria_container_layout.addSpacing(15)  # 15px de espaço extra
-            
-            scroll_layout.addWidget(categoria_container)
-        
-        scroll_layout.addStretch()
-        scroll_area.setWidget(scroll_widget)
-        categorias_layout.addWidget(scroll_area)
-        main_horizontal.addWidget(categorias_frame, 3)  # AUMENTAR: proporção 3 (era 2)
-        
-        # ====== CENTRO: PREVIEW AMPLO (SEM BARRA DE TÍTULO) ======
-        preview_frame = QFrame()
-        preview_frame.setStyleSheet("""
-            QFrame {
-                background-color: white;
-                border: 3px solid #9C27B0;
-                border-radius: 10px;
-                padding: 15px;
-            }
-        """)
-        preview_layout = QVBoxLayout(preview_frame)
-        preview_layout.setContentsMargins(5, 5, 5, 5)
-        
-        # Preview integrado - pode ser texto OU PDF
-        from PyQt6.QtWidgets import QStackedWidget
-        
-        # Criar widget empilhado para alternar entre texto e PDF
-        self.preview_stack = QStackedWidget()
-        
-        # Widget 1: Preview de texto (atual) - ALTURA ULTRA REDUZIDA
-        self.template_preview = QTextEdit()
-        self.template_preview.setMinimumHeight(250)  # ULTRA REDUZIDO: era 400→320, agora 250
-        self.template_preview.setMaximumHeight(300)  # ULTRA REDUZIDO: era 450→380, agora 300
-        self.template_preview.setPlaceholderText("""
-📄 PREVIEW INTEGRADO - TEXTO E PDF
-
-Selecione um template à esquerda para visualizar:
-
-📝 TEMPLATES TEXTO: Mostram conteúdo formatado
-📄 TEMPLATES PDF: Mostram conteúdo extraído do PDF
-
-🩺 Cabeçalho com logo Dr. Nuno Correia
-📋 Dados completos do paciente  
-📝 Conteúdo do template formatado
-✅ Orientações médicas
-👨‍⚕️ Assinatura profissional
-
-✨ NOVO: PDFs integrados no canvas (sem janelas separadas)
-        """)
-        self.template_preview.setStyleSheet("""
-            QTextEdit {
-                background: white;
-                border: none;
-                border-radius: 5px;
-                padding: 20px;
-                font-family: 'Times New Roman', serif;
-                font-size: 11px;
-                color: #2c3e50;
-                line-height: 1.4;
-            }
-            QTextEdit:focus {
-                border: none;
-                outline: none;
-            }
-        """)
-        self.template_preview.setReadOnly(True)
-        
-        # Widget 2: Abertura Externa de PDFs (SEM PISCAR)
-        # Removido QWebEngineView para eliminar janela que pisca
-        self.pdf_preview = None
-        self._webengine_available = False
-        
-        # Criar botão para abrir PDFs externamente
-        from PyQt6.QtWidgets import QLabel, QPushButton, QVBoxLayout
-        self.pdf_external_widget = QWidget()
-        pdf_layout = QVBoxLayout(self.pdf_external_widget)
-        
-        pdf_label = QLabel("📄 Visualização de PDFs")
-        pdf_label.setStyleSheet("""
-            font-size: 16px; 
-            font-weight: bold; 
-            color: #2c3e50;
-            padding: 10px;
-        """)
-        
-        self.btn_abrir_pdf_externo = QPushButton("🔍 Abrir PDF no Visualizador Externo")
-        self.btn_abrir_pdf_externo.setStyleSheet("""
-            QPushButton {
-                background-color: #007bff;
-                color: white;
-                border: none;
-                border-radius: 6px;
-                padding: 12px 16px;
-                font-size: 14px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #0056b3;
-            }
-        """)
-        self.btn_abrir_pdf_externo.clicked.connect(self.abrir_pdf_atual_externo)
-        self.btn_abrir_pdf_externo.setEnabled(False)  # Ativado quando há PDF
-        
-        info_label = QLabel("💡 Os PDFs serão abertos no seu visualizador padrão\n(Adobe Reader, Navegador, etc.)")
-        info_label.setStyleSheet("""
-            color: #6c757d;
-            font-size: 12px;
-            padding: 10px;
-            background: #f8f9fa;
-            border-radius: 4px;
-            border: 1px solid #e9ecef;
-        """)
-        
-        pdf_layout.addWidget(pdf_label)
-        pdf_layout.addWidget(self.btn_abrir_pdf_externo)
-        pdf_layout.addWidget(info_label)
-        pdf_layout.addStretch()
-        
-        self.pdf_external_widget.setMinimumHeight(350)
-        self.pdf_external_widget.setMaximumHeight(400)
-        
-        # PDF viewer configurado para abertura externa
-        
-        # Adicionar ambos ao stack (PDF externo ao invés de placeholder)
-        self.preview_stack.addWidget(self.template_preview)    # Índice 0: Texto
-        self.preview_stack.addWidget(self.pdf_external_widget)  # Índice 1: PDF externo
-        self.preview_stack.setCurrentIndex(0)  # Começar com texto
-        
-        # MELHORAR LAYOUT: Adicionar com proporção adequada
-        preview_layout.addWidget(self.preview_stack, 1)  # Usar todo o espaço disponível
-        
-        # ✅ ADICIONAR BOTÃO PDF COM ESTILO PREFERIDO
-        self.btn_pdf_preview = QPushButton("🔍 Abrir PDF Completo")
-        self.btn_pdf_preview.setStyleSheet("""
-            QPushButton {
-                background-color: #f8f9fa;
-                color: #495057;
-                border: 2px solid #dee2e6;
-                border-radius: 8px;
-                padding: 10px 16px;
-                font-size: 14px;
-                font-weight: 600;
-                margin: 5px;
-            }
-            QPushButton:hover {
-                background-color: #e91e63;
-                color: white;
-                border-color: #e91e63;
-            }
-            QPushButton:disabled {
-                background-color: #e9ecef;
-                color: #6c757d;
-                border-color: #dee2e6;
-            }
-        """)
-        self.btn_pdf_preview.clicked.connect(self.abrir_pdf_atual_externo)
-        self.btn_pdf_preview.setEnabled(False)  # Desativado até selecionar PDF
-        self.btn_pdf_preview.setVisible(False)  # Invisível até selecionar PDF
-        
-        preview_layout.addWidget(self.btn_pdf_preview)
-        
-        # AJUSTAR PROPORÇÕES: Centro reduzido para dar espaço às categorias
-        main_horizontal.addWidget(preview_frame, 2)   # REDUZIR MAIS: proporção 2 (era 3)
-        
-        # ====== DIREITA: BOTÕES DE AÇÃO VERTICAIS - MELHORADA ======
-        botoes_frame = QFrame()
-        # botoes_frame.setFixedWidth(200)  # REMOVER largura fixa para ser proporcional
-        botoes_frame.setStyleSheet("""
-            QFrame {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                    stop:0 #f8f9fa, stop:1 #e9ecef);
-                border: 2px solid #dee2e6;
-                border-radius: 12px;
-                padding: 20px;
-                margin: 5px;
-            }
-        """)
-        botoes_layout = QVBoxLayout(botoes_frame)
-        botoes_layout.setSpacing(12)
-        
-        # ÁREA DE PROTOCOLOS SELECIONADOS - MELHORADA
-        self.protocolos_selecionados = []
-        protocolos_frame = QFrame()
-        protocolos_frame.setMinimumHeight(130)  # Garantir altura mínima
-        protocolos_frame.setStyleSheet("""
-            QFrame {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, 
-                    stop:0 #fff3cd, stop:1 #ffeaa7);
-                border: 2px solid #f0c14b;
-                border-radius: 10px;
-                padding: 12px;
-                margin: 5px 0px;
-            }
-        """)
-        protocolos_layout = QVBoxLayout(protocolos_frame)
-        protocolos_layout.setSpacing(8)
-        
-        protocolos_titulo = QLabel("📋 Protocolos Selecionados")
-        protocolos_titulo.setStyleSheet("""
-            font-weight: bold; 
-            color: #856404; 
-            font-size: 11px;
-            margin-bottom: 8px;
-            padding: 4px;
-            background-color: rgba(255,255,255,0.7);
-            border-radius: 6px;
-            text-align: center;
-        """)
-        protocolos_titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        protocolos_layout.addWidget(protocolos_titulo)
-        
-        self.lista_protocolos = QLabel("Nenhum protocolo selecionado")
-        self.lista_protocolos.setStyleSheet("""
-            color: #856404; 
-            font-size: 10px; 
-            padding: 8px;
-            background-color: rgba(255,255,255,0.9);
-            border-radius: 6px;
-            border: 1px solid #f0c14b;
-        """)
-        self.lista_protocolos.setWordWrap(True)
-        self.lista_protocolos.setMinimumHeight(80)
-        self.lista_protocolos.setAlignment(Qt.AlignmentFlag.AlignTop)
-        protocolos_layout.addWidget(self.lista_protocolos)
-        
-        # Botão para limpar seleção - MELHORADO
-        self.btn_limpar_protocolos = QPushButton("🗑️ Limpar")
-        self.btn_limpar_protocolos.setFixedHeight(35)  # Aumentado de 28 para 35
-        self.btn_limpar_protocolos.setStyleSheet("""
-            QPushButton {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                    stop:0 #dc3545, stop:1 #c82333);
-                color: white;
-                border-radius: 6px;
-                font-size: 10px;
-                font-weight: bold;
-                border: 1px solid #bd2130;
-            }
-            QPushButton:hover { 
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                    stop:0 #e74c3c, stop:1 #c0392b);
-            }
-            QPushButton:pressed { background-color: #a71e2a; }
-        """)
-        self.btn_limpar_protocolos.clicked.connect(self.limpar_protocolos_selecionados)
-        protocolos_layout.addWidget(self.btn_limpar_protocolos)
-        
-        botoes_layout.addWidget(protocolos_frame)
-        
-        # BOTÃO PRINCIPAL: ENVIO DIRETO - ESTILO PREFERIDO
-        self.btn_workflow_completo = QPushButton("🚀 Enviar\nProtocolos")
-        self.btn_workflow_completo.setFixedHeight(75)
-        self.btn_workflow_completo.setStyleSheet("""
-            QPushButton {
-                background-color: #f8f9fa;
-                color: #495057;
-                border: 2px solid #dee2e6;
-                border-radius: 12px;
-                font-size: 13px;
-                font-weight: 600;
-                padding: 10px;
-            }
-            QPushButton:hover {
-                background-color: #28a745;
-                color: white;
-                border-color: #28a745;
-            }
-            QPushButton:pressed { 
-                background-color: #1e7e34; 
-                border-color: #1e7e34;
-            }
-        """)
-        self.btn_workflow_completo.setToolTip("📧 ENVIO DIRETO:\n" +
-                                            "• Enviar protocolos PDF selecionados\n" +
-                                            "• Email personalizado automático\n" +
-                                            "• Registar no histórico\n" +
-                                            "• Sem conversões - envio imediato")
-        self.btn_workflow_completo.clicked.connect(self.enviar_protocolos_direto)
-        botoes_layout.addWidget(self.btn_workflow_completo)
-
-        # ===== BOTÕES REMOVIDOS PARA SIMPLIFICAÇÃO =====
-        # (Apenas mantemos os 3 botões principais)
-        
-        # SEPARADOR ELEGANTE
-        separador = QFrame()
-        separador.setFrameShape(QFrame.Shape.HLine)
-        separador.setStyleSheet("""
-            color: #dee2e6; 
-            margin: 15px 5px;
-            background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
-                stop:0 transparent, stop:0.5 #dee2e6, stop:1 transparent);
-        """)
-        botoes_layout.addWidget(separador)
-        
-        # BOTÃO 2: EDITOR AVANÇADO - ESTILO PREFERIDO
-        self.btn_editor_avancado = QPushButton("⚙️ Editor\nAvançado")
-        self.btn_editor_avancado.setFixedHeight(65)
-        self.btn_editor_avancado.setStyleSheet("""
-            QPushButton {
-                background-color: #f8f9fa;
-                color: #495057;
-                border: 2px solid #dee2e6;
-                border-radius: 10px;
-                font-size: 12px;
-                font-weight: 600;
-                padding: 8px;
-            }
-            QPushButton:hover {
-                background-color: #17a2b8;
-                color: white;
-                border-color: #17a2b8;
-            }
-            QPushButton:pressed { 
-                background-color: #138496; 
-                border-color: #138496;
-            }
-        """)
-        self.btn_editor_avancado.setToolTip("🎯 EDITOR COMPLETO:\n" +
-                                          "• Editar conteúdo dos protocolos\n" + 
-                                          "• Personalizar para cada paciente\n" +
-                                          "• Combinar múltiplos protocolos\n" +
-                                          "• Criar documentos personalizados")
-        self.btn_editor_avancado.clicked.connect(self.abrir_editor_avancado)
-        botoes_layout.addWidget(self.btn_editor_avancado)
-        
-        # Espaçador para empurrar botões para o topo
-        botoes_layout.addStretch()
-        
-        main_horizontal.addWidget(botoes_frame, 2)  # ADICIONAR proporção 2 para alargar
-        
-        layout.addLayout(main_horizontal, 1)
-        
-        # Inicializar templates padrão
-        self.inicializar_templates_padrao()
-
+        except ImportError as e:
+            print(f"❌ ERRO CRÍTICO: Templates Manager não encontrado: {e}")
+            # SEM FALLBACK - deve funcionar sempre
+        except Exception as e:
+            print(f"❌ ERRO no Templates Manager: {e}")
+            # SEM FALLBACK - deve funcionar sempre
+    
     def init_sub_centro_comunicacao(self):
+        """Sub-aba: Email - Usando módulo especializado"""
+        try:
+            from ficha_paciente.comunicacao_manager import ComunicacaoManagerWidget
+            
+            # Criar widget especializado
+            self.comunicacao_widget = ComunicacaoManagerWidget(self.paciente_data, self)
+            
+            # Layout simples para integração
+            layout = QVBoxLayout(self.sub_centro_comunicacao)
+            layout.setContentsMargins(0, 0, 0, 0)
+            layout.addWidget(self.comunicacao_widget)
+            
+            # Conectar sinais
+            self.comunicacao_widget.email_enviado.connect(self.on_email_enviado)
+            self.comunicacao_widget.followup_agendado.connect(self.on_followup_agendado)
+            self.comunicacao_widget.template_aplicado.connect(self.on_template_aplicado)
+            
+            print("✅ Comunicação Manager carregado com sucesso")
+            
+        except ImportError as e:
+            print(f"❌ ERRO CRÍTICO: Comunicação Manager não encontrado: {e}")
+            # SEM FALLBACK - deve funcionar sempre
+        except Exception as e:
+            print(f"❌ ERRO no Comunicação Manager: {e}")
+            # SEM FALLBACK - deve funcionar sempre
+    
+    def on_email_enviado(self, destinatario, assunto, corpo):
+        """Callback quando email é enviado"""
+        print(f"📤 Email enviado para: {destinatario}")
+        # Aqui pode registrar no histórico, etc.
+    
+    def on_template_aplicado(self, nome_template):
+        """Callback quando template é aplicado"""
+        print(f"📄 Template aplicado: {nome_template}")
+
+    def init_sub_centro_comunicacao_fallback(self):
         """Sub-aba: Email - Interface limpa sem barras"""
         layout = QVBoxLayout(self.sub_centro_comunicacao)
         layout.setContentsMargins(30, 30, 30, 30)
@@ -1852,9 +861,6 @@ Selecione um template à esquerda para visualizar:
         
         # REMOVIDO: botoes_layout.addStretch() - código duplicado
         
-        # ✅ BOTÃO CENTRALIZADO E DESTACADO
-        # REMOVIDO: layout.addLayout(botoes_layout) - código duplicado
-        
         # Adicionar stretch no final para empurrar conteúdo para cima
         layout.addStretch()
 
@@ -1877,20 +883,23 @@ Selecione um template à esquerda para visualizar:
         # print(f"[EMAIL DEBUG] 📋 Dados disponíveis: {list(self.paciente_data.keys()) if self.paciente_data else 'Nenhum'}")
         
         if self.paciente_data:
-            # Carregar email se disponível
-            email_paciente = self.paciente_data.get('email', '').strip()
+            # Carregar email se disponível - PROTEGER CONTRA None
+            email_raw = self.paciente_data.get('email', '')
+            email_paciente = email_raw.strip() if email_raw else ''
             # print(f"[EMAIL DEBUG] 📧 Email encontrado: '{email_paciente}'")
             
             if email_paciente:
-                self.destinatario_edit.setText(email_paciente)
+                # Só preencher se o campo existir (módulo de comunicação carregado)
+                if hasattr(self, 'destinatario_edit'):
+                    self.destinatario_edit.setText(email_paciente)
                 # Email do paciente carregado
             else:
                 # Paciente não tem email configurado
                 pass
             
-            # Carregar nome para personalização
-            nome_paciente = self.paciente_data.get('nome', 'Paciente')
-            self.nome_paciente = nome_paciente
+            # Carregar nome para personalização - PROTEGER CONTRA None
+            nome_raw = self.paciente_data.get('nome', 'Paciente')
+            self.nome_paciente = nome_raw if nome_raw else 'Paciente'
             # Nome do paciente carregado
         else:
             self.nome_paciente = "Paciente"
@@ -2134,1972 +1143,7 @@ Equipe Médica"""
         from services.styles import darken_color
         return darken_color(hex_color, percent)
 
-    # ====== MÉTODOS PARA TEMPLATES ======
-    def inicializar_templates_padrao(self):
-        """Inicializa os templates padrão se não existirem"""
-        templates_padrao = {
-            "exercicios": [
-                {
-                    "nome": "Caminhada Diária",
-                    "texto": "**Exercício recomendado: Caminhada**\n\n• Duração: 30-45 minutos\n• Frequência: Diariamente\n• Intensidade: Moderada\n• Observações: Manter ritmo constante, hidratação adequada"
-                },
-                {
-                    "nome": "Alongamentos Matinais",
-                    "texto": "**Rotina de Alongamentos Matinais**\n\n• Duração: 15-20 minutos\n• Frequência: Ao acordar\n• Focar: Coluna, pescoço, membros\n• Respiração: Profunda e controlada"
-                }
-            ],
-            "dietas": [
-                {
-                    "nome": "Dieta Anti-inflamatória",
-                    "texto": "**Plano Alimentar Anti-inflamatório**\n\n• Aumentar: Vegetais verdes, frutos vermelhos, peixes gordos\n• Reduzir: Açúcares, farinhas refinadas, carnes processadas\n• Hidratação: 2-3L água/dia\n• Suplementação: Conforme avaliação"
-                },
-                {
-                    "nome": "Detox Hepático",
-                    "texto": "**Protocolo de Detox Hepático**\n\n• Manhã: Água morna com limão\n• Evitar: Álcool, frituras, laticínios\n• Incluir: Chás depurativos, vegetais crucíferos\n• Duração: 7-14 dias"
-                }
-            ],
-            "suplementos": [
-                {
-                    "nome": "Suporte Imunitário",
-                    "texto": "**Protocolo Imunitário**\n\n• Vitamina C: 1000mg/dia\n• Vitamina D3: 2000UI/dia\n• Zinco: 15mg/dia\n• Probióticos: Conforme indicação\n• Duração: 30 dias, reavaliar"
-                }
-            ],
-            "orientacoes": [
-                {
-                    "nome": "Higiene do Sono",
-                    "texto": "**Orientações para Qualidade do Sono**\n\n• Horário regular: Deitar e levantar sempre na mesma hora\n• Ambiente: Quarto escuro, silencioso, temperatura amena\n• Evitar: Ecrãs 1h antes de dormir\n• Relaxamento: Técnicas de respiração ou meditação"
-                }
-            ]
-        }
-        
-        # Criar diretório de templates se não existir
-        templates_dir = Path("templates")
-        templates_dir.mkdir(exist_ok=True)
-        
-        # Salvar templates padrão
-        for categoria, templates in templates_padrao.items():
-            categoria_file = templates_dir / f"{categoria}.json"
-            if not categoria_file.exists():
-                with open(categoria_file, 'w', encoding='utf-8') as f:
-                    json.dump(templates, f, ensure_ascii=False, indent=2)
-
-    def toggle_categoria_templates(self, categoria):
-        """Mostra/esconde templates de uma categoria específica"""
-        # print(f"🔘 [DEBUG] Botão clicado para categoria: {categoria}")
-        try:
-            # Verificar se existe área de templates para esta categoria
-            if categoria not in self.templates_areas:
-                # print(f"❌ [DEBUG] Área de templates não encontrada para categoria: {categoria}")
-                # print(f"🔍 [DEBUG] Áreas disponíveis: {list(self.templates_areas.keys())}")
-                return
-            
-            templates_area = self.templates_areas[categoria]
-            # print(f"📦 [DEBUG] Área encontrada para {categoria}")
-            
-            # Toggle visibilidade
-            was_visible = templates_area.isVisible()
-            templates_area.setVisible(not was_visible)
-            # print(f"👁️ [DEBUG] Visibilidade alterada: {was_visible} -> {not was_visible}")
-            
-            # Se está sendo mostrada, carregar templates
-            if templates_area.isVisible():
-                # print(f"🔄 [DEBUG] Carregando templates para área de {categoria}")
-                self.carregar_templates_em_area_com_pdfs(categoria, templates_area)
-            else:
-                # print(f"🙈 [DEBUG] Área de {categoria} escondida")
-                pass
-                
-        except Exception as e:
-            # print(f"❌ [DEBUG] Erro em toggle_categoria_templates: {e}")
-            pass
-
-    def carregar_templates_em_area(self, categoria, templates_area):
-        """Carrega templates de uma categoria na área específica"""
-        try:
-            # Limpar área atual
-            layout = templates_area.layout()
-            while layout.count():
-                child = layout.takeAt(0)
-                if child.widget():
-                    child.widget().deleteLater()
-            
-            # Carregar templates da categoria
-            templates_file = Path("templates") / f"{categoria}.json"
-            if templates_file.exists():
-                try:
-                    with open(templates_file, 'r', encoding='utf-8') as f:
-                        templates = json.load(f)
-                    
-                    for template in templates:
-                        template_btn = QPushButton(f"📄 {template['nome']}")
-                        template_btn.setFixedHeight(30)
-                        template_btn.setStyleSheet("""
-                            QPushButton {
-                                text-align: left;
-                                padding: 8px 15px;
-                                background-color: #ffffff;
-                                border: 1px solid #dee2e6;
-                                border-radius: 4px;
-                                color: #495057;
-                                font-size: 12px;
-                            }
-                            QPushButton:hover {
-                                background-color: #e9ecef;
-                                border-color: #9C27B0;
-                            }
-                            QPushButton:pressed {
-                                background-color: #9C27B0;
-                                color: white;
-                            }
-                        """)
-                        template_btn.clicked.connect(lambda checked, t=template: self.selecionar_template_por_data(t))
-                        layout.addWidget(template_btn)
-                        
-                except Exception as e:
-                    print(f"Erro ao carregar templates: {e}")
-                    error_label = QLabel("❌ Erro ao carregar templates")
-                    error_label.setStyleSheet("color: #dc3545; padding: 10px; font-size: 12px;")
-                    layout.addWidget(error_label)
-            else:
-                # Nenhum template encontrado
-                empty_label = QLabel("📭 Nenhum template encontrado")
-                empty_label.setStyleSheet("color: #6c757d; padding: 10px; font-style: italic; font-size: 12px;")
-                layout.addWidget(empty_label)
-                
-        except Exception as e:
-            print(f"Erro ao carregar templates em área: {e}")
-            
-    def carregar_templates_em_area_com_pdfs(self, categoria, templates_area):
-        """Carrega APENAS PDFs - sistema simplificado conforme solicitado"""
-        try:
-            # print(f"🔄 [PDF-ONLY] Carregando PDFs para categoria: {categoria}")
-            
-            # Limpar área atual
-            layout = templates_area.layout()
-            while layout.count():
-                child = layout.takeAt(0)
-                if child.widget():
-                    child.widget().deleteLater()
-            
-            templates_adicionados = 0
-            
-            # APENAS PDFs - remover JSON e TXT completamente
-            categoria_dir = Path("templates") / f"{categoria}_pdf"  # Usar diretório _pdf diretamente
-            # print(f"� [PDF-ONLY] Procurando PDFs em: {categoria_dir}")
-            
-            if categoria_dir.exists():
-                try:
-                    pdf_count = 0
-                    for arquivo in categoria_dir.iterdir():
-                        if arquivo.suffix.lower() == '.pdf':
-                            pdf_count += 1
-                            
-                            # USAR NOME REAL DO FICHEIRO (sem extensão)
-                            nome_template = arquivo.stem.replace('_', ' ').replace('-', ' ')
-                            
-                            # Emoji simples baseado na categoria (sem texto extra)
-                            if categoria == 'exercicios':
-                                emoji = "🏃‍♂️"
-                            elif categoria == 'dietas':
-                                emoji = "🥗"
-                            elif categoria == 'suplementos':
-                                emoji = "💊"
-                            elif categoria == 'orientacoes':
-                                emoji = "📋"
-                            elif categoria == 'educativos':
-                                emoji = "📚"
-                            elif categoria == 'condicoes':
-                                emoji = "🎯"
-                            else:
-                                emoji = "📄"
-                            
-                            # BOTÃO LIMPO - emoji + nome do ficheiro
-                            template_btn = QPushButton(f"{emoji} {nome_template}")
-                            template_btn.setFixedHeight(32)  # Aumentar mais para mostrar labels
-                            template_btn.setStyleSheet("""
-                                QPushButton {
-                                    text-align: left;
-                                    padding: 6px 10px;
-                                    background-color: #e3f2fd;
-                                    border: 2px solid #1976d2;
-                                    border-radius: 6px;
-                                    margin: 2px 0px;
-                                    color: #1565c0;
-                                    font-weight: 600;
-                                    font-size: 10px;
-                                    min-height: 28px;
-                                }
-                                QPushButton:hover {
-                                    background-color: #bbdefb;
-                                    border-color: #1565c0;
-                                    color: #0d47a1;
-                                }
-                                QPushButton:pressed {
-                                    background-color: #1976d2;
-                                    color: white;
-                                }
-                            """)
-                            
-                            # Dados do template PDF
-                            template_data = {
-                                'tipo': 'pdf',
-                                'nome': nome_template,
-                                'arquivo': str(arquivo),
-                                'categoria': categoria,
-                                'tamanho': self._obter_tamanho_arquivo_legivel(arquivo)
-                            }
-                            
-                            # Conectar clique para seleção COM VISUALIZADOR AUTOMÁTICO
-                            template_btn.clicked.connect(
-                                lambda checked, data=template_data: self.selecionar_pdf_e_mostrar_visualizador(data)
-                            )
-                            
-                            layout.addWidget(template_btn)
-                            templates_adicionados += 1
-                            print(f"  ✅ PDF: {nome_template} ({template_data['tamanho']})")
-                    
-                    # print(f"📄 [PDF-ONLY] PDFs encontrados: {pdf_count}")
-                except Exception as e:
-                    print(f"❌ [PDF-ONLY] Erro ao carregar PDFs: {e}")
-            else:
-                print(f"⚠️ [PDF-ONLY] Diretório não existe: {categoria_dir}")
-                
-                # Tentar diretório sem _pdf (fallback)
-                categoria_dir_alt = Path("templates") / categoria
-                if categoria_dir_alt.exists():
-                    print(f"📂 [PDF-ONLY] Tentando diretório alternativo: {categoria_dir_alt}")
-                    try:
-                        for arquivo in categoria_dir_alt.iterdir():
-                            if arquivo.suffix.lower() == '.pdf':
-                                nome_template = arquivo.stem.replace('_', ' ').title()
-                                
-                                template_btn = QPushButton(f"📄 {nome_template}")
-                                template_btn.setFixedHeight(32)
-                                template_btn.setStyleSheet("""
-                                    QPushButton {
-                                        text-align: left;
-                                        padding: 10px 15px;
-                                        background-color: #e3f2fd;
-                                        border: 2px solid #1976d2;
-                                        border-radius: 6px;
-                                        margin: 3px 0px;
-                                        color: #1565c0;
-                                        font-weight: 600;
-                                        font-size: 12px;
-                                    }
-                                    QPushButton:hover {
-                                        background-color: #bbdefb;
-                                        border-color: #1565c0;
-                                    }
-                                """)
-                                
-                                template_data = {
-                                    'tipo': 'pdf',
-                                    'nome': nome_template,
-                                    'arquivo': str(arquivo),
-                                    'categoria': categoria,
-                                    'tamanho': self._obter_tamanho_arquivo_legivel(arquivo)
-                                }
-                                
-                                template_btn.clicked.connect(
-                                    lambda checked, data=template_data: self.selecionar_template_pdf_melhorado(data)
-                                )
-                                
-                                layout.addWidget(template_btn)
-                                templates_adicionados += 1
-                                print(f"  ✅ PDF (alt): {nome_template}")
-                    except Exception as e:
-                        print(f"❌ [PDF-ONLY] Erro no diretório alternativo: {e}")
-            
-            # Se não há PDFs
-            if templates_adicionados == 0:
-                empty_label = QLabel("📭 Nenhum PDF encontrado nesta categoria")
-                empty_label.setStyleSheet("""
-                    QLabel {
-                        color: #666;
-                        padding: 20px;
-                        font-style: italic;
-                        font-size: 14px;
-                        text-align: center;
-                        background-color: #f8f9fa;
-                        border: 2px dashed #dee2e6;
-                        border-radius: 8px;
-                        margin: 10px 0px;
-                    }
-                """)
-                layout.addWidget(empty_label)
-                print("❌ [PDF-ONLY] Nenhum PDF encontrado")
-            else:
-                print(f"📊 [PDF-ONLY] Total de PDFs carregados: {templates_adicionados}")
-                
-                # ADICIONAR ESPAÇAMENTO EXTRA NO FINAL DOS PROTOCOLOS
-                spacer = QWidget()
-                spacer.setFixedHeight(25)  # Espaçamento de 25px
-                layout.addWidget(spacer)
-                
-        except Exception as e:
-            print(f"❌ [PDF-ONLY] Erro ao carregar PDFs: {e}")
-            import traceback
-            traceback.print_exc()
-
-    def selecionar_template_por_data(self, template_data):
-        """Seleciona um template pelos dados do template"""
-        try:
-            # Ocultar botão de PDF (apenas para PDFs)
-            if hasattr(self, 'btn_mostrar_pdf'):
-                self.btn_mostrar_pdf.setVisible(False)
-                
-            # Atualizar preview
-            self.template_preview.setPlainText(template_data.get('conteudo', ''))
-            self.template_selecionado = template_data
-            print(f"Template selecionado: {template_data.get('nome', 'Sem nome')}")
-        except Exception as e:
-            print(f"Erro ao selecionar template: {e}")
-            
-    def selecionar_template_pdf_melhorado(self, template_data):
-        """Seleciona um template PDF e mostra preview COMPLETO sem corte"""
-        try:
-            print(f"📄 [PDF-PREVIEW] PDF selecionado: {template_data.get('nome', 'Sem nome')}")
-            
-            # Atualizar preview com ALTURA MAIOR para mostrar PDF completo
-            nome_paciente = self.paciente_data.get('nome', 'N/A') if self.paciente_data else 'N/A'
-            data_atual = datetime.now().strftime('%d/%m/%Y')
-            
-            # Preview COMPLETO do PDF sem corte
-            preview_pdf_completo = f"""
-▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌
-                      🩺 DOCUMENTO PDF MÉDICO                      
-                                                                
-       [LOGO]              Dr. Nuno Correia                     
-      Biodesk           Medicina Integrativa                    
-                      & Análise Iridológica                     
-                                                                
-  📧 geral@nunocorreia.pt       📞 (+351) 123 456 789           
-  🌐 www.nunocorreia.pt                     Data: {data_atual}      
-▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌
-
-📊 DADOS DO PACIENTE
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Nome:       {nome_paciente}
-Data Nasc:  {self.paciente_data.get('data_nascimento', 'N/A') if self.paciente_data else 'N/A'}
-Email:      {self.paciente_data.get('email', 'N/A') if self.paciente_data else 'N/A'}
-Contacto:   {self.paciente_data.get('contacto', 'N/A') if self.paciente_data else 'N/A'}
-
-📄 DOCUMENTO PDF: {template_data['nome'].upper()}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-ℹ️ INFORMAÇÕES DO ARQUIVO:
-• Nome: {template_data['nome']}
-• Tipo: Protocolo/Orientação em PDF  
-• Tamanho: {template_data.get('tamanho', 'N/A')}
-• Categoria: {template_data.get('categoria', 'N/A').title()}
-• Localização: {template_data.get('arquivo', 'N/A')}
-
-📄 CONTEÚDO DO PDF:
-Este documento PDF contém orientações médicas personalizadas
-baseadas na sua consulta e análise iridológica realizada.
-
-O protocolo inclui:
-✓ Recomendações específicas para o seu caso
-✓ Orientações dietéticas personalizadas  
-✓ Suplementação natural adequada
-✓ Cronograma de acompanhamento
-✓ Instruções detalhadas de implementação
-
-📋 AÇÕES DISPONÍVEIS:
-• 👁️  Visualizar PDF no visualizador integrado
-• 📧 Enviar por email ao paciente com texto personalizado
-• 📝 Registar automaticamente no histórico clínico  
-• 💾 Incluir no workflow completo (Word+PDF+Email)
-
-⚡ PRÓXIMO PASSO RECOMENDADO:
-   Clique "📧 Enviar e Registar" para:
-   
-   1️⃣ Abrir o PDF no visualizador para confirmação
-   2️⃣ Enviar automaticamente por email personalizado
-   3️⃣ Registar no histórico clínico com timestamp
-   4️⃣ Manter cópia organizada no sistema
-
-🔒 NOTA DE CONFIDENCIALIDADE:
-Este documento médico é confidencial e personalizado exclusivamente 
-para {nome_paciente}. Contém informações sigilosas da consulta 
-médica e deve ser tratado com total confidencialidade.
-
-🆘 SUPORTE E DÚVIDAS:
-Em caso de dúvidas sobre este protocolo:
-• Email: geral@nunocorreia.pt
-• Instagram: @nunocorreia.naturopata  
-• Facebook: @NunoCorreiaTerapiasNaturais
-• Telefone: [Configurado no sistema]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-                🔒 Documento médico confidencial                
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            """
-            
-            # Definir preview COMPLETO - sem corte
-            self.template_preview.setPlainText(preview_pdf_completo)
-            self.template_selecionado = template_data
-            
-            # ✅ ATIVAR BOTÃO PDF se o arquivo existir
-            pdf_path = template_data.get('arquivo')
-            if pdf_path and os.path.exists(pdf_path):
-                self._ultimo_pdf_gerado = pdf_path
-                
-                # Ativar botão principal no preview
-                if hasattr(self, 'btn_pdf_preview'):
-                    self.btn_pdf_preview.setEnabled(True)
-                    self.btn_pdf_preview.setVisible(True)
-                    self.btn_pdf_preview.setText(f"🔍 Abrir: {os.path.basename(pdf_path)}")
-                
-                print(f"✅ [PDF] Botão ativado para: {os.path.basename(pdf_path)}")
-            else:
-                # Desativar botão se não há PDF
-                if hasattr(self, 'btn_pdf_preview'):
-                    self.btn_pdf_preview.setEnabled(False)
-                    self.btn_pdf_preview.setVisible(False)
-                
-                print(f"⚠️ [PDF] Arquivo não encontrado: {pdf_path}")
-            
-            print(f"✅ [PDF-PREVIEW] Preview COMPLETO criado para: {template_data['nome']}")
-            
-        except Exception as e:
-            print(f"❌ [PDF-PREVIEW] Erro ao criar preview: {e}")
-
-    def carregar_templates_categoria(self, categoria):
-        """Carrega templates de uma categoria específica, incluindo PDFs"""
-        print(f"🔄 [DEBUG] Carregando categoria: {categoria}")
-        
-        self.categoria_selecionada = categoria.title()  # Guardar categoria atual
-        self.templates_titulo.setText(f"📋 Templates: {categoria.title()}")
-        self.lista_templates.clear()
-        
-        # 1. Carregar templates JSON tradicionais
-        templates_file = Path("templates") / f"{categoria}.json"
-        print(f"📁 [DEBUG] Procurando JSON: {templates_file}")
-        
-        if templates_file.exists():
-            try:
-                with open(templates_file, 'r', encoding='utf-8') as f:
-                    templates = json.load(f)
-                
-                print(f"📝 [DEBUG] Templates JSON encontrados: {len(templates)}")
-                for template in templates:
-                    template['tipo'] = 'TXT'  # Marcar como TXT para compatibilidade com editor
-                    # Adicionar conteúdo se não existir (para templates JSON antigos)
-                    if 'conteudo' not in template and 'texto' in template:
-                        template['conteudo'] = template['texto']
-                    item = QListWidgetItem(f"📝 {template['nome']}")
-                    item.setData(Qt.ItemDataRole.UserRole, template)
-                    self.lista_templates.addItem(item)
-                    print(f"  ✅ JSON: {template['nome']}")
-            except Exception as e:
-                print(f"❌ [DEBUG] Erro ao carregar JSON: {e}")
-        
-        # 2. Carregar PDFs da categoria
-        categoria_dir = Path("templates") / categoria
-        print(f"📂 [DEBUG] Procurando PDFs em: {categoria_dir}")
-        
-        if categoria_dir.exists():
-            try:
-                pdf_count = 0
-                for arquivo in categoria_dir.iterdir():
-                    if arquivo.suffix.lower() == '.pdf':
-                        pdf_count += 1
-                        # Criar template para PDF
-                        nome_template = arquivo.stem
-                        template_pdf = {
-                            'nome': nome_template,
-                            'tipo': 'pdf',
-                            'arquivo': str(arquivo),
-                            'categoria': categoria,
-                            'tamanho': self._obter_tamanho_arquivo_legivel(arquivo)
-                        }
-                        
-                        item = QListWidgetItem(f"📄 {nome_template}")
-                        item.setData(Qt.ItemDataRole.UserRole, template_pdf)
-                        self.lista_templates.addItem(item)
-                        print(f"  ✅ PDF: {nome_template} ({template_pdf['tamanho']})")
-                
-                print(f"📄 [DEBUG] PDFs encontrados: {pdf_count}")
-            except Exception as e:
-                print(f"❌ [DEBUG] Erro ao carregar PDFs: {e}")
-        else:
-            print(f"⚠️ [DEBUG] Diretório não existe: {categoria_dir}")
-        
-        # 3. Carregar templates TXT
-        if categoria_dir.exists():
-            try:
-                txt_count = 0
-                for arquivo in categoria_dir.iterdir():
-                    if arquivo.suffix.lower() == '.txt':
-                        txt_count += 1
-                        with open(arquivo, 'r', encoding='utf-8') as f:
-                            conteudo = f.read()
-                        
-                        nome_template = arquivo.stem.replace('_', ' ').title()
-                        template_txt = {
-                            'nome': nome_template,
-                            'texto': conteudo,
-                            'tipo': 'texto',
-                            'categoria': categoria
-                        }
-                        
-                        item = QListWidgetItem(f"📝 {nome_template}")
-                        item.setData(Qt.ItemDataRole.UserRole, template_txt)
-                        self.lista_templates.addItem(item)
-                        print(f"  ✅ TXT: {nome_template}")
-                
-                print(f"📝 [DEBUG] TXTs encontrados: {txt_count}")
-            except Exception as e:
-                print(f"❌ [DEBUG] Erro ao carregar TXT: {e}")
-        
-        # Total final
-        total_items = self.lista_templates.count()
-        print(f"📊 [DEBUG] Total de templates carregados: {total_items}")
-        
-        # Se não há nenhum template
-        if total_items == 0:
-            item = QListWidgetItem("Nenhum template encontrado para esta categoria")
-            item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsSelectable)
-            self.lista_templates.addItem(item)
-            print("❌ [DEBUG] Nenhum template encontrado")
     
-    def _obter_tamanho_arquivo_legivel(self, caminho):
-        """Obtém tamanho do arquivo em formato legível"""
-        try:
-            tamanho_bytes = caminho.stat().st_size
-            if tamanho_bytes < 1024:
-                return f"{tamanho_bytes} B"
-            elif tamanho_bytes < 1024 * 1024:
-                return f"{tamanho_bytes / 1024:.1f} KB"
-            else:
-                return f"{tamanho_bytes / (1024 * 1024):.1f} MB"
-        except:
-            return "N/A"
-
-    def selecionar_template(self, item):
-        """Seleciona um template e mostra o preview limpo e elegante"""
-        template_data = item.data(Qt.ItemDataRole.UserRole)
-        if template_data:
-            # Verificar se é PDF
-            if template_data.get('tipo') == 'pdf':
-                self._mostrar_preview_pdf(template_data)
-            else:
-                self._mostrar_preview_texto(template_data)
-    
-    def _mostrar_preview_pdf(self, template_data):
-        """Mostra preview específico para PDFs"""
-        nome_paciente = self.paciente_data.get('nome', 'N/A') if self.paciente_data else 'N/A'
-        data_atual = datetime.now().strftime('%d/%m/%Y')
-        
-        preview_pdf = f"""
-▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌
-                    🩺 DOCUMENTO PDF MÉDICO                    
-                                                          
-     [LOGO]            Dr. Nuno Correia                   
-    Biodesk         Medicina Integrativa                  
-                  & Análise Iridológica                   
-                                                          
-📧 geral@nunocorreia.pt     📞 (+351) 123 456 789         
-🌐 www.nunocorreia.pt                   Data: {data_atual}    
-▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌
-
-📋 DADOS DO PACIENTE
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Nome:       {nome_paciente}
-Data Nasc:  {self.paciente_data.get('data_nascimento', 'N/A') if self.paciente_data else 'N/A'}
-Email:      {self.paciente_data.get('email', 'N/A') if self.paciente_data else 'N/A'}
-Contacto:   {self.paciente_data.get('contacto', 'N/A') if self.paciente_data else 'N/A'}
-
-📄 DOCUMENTO PDF: {template_data['nome'].upper()}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-📁 INFORMAÇÕES DO ARQUIVO:
-• Nome: {template_data['nome']}
-• Tipo: Protocolo/Orientação em PDF
-• Tamanho: {template_data.get('tamanho', 'N/A')}
-• Categoria: {template_data.get('categoria', 'N/A').title()}
-
-📋 AÇÕES DISPONÍVEIS:
-• 👁️  Visualizar PDF no visualizador integrado
-• 📧 Enviar por email ao paciente  
-• 📝 Registar no histórico clínico
-• 💾 Guardar cópia no sistema
-
-⚡ PRÓXIMO PASSO:
-   Clica "📤 Enviar e Registar" para abrir o PDF
-   no visualizador integrado e enviar ao paciente.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-              🔒 Documento confidencial e personalizado              
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-"""
-        self.template_preview.setPlainText(preview_pdf)
-        print(f"[PDF] ✅ Preview PDF criado para: {template_data['nome']}")
-    
-    def _mostrar_preview_texto(self, template_data):
-        """Mostra preview para templates de texto"""
-        # Mostrar preview limpo e profissional
-        try:
-            # Tentar usar o sistema de templates externos primeiro
-            try:
-                from template_manager import BiodeskTemplateManager
-                template_manager = BiodeskTemplateManager()
-                preview = template_manager.create_template_preview(template_data, self.paciente_data)
-                self.template_preview.setPlainText(preview)
-                print(f"[TEMPLATE] ✅ Preview criado com template manager")
-            except ImportError:
-                # Fallback para sistema de preview limpo
-                nome_paciente = self.paciente_data.get('nome', 'N/A') if self.paciente_data else 'N/A'
-                template_texto = template_data.get('texto', '')
-                nome_template = template_data.get('nome', 'Template')
-                data_atual = datetime.now().strftime('%d/%m/%Y')
-                
-                # Preview limpo e elegante
-                preview_limpo = f"""
-▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌
-                    🩺 PRESCRIÇÃO MÉDICA                    
-                                                          
-     [LOGO]            Dr. Nuno Correia                   
-    Biodesk         Medicina Integrativa                  
-                  & Análise Iridológica                   
-                                                          
-📧 geral@nunocorreia.pt     📞 (+351) 123 456 789         
-🌐 www.nunocorreia.pt                   Data: {data_atual}    
-▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌▌
-
-📋 DADOS DO PACIENTE
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Nome:       {nome_paciente}
-Data Nasc:  {self.paciente_data.get('data_nascimento', 'N/A') if self.paciente_data else 'N/A'}
-Email:      {self.paciente_data.get('email', 'N/A') if self.paciente_data else 'N/A'}
-Contacto:   {self.paciente_data.get('contacto', 'N/A') if self.paciente_data else 'N/A'}
-
-📝 PRESCRIÇÃO: {nome_template.upper()}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-📝 CONTEÚDO:
-{template_texto[:300]}{'...' if len(template_texto) > 300 else ''}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-👨‍⚕️ Dr. Nuno Correia - Medicina Integrativa
-Documento gerado pelo Sistema Biodesk
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-"""
-                
-                self.template_preview.setPlainText(preview_limpo)
-                print(f"[TEMPLATE] ✅ Preview criado com sistema fallback")
-                
-            except Exception as e:
-                # Fallback final - preview muito simples
-                print(f"[DEBUG] Erro ao criar preview: {e}")
-                
-                nome_paciente = self.paciente_data.get('nome', 'N/A') if self.paciente_data else 'N/A'
-                preview_simples = f"""
-══════════════════════════════════════════════════════════════════════
-                     🩺 PRESCRIÇÃO MÉDICA
-                        Dr. Nuno Correia
-                     Medicina Integrativa
-══════════════════════════════════════════════════════════════════════
-
-PACIENTE: {nome_paciente}
-TEMPLATE: {template_data.get('nome', 'N/A')}
-
-CONTEÚDO:
-{template_data['texto'][:150]}{'...' if len(template_data['texto']) > 150 else ''}
-
-Dr. Nuno Correia - Medicina Integrativa
-                """.strip()
-                self.template_preview.setPlainText(preview_simples)
-            
-        except Exception as e:
-            # Fallback final se tudo falhar
-            print(f"[DEBUG] Erro crítico no preview: {e}")
-            self.template_preview.setPlainText("Erro ao carregar preview do template")
-            
-        # Guardar informações do template atual para uso nas anotações
-        self.nome_template_atual = template_data.get('nome', item.text())
-        self.categoria_template_atual = getattr(self, 'categoria_selecionada', 'Template')
-
-    def _inserir_na_sessao_do_dia(self, conteudo):
-        """Insere conteúdo na sessão do dia atual, criando uma se necessário"""
-        from datetime import datetime
-        
-        data_hoje = datetime.today().strftime('%d/%m/%Y')
-        
-        # Verificar se já existe sessão hoje
-        existe, _ = self._data_ja_existe_no_historico(data_hoje)
-        
-        if not existe:
-            # Criar nova sessão do dia (como se premisse o botão 📅)
-            prefixo = f'<b>{data_hoje}</b><br><hr style="border: none; border-top: 1px solid #bbb; margin: 10px 6px;">'
-            html_atual = self.historico_edit.toHtml()
-            novo_html = f'{prefixo}<div></div>{html_atual}'
-            self.historico_edit.setHtml(novo_html)
-            
-            # Scroll para o topo
-            v_scroll = self.historico_edit.verticalScrollBar()
-            if v_scroll is not None:
-                v_scroll.setValue(0)
-        
-        # Inserir o conteúdo DENTRO da sessão atual (após a data, mas antes da próxima linha separadora)
-        cursor = self.historico_edit.textCursor()
-        cursor.movePosition(QTextCursor.MoveOperation.Start)
-        
-        # Encontrar a primeira data (hoje) e posicionar logo após ela
-        cursor.movePosition(QTextCursor.MoveOperation.Down)  # Linha da data
-        cursor.movePosition(QTextCursor.MoveOperation.EndOfLine)  # Final da linha da data
-        
-        # Inserir o conteúdo logo após a data, DENTRO da sessão
-        cursor.insertHtml(f"<br>{conteudo}")
-        self.historico_edit.setTextCursor(cursor)
-
-    def aplicar_template_historico(self):
-        """Aplica o template selecionado ao histórico clínico com data/hora"""
-        template_texto = self.template_preview.toPlainText()
-        if not template_texto:
-            from biodesk_dialogs import mostrar_aviso
-            mostrar_aviso(self, "Aviso", "Selecione um template primeiro!")
-            return
-            
-        # Obter informações do template atual
-        categoria_atual = getattr(self, 'categoria_template_atual', 'Template')
-        nome_template = getattr(self, 'nome_template_atual', 'Sem nome')
-        
-        # Criar anotação com data/hora em HTML limpo
-        from datetime import datetime
-        agora = datetime.now()
-        hora = agora.strftime("%H:%M")
-        
-        # Formato HTML limpo com itálico para diferenciar
-        anotacao = f"<p><strong><em>📋 [{hora}] Prescrito: {categoria_atual} - {nome_template}</em></strong></p>"
-        anotacao += f"<p><em>{template_texto.replace(chr(10), '<br>')}</em></p>"
-        
-        # Inserir na sessão do dia atual
-        self._inserir_na_sessao_do_dia(anotacao)
-        
-        from biodesk_dialogs import mostrar_informacao
-        mostrar_informacao(self, "Template Anotado", f"Template '{nome_template}' anotado na sessão de hoje!")
-
-    def enviar_e_anotar_template(self):
-        """Nova função: Enviar template ao paciente com PDF anexo E anotar no histórico"""
-        template_texto = self.template_preview.toPlainText()
-        if not template_texto or "Selecione um template" in template_texto:
-            from biodesk_dialogs import mostrar_aviso
-            mostrar_aviso(self, "Aviso", "Selecione um template primeiro!")
-            return
-            
-        # Verificar se há paciente carregado
-        if not hasattr(self, 'paciente_data') or not self.paciente_data:
-            from biodesk_dialogs import mostrar_aviso
-            mostrar_aviso(self, "Aviso", "Selecione um paciente primeiro!")
-            return
-            
-        # Verificar se paciente tem email
-        patient_email = self.paciente_data.get('email', '').strip()
-        if not patient_email:
-            from biodesk_dialogs import mostrar_aviso
-            mostrar_aviso(self, "Aviso", "Paciente não tem email configurado.\n\nPor favor, adicione um email na ficha do paciente.")
-            return
-        
-        # Obter template selecionado atualmente
-        item_atual = self.lista_templates.currentItem()
-        if not item_atual:
-            from biodesk_dialogs import mostrar_aviso
-            mostrar_aviso(self, "Aviso", "Nenhum template selecionado!")
-            return
-        
-        template_data = item_atual.data(Qt.ItemDataRole.UserRole)
-        if not template_data:
-            from biodesk_dialogs import mostrar_aviso
-            mostrar_aviso(self, "Aviso", "Dados do template inválidos!")
-            return
-        
-        # Verificar se é PDF
-        if template_data.get('tipo') == 'pdf':
-            self._enviar_pdf_template(template_data)
-        else:
-            self._enviar_texto_template(template_data)
-    
-    def _enviar_pdf_template(self, template_data):
-        """Envia template PDF"""
-        try:
-            from pdf_viewer import mostrar_pdf
-            import os
-            from biodesk_dialogs import mostrar_confirmacao, mostrar_sucesso, mostrar_erro
-            
-            pdf_path = template_data.get('arquivo')
-            nome_template = template_data.get('nome')
-            
-            if not pdf_path or not os.path.exists(pdf_path):
-                mostrar_erro(self, "❌ Erro", f"Arquivo PDF não encontrado:\n{pdf_path}")
-                return
-            
-            # Confirmar envio
-            confirmacao = mostrar_confirmacao(self, "📧 Confirmar Envio PDF", 
-                                            f"Enviar PDF '{nome_template}' ao paciente?\n\n"
-                                            f"👤 Paciente: {self.paciente_data.get('nome')}\n"
-                                            f"📧 Email: {self.paciente_data.get('email')}\n"
-                                            f"📄 Arquivo: {os.path.basename(pdf_path)}\n"
-                                            f"📊 Tamanho: {template_data.get('tamanho', 'N/A')}")
-            
-            if confirmacao:
-                # 1. Mostrar PDF no visualizador integrado
-                print(f"📄 [PDF] Abrindo no visualizador: {pdf_path}")
-                mostrar_pdf(pdf_path)
-                
-                # 2. Enviar por email (simulação por enquanto)
-                # TODO: Implementar envio real
-                
-                # 3. Registar no histórico
-                self._registar_pdf_historico(template_data)
-                
-                mostrar_sucesso(self, "✅ Sucesso", 
-                              f"PDF '{nome_template}' processado com sucesso!\n\n"
-                              f"✅ Visualizador aberto\n"
-                              f"✅ Registado no histórico\n"
-                              f"📧 Email preparado (implementar envio)")
-        
-        except Exception as e:
-            from biodesk_dialogs import mostrar_erro
-            mostrar_erro(self, "❌ Erro", f"Erro ao processar PDF:\n{e}")
-    
-    def _enviar_texto_template(self, template_data):
-        """Envia template de texto (método original)"""
-        # Obter informações do template atual
-        categoria_atual = getattr(self, 'categoria_template_atual', 'Template')
-        nome_template = template_data.get('nome', 'Sem nome')
-        
-        # Verificar se há múltiplos templates selecionados para anexo
-        templates_selecionados = self.get_templates_selecionados_para_anexo()
-        
-        if templates_selecionados:
-            # Mostrar confirmação com informação sobre múltiplos PDFs
-            num_templates = len(templates_selecionados)
-            from biodesk_dialogs import mostrar_confirmacao
-            if mostrar_confirmacao(self, "Confirmar Envio com Múltiplos PDFs", 
-                                 f"Confirma o envio de {num_templates} template(s) ao paciente?\n\n"
-                                 f"📧 Será enviado para: {patient_email}\n"
-                                 f"📄 Inclui {num_templates} PDF(s) profissional(is) anexo(s)\n"
-                                 f"📝 Será anotado no histórico clínico",
-                                 "✅ Enviar PDFs", "❌ Cancelar"):
-                
-                try:
-                    # Gerar múltiplos PDFs e enviar email
-                    self.enviar_multiplos_templates_pdf(templates_selecionados)
-                    
-                    # Anotar no histórico
-                    self._anotar_templates_enviados_sessao(templates_selecionados, com_pdf=True)
-                    
-                    from biodesk_dialogs import mostrar_sucesso
-                    mostrar_sucesso(self, "Sucesso Completo!", 
-                                   f"✅ {num_templates} template(s) enviado(s) com PDF(s) anexo(s)!\n\n"
-                                   f"📧 Email enviado para: {patient_email}\n"
-                                   f"📄 {num_templates} PDF(s) profissional(is) anexado(s)\n"
-                                   f"📝 Anotado no histórico clínico")
-                    
-                except Exception as e:
-                    from biodesk_dialogs import mostrar_erro
-                    mostrar_erro(self, "Erro no Envio", f"❌ Erro ao enviar templates com PDFs:\n\n{str(e)}")
-                    print(f"[DEBUG] Erro envio múltiplos PDFs: {e}")
-        else:
-            # Envio de template único (comportamento original)
-            from biodesk_dialogs import mostrar_confirmacao
-            if mostrar_confirmacao(self, "Confirmar Envio com PDF & Anotação", 
-                                 f"Confirma o envio do template '{nome_template}' ao paciente?\n\n"
-                                 f"📧 Será enviado para: {patient_email}\n"
-                                 f"📄 Inclui PDF profissional anexo\n"
-                                 f"📝 Será anotado no histórico clínico",
-                                 "✅ Enviar com PDF", "❌ Cancelar"):
-                
-                try:
-                    # 1. Gerar e enviar PDF único
-                    self.enviar_prescricao_pdf()
-                    
-                    # 2. Anotar no histórico como "enviado com PDF" (na sessão do dia)
-                    self._anotar_template_enviado_sessao(categoria_atual, nome_template, template_texto, com_pdf=True)
-                    
-                    from biodesk_dialogs import mostrar_sucesso
-                    mostrar_sucesso(self, "Sucesso Completo!", 
-                                   f"✅ Template '{nome_template}' enviado com PDF anexo!\n\n"
-                                   f"📧 Email enviado para: {patient_email}\n"
-                                   f"📄 PDF profissional anexado\n"
-                                   f"📝 Anotado no histórico clínico")
-                    
-                except Exception as e:
-                    from biodesk_dialogs import mostrar_erro
-                    mostrar_erro(self, "Erro no Envio", f"❌ Erro ao enviar template com PDF:\n\n{str(e)}")
-                    print(f"[DEBUG] Erro envio PDF: {e}")
-    
-    def get_templates_selecionados_para_anexo(self):
-        """Retorna lista de templates selecionados para anexo múltiplo"""
-        # Por enquanto retorna lista vazia - esta funcionalidade pode ser implementada
-        # no futuro com checkboxes na interface para selecionar múltiplos templates
-        return []
-    
-    def enviar_multiplos_templates_pdf(self, templates_list):
-        """Gera múltiplos PDFs e envia como anexos"""
-        try:
-            import tempfile
-            import os
-            from datetime import datetime
-            from pdf_template_professional import BiodeskPDFTemplate
-            
-            # Verificar se paciente tem email
-            patient_email = self.paciente_data.get('email', '').strip()
-            if not patient_email:
-                raise Exception("Paciente não tem email configurado")
-            
-            # Criar diretório temporário para PDFs
-            temp_dir = tempfile.mkdtemp()
-            pdf_paths = []
-            
-            try:
-                # Gerar PDF para cada template
-                for template_info in templates_list:
-                    categoria = template_info['categoria']
-                    nome = template_info['nome']
-                    conteudo = template_info['conteudo']
-                    
-                    # Nome do arquivo PDF
-                    nome_arquivo = f"{categoria}_{nome}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
-                    pdf_path = os.path.join(temp_dir, nome_arquivo)
-                    
-                    # Gerar PDF profissional
-                    pdf_generator = BiodeskPDFTemplate(self.paciente_data)
-                    pdf_generator.gerar_prescricao(conteudo, pdf_path)
-                    
-                    pdf_paths.append(pdf_path)
-                
-                # ✅ USAR NOVO SISTEMA DE EMAIL PERSONALIZADO
-                try:
-                    from email_templates_biodesk import gerar_email_personalizado
-                    
-                    # Preparar conteúdo específico para múltiplas prescrições
-                    nome_paciente = self.paciente_data.get('nome', 'Paciente')
-                    
-                    # Lista das prescrições
-                    lista_prescricoes = chr(10).join([f"• {t['categoria']} - {t['nome']}" for t in templates_list])
-                    nomes_templates_anexados = [t['nome'] for t in templates_list]
-                    
-                    conteudo_multiplas = f"""Seguem em anexo suas prescrições médicas conforme análise realizada:
-
-{lista_prescricoes}
-
-📄 Total de documentos: {len(templates_list)} PDFs profissionais
-🩺 Baseado na sua avaliação clínica detalhada
-
-Por favor, siga todas as orientações descritas nos documentos anexos. Cada protocolo foi cuidadosamente personalizado para as suas necessidades específicas.
-
-Em caso de dúvidas sobre qualquer uma das prescrições, não hesite em contactar-me."""
-                    
-                    # Gerar email personalizado
-                    email_personalizado = gerar_email_personalizado(
-                        nome_paciente=nome_paciente,
-                        templates_anexados=nomes_templates_anexados,
-                        tipo_comunicacao="templates"
-                    )
-                    
-                    # Usar email personalizado
-                    assunto = email_personalizado['assunto']
-                    corpo = email_personalizado['corpo']
-                    
-                    print(f"✅ [MÚLTIPLOS] Email personalizado gerado para {len(templates_list)} templates")
-                    
-                except ImportError:
-                    # Fallback para email simples se sistema personalizado não disponível
-                    print(f"⚠️ [MÚLTIPLOS] Sistema personalizado não disponível, usando email padrão")
-                    
-                    assunto = f"Prescrições Médicas - {self.paciente_data.get('nome', 'Paciente')}"
-                    corpo = f"""Prezado(a) {self.paciente_data.get('nome', 'Paciente')},
-
-Seguem em anexo suas prescrições médicas conforme análise realizada:
-
-{chr(10).join([f"• {t['categoria']} - {t['nome']}" for t in templates_list])}
-
-Por favor, siga todas as orientações descritas nos documentos.
-
-Atenciosamente,
-Dr. Nuno Correia
-Medicina Integrativa"""
-                
-                # Enviar email com múltiplos anexos
-                from email_sender import EmailSender
-                email_sender = EmailSender()
-                
-                sucesso, mensagem = email_sender.send_email_with_attachments(
-                    to_email=patient_email,
-                    subject=assunto,
-                    body=corpo,
-                    attachment_paths=pdf_paths,
-                    nome_destinatario=self.paciente_data.get('nome', 'Paciente')
-                )
-                
-                if not sucesso:
-                    raise Exception(f"Erro no envio do email: {mensagem}")
-                
-                # Mostrar PDF gerado (apenas o primeiro)
-                if pdf_paths:
-                    self.mostrar_pdf_gerado(pdf_paths[0])
-                
-            finally:
-                # Limpar arquivos temporários após delay
-                import threading
-                def cleanup():
-                    import time
-                    time.sleep(5)  # Aguardar 5 segundos
-                    try:
-                        for pdf_path in pdf_paths:
-                            if os.path.exists(pdf_path):
-                                os.remove(pdf_path)
-                        os.rmdir(temp_dir)
-                    except:
-                        pass
-                
-                threading.Thread(target=cleanup, daemon=True).start()
-                
-        except Exception as e:
-            from biodesk_dialogs import mostrar_erro
-            mostrar_erro(self, "Erro", f"Erro ao enviar múltiplos templates: {str(e)}")
-    
-    def mostrar_pdf_gerado(self, pdf_path):
-        """Configura PDF para abertura externa (SEM PISCAR)"""
-        try:
-            import os
-            if os.path.exists(pdf_path):
-                # Guardar caminho do PDF e ativar botão
-                self._ultimo_pdf_gerado = pdf_path
-                
-                if hasattr(self, 'btn_abrir_pdf_externo'):
-                    self.btn_abrir_pdf_externo.setEnabled(True)
-                    self.btn_abrir_pdf_externo.setText(f"🔍 Abrir: {os.path.basename(pdf_path)}")
-                
-                # Mostrar widget de PDF externo
-                if hasattr(self, 'preview_stack'):
-                    self.preview_stack.setCurrentIndex(1)  # Mostrar widget PDF externo
-                
-                print(f"✅ [PDF] Configurado para abertura externa: {os.path.basename(pdf_path)}")
-            else:
-                print(f"❌ [PDF] Arquivo não encontrado: {pdf_path}")
-                
-        except Exception as e:
-            print(f"❌ [PDF] Erro ao configurar: {e}")
-            
-    def _anotar_template_enviado_sessao(self, categoria, nome, conteudo, com_pdf=False):
-        """Anota no histórico que o template foi enviado ao paciente (na sessão do dia)"""
-        from datetime import datetime
-        agora = datetime.now()
-        hora = agora.strftime("%H:%M")
-        
-        # Formato HTML limpo com itálico para diferenciar
-        if com_pdf:
-            anotacao = f"<p><strong><em>📤📄 [{hora}] Enviado ao paciente com PDF anexo: {categoria} - {nome}</em></strong></p>"
-        else:
-            anotacao = f"<p><strong><em>📤 [{hora}] Enviado ao paciente: {categoria} - {nome}</em></strong></p>"
-        
-        anotacao += f"<p><em>{conteudo.replace(chr(10), '<br>')}</em></p>"
-        
-        # Inserir na sessão do dia atual
-        self._inserir_na_sessao_do_dia(anotacao)
-        
-    def _anotar_templates_enviados_sessao(self, templates_list, com_pdf=False):
-        """Anota no histórico que múltiplos templates foram enviados ao paciente"""
-        from datetime import datetime
-        agora = datetime.now()
-        hora = agora.strftime("%H:%M")
-        
-        # Formato HTML limpo para múltiplos templates
-        if com_pdf:
-            anotacao = f"<p><strong><em>📤📄 [{hora}] Enviados {len(templates_list)} template(s) ao paciente com PDFs anexos:</em></strong></p>"
-        else:
-            anotacao = f"<p><strong><em>📤 [{hora}] Enviados {len(templates_list)} template(s) ao paciente:</em></strong></p>"
-        
-        anotacao += "<ul>"
-        for template in templates_list:
-            categoria = template.get('categoria', 'Template')
-            nome = template.get('nome', 'Sem nome')
-            anotacao += f"<li><em>{categoria} - {nome}</em></li>"
-        anotacao += "</ul>"
-        
-        # Inserir na sessão do dia atual
-        self._inserir_na_sessao_do_dia(anotacao)
-        
-    def _preparar_envio_comunicacao(self, categoria, nome, conteudo):
-        """Prepara o template para envio na aba Centro de Comunicação"""
-        # Mudar para a aba Centro de Comunicação
-        self.clinico_comunicacao_tabs.setCurrentWidget(self.sub_centro_comunicacao)
-        
-        # Preparar o texto para envio
-        assunto = f"Prescrição: {categoria} - {nome}"
-        mensagem = f"Olá!\n\nSegue a sua prescrição de {categoria.lower()}:\n\n"
-        mensagem += f"📋 {nome}\n\n"
-        mensagem += conteudo + "\n\n"
-        mensagem += "Cumprimentos,\n[Seu Nome]"
-        
-        # Preencher os campos na aba de comunicação
-        if hasattr(self, 'assunto_edit'):
-            self.assunto_edit.setText(assunto)
-        if hasattr(self, 'mensagem_edit'):
-            self.mensagem_edit.setPlainText(mensagem)
-            
-        # Destacar que foi preenchido automaticamente
-        from biodesk_dialogs import mostrar_informacao
-        mostrar_informacao(self, "Template Preparado", 
-                         f"Template transferido para o Centro de Comunicação!\n\n"
-                         f"Assunto: {assunto}\n\n"
-                         f"Pode agora enviar por email.")
-
-    def _simular_envio_template(self, categoria, nome, conteudo):
-        """Simula o envio do template (futuramente integrar com email)"""
-        # Esta função pode ser removida ou usada para logging
-        print(f"📤 Template preparado para envio: {categoria} - {nome}")
-        
-    def _anotar_template_enviado(self, categoria, nome, conteudo):
-        """Função antiga - substituída por _anotar_template_enviado_sessao"""
-        # Mantida para compatibilidade, mas agora chama a nova função
-        self._anotar_template_enviado_sessao(categoria, nome, conteudo)
-
-    def importar_template_externo(self):
-        """Importa um template de arquivo externo"""
-        try:
-            from template_manager import BiodeskTemplateManager
-            from PyQt6.QtWidgets import QFileDialog
-            from biodesk_dialogs import mostrar_sucesso, mostrar_erro, mostrar_aviso
-            
-            # Abrir diálogo para selecionar arquivo
-            arquivo, _ = QFileDialog.getOpenFileName(
-                self,
-                "Importar Template",
-                "",
-                "Arquivos de Template (*.json);;Todos os Arquivos (*)"
-            )
-            
-            if arquivo:
-                template_manager = BiodeskTemplateManager()
-                sucesso = template_manager.import_template_from_file(arquivo)
-                
-                if sucesso:
-                    mostrar_sucesso(self, "Template Importado", 
-                                  f"Template importado com sucesso de:\n{arquivo}")
-                    # Recarregar lista de templates
-                    self.carregar_templates()
-                else:
-                    mostrar_erro(self, "Erro na Importação", 
-                               "Não foi possível importar o template.\nVerifique se o arquivo é válido.")
-                    
-        except ImportError:
-            from biodesk_dialogs import mostrar_erro
-            mostrar_erro(self, "Sistema Indisponível", 
-                        "Sistema de importação de templates não disponível.")
-        except Exception as e:
-            from biodesk_dialogs import mostrar_erro
-            mostrar_erro(self, "Erro na Importação", f"Erro ao importar template:\n{e}")
-    
-    def exportar_template_selecionado(self):
-        """Exporta o template selecionado para arquivo"""
-        try:
-            from biodesk_dialogs import mostrar_sucesso, mostrar_erro, mostrar_aviso
-            
-            item_atual = self.lista_templates.currentItem()
-            if not item_atual:
-                mostrar_aviso(self, "Nenhum Template Selecionado", 
-                            "Por favor, selecione um template para exportar.")
-                return
-            
-            template_data = item_atual.data(Qt.ItemDataRole.UserRole)
-            if not template_data:
-                mostrar_erro(self, "Erro nos Dados", "Dados do template não encontrados.")
-                return
-            
-            from template_manager import BiodeskTemplateManager
-            from PyQt6.QtWidgets import QFileDialog
-            
-            # Criar nome sugerido do arquivo
-            nome_template = template_data.get('nome', 'template')
-            nome_arquivo_sugerido = f"{nome_template.replace(' ', '_').lower()}_template.json"
-            
-            # Abrir diálogo para salvar arquivo
-            arquivo, _ = QFileDialog.getSaveFileName(
-                self,
-                "Exportar Template",
-                nome_arquivo_sugerido,
-                "Arquivos de Template (*.json);;Todos os Arquivos (*)"
-            )
-            
-            if arquivo:
-                template_manager = BiodeskTemplateManager()
-                sucesso = template_manager.export_template_to_file(template_data, arquivo)
-                
-                if sucesso:
-                    mostrar_sucesso(self, "Template Exportado", 
-                                  f"Template exportado com sucesso para:\n{arquivo}")
-                else:
-                    mostrar_erro(self, "Erro na Exportação", 
-                               "Não foi possível exportar o template.")
-                    
-        except ImportError:
-            from biodesk_dialogs import mostrar_erro
-            mostrar_erro(self, "Sistema Indisponível", 
-                        "Sistema de exportação de templates não disponível.")
-        except Exception as e:
-            from biodesk_dialogs import mostrar_erro
-            mostrar_erro(self, "Erro na Exportação", f"Erro ao exportar template:\n{e}")
-
-    def editar_template(self):
-        """Edita o template selecionado"""
-        from biodesk_dialogs import mostrar_informacao
-        mostrar_informacao(self, "Editar Template", "Funcionalidade em desenvolvimento")
-
-    def duplicar_template(self):
-        """Duplica o template selecionado"""
-        from biodesk_dialogs import mostrar_informacao
-        mostrar_informacao(self, "Duplicar Template", "Funcionalidade em desenvolvimento")
-
-    def apagar_template(self):
-        """Apaga o template selecionado"""
-        from biodesk_dialogs import mostrar_informacao
-        mostrar_informacao(self, "Apagar Template", "Funcionalidade em desenvolvimento")
-
-    def criar_novo_template(self):
-        """Abre o editor para criar um novo template editável"""
-        try:
-            from template_editavel import abrir_editor_template
-            
-            # Verificar se há paciente selecionado
-            if not self.paciente_data:
-                from biodesk_dialogs import mostrar_aviso
-                mostrar_aviso(self, "⚠️ Aviso", "Selecione um paciente para criar o template.")
-                return
-            
-            # Abrir editor de template
-            resultado = abrir_editor_template(self, self.paciente_data)
-            
-            if resultado:  # Se o template foi criado
-                # Recarregar templates da categoria suplementos
-                self.carregar_templates_categoria('suplementos')
-                
-                from biodesk_dialogs import mostrar_sucesso
-                mostrar_sucesso(self, "✅ Sucesso", "Template criado com sucesso!")
-                
-        except Exception as e:
-            from biodesk_dialogs import mostrar_erro
-            mostrar_erro(self, "❌ Erro", f"Erro ao criar template:\n{e}")
-
-    def gerar_pdf_template_personalizado(self, titulo, conteudo):
-        """Gera PDF personalizado do template editável"""
-        try:
-            from reportlab.pdfgen import canvas
-            from reportlab.lib.pagesizes import A4
-            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-            from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
-            from reportlab.lib.units import cm
-            import os
-            from datetime import datetime
-            
-            # Nome do arquivo
-            paciente_nome = self.paciente_data.get('nome', 'paciente').replace(' ', '_')
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            filename = f"prescricao_{paciente_nome}_{timestamp}.pdf"
-            pdf_path = os.path.join("documentos", filename)
-            
-            # Garantir que o diretório existe
-            os.makedirs("documentos", exist_ok=True)
-            
-            # Criar PDF
-            doc = SimpleDocTemplate(pdf_path, pagesize=A4, topMargin=2*cm)
-            story = []
-            
-            # Estilos
-            styles = getSampleStyleSheet()
-            title_style = ParagraphStyle(
-                'CustomTitle',
-                parent=styles['Heading1'],
-                fontSize=16,
-                spaceAfter=30,
-                alignment=1  # Centrado
-            )
-            
-            # Título
-            title = Paragraph(titulo, title_style)
-            story.append(title)
-            story.append(Spacer(1, 0.5*cm))
-            
-            # Conteúdo (converter quebras de linha)
-            linhas = conteudo.split('\n')
-            for linha in linhas:
-                if linha.strip():
-                    para = Paragraph(linha, styles['Normal'])
-                    story.append(para)
-                else:
-                    story.append(Spacer(1, 0.2*cm))
-            
-            # Construir PDF
-            doc.build(story)
-            
-            # Mostrar PDF no visualizador integrado
-            self.mostrar_pdf_gerado(pdf_path)
-            
-            return pdf_path
-            
-        except Exception as e:
-            raise Exception(f"Erro ao gerar PDF: {e}")
-
-    def _registar_pdf_historico(self, template_data):
-        """Registra PDF no histórico do paciente"""
-        try:
-            nome_template = template_data.get('nome')
-            categoria = template_data.get('categoria', 'orientacoes')
-            
-            # Criar entrada de histórico
-            data_atual = datetime.now().strftime('%d/%m/%Y %H:%M')
-            entrada_historico = f"[{data_atual}] 📄 PDF: {nome_template} (Categoria: {categoria.title()})"
-            
-            # Adicionar ao histórico (implementação específica do sistema)
-            print(f"📝 [HISTÓRICO] {entrada_historico}")
-            
-            # TODO: Implementar salvamento real no histórico do paciente
-            
-        except Exception as e:
-            print(f"❌ Erro ao registar PDF no histórico: {e}")
-
-    def testar_pdf_detox(self):
-        """Testa o PDF de detox hepático diretamente"""
-        try:
-            from pdf_viewer import mostrar_pdf
-            import os
-            from biodesk_dialogs import mostrar_informacao, mostrar_erro
-            
-            # Caminho do PDF
-            pdf_path = "templates/orientacoes/PROTOCOLO DE DETOX HEPÁTICO.pdf"
-            
-            if os.path.exists(pdf_path):
-                print(f"🧪 [TESTE] Abrindo PDF: {pdf_path}")
-                
-                # Testar visualizador integrado
-                mostrar_pdf(pdf_path)
-                
-                mostrar_informacao(self, "🧪 Teste PDF", 
-                                 f"PDF testado com sucesso!\n\n"
-                                 f"📄 Arquivo: PROTOCOLO DE DETOX HEPÁTICO\n"
-                                 f"📁 Localização: {pdf_path}\n"
-                                 f"📊 Tamanho: {os.path.getsize(pdf_path)} bytes\n\n"
-                                 f"✅ Visualizador QtWebEngine executado!")
-            else:
-                mostrar_erro(self, "❌ Erro", 
-                           f"PDF não encontrado!\n\n"
-                           f"📁 Esperado em: {pdf_path}\n\n"
-                           f"💡 Coloca o arquivo 'PROTOCOLO DE DETOX HEPÁTICO.pdf'\n"
-                           f"na pasta templates/orientacoes/")
-                
-        except Exception as e:
-            from biodesk_dialogs import mostrar_erro
-            mostrar_erro(self, "❌ Erro no Teste", f"Erro ao testar PDF:\n{e}")
-
-    def abrir_editor_avancado(self):
-        """Abre o editor avançado de documentos com template atual carregado"""
-        try:
-            # Preparar dados do paciente
-            dados_paciente = {}
-            
-            if hasattr(self, 'paciente_data') and self.paciente_data:
-                dados_paciente = {
-                    'nome': self.paciente_data.get('nome', ''),
-                    'idade': self.paciente_data.get('idade', ''),
-                    'data_nascimento': self.paciente_data.get('data_nascimento', ''),
-                    'telefone': self.paciente_data.get('contacto', ''),  # Corrigido: 'contacto' em vez de 'telefone'
-                    'email': self.paciente_data.get('email', ''),
-                    'peso': self.paciente_data.get('peso', ''),
-                    'altura': self.paciente_data.get('altura', ''),
-                    'imc': self.paciente_data.get('imc', ''),
-                    'pressao_arterial': self.paciente_data.get('pressao_arterial', ''),
-                }
-            
-            # Verificar se há template selecionado
-            template_atual = None
-            if hasattr(self, 'template_selecionado') and self.template_selecionado:
-                template_atual = self.template_selecionado
-                print(f"📝 [EDITOR] Template atual para carregar: {template_atual.get('nome', 'Sem nome')}")
-                print(f"🔍 [EDITOR] Dados completos do template: {template_atual}")
-            else:
-                print("⚠️ [EDITOR] Nenhum template selecionado encontrado")
-            
-            # Abrir editor com template pré-carregado
-            print("📝 [DEBUG] Abrindo Editor Avançado de Documentos")
-            # Import lazy para evitar inicialização prematura do QWebEngine
-            from editor_documentos import EditorDocumentos
-            editor = EditorDocumentos(dados_paciente, self, template_inicial=template_atual)
-            
-            # Maximizar janela do editor
-            editor.showMaximized()
-            print("🖥️ [EDITOR] Janela maximizada")
-            
-            # Manter referência para evitar garbage collection
-            if not hasattr(self, 'editores_abertos'):
-                self.editores_abertos = []
-            self.editores_abertos.append(editor)
-            
-        except Exception as e:
-            from biodesk_dialogs import mostrar_erro
-            print(f"❌ [DEBUG] Erro ao abrir editor: {e}")
-            import traceback
-            traceback.print_exc()
-            mostrar_erro(self, "❌ Erro", f"Erro ao abrir editor avançado:\n{e}")
-
-    def mostrar_pdf_selecionado(self):
-        """Mostra o PDF selecionado no visualizador integrado"""
-        try:
-            if not hasattr(self, 'template_selecionado') or not self.template_selecionado:
-                from biodesk_dialogs import mostrar_aviso
-                mostrar_aviso(self, "⚠️ Aviso", "Nenhum template selecionado.")
-                return
-                
-            template_data = self.template_selecionado
-            
-            # Verificar se é um PDF
-            if template_data.get('tipo') != 'pdf':
-                from biodesk_dialogs import mostrar_aviso
-                mostrar_aviso(self, "⚠️ Aviso", "O template selecionado não é um PDF.")
-                return
-                
-            arquivo_pdf = template_data.get('arquivo')
-            if not arquivo_pdf:
-                from biodesk_dialogs import mostrar_erro
-                mostrar_erro(self, "❌ Erro", "Caminho do arquivo PDF não encontrado.")
-                return
-                
-            # Verificar se o arquivo existe
-            from pathlib import Path
-            if not Path(arquivo_pdf).exists():
-                from biodesk_dialogs import mostrar_erro
-                mostrar_erro(self, "❌ Erro", f"Arquivo PDF não encontrado:\n{arquivo_pdf}")
-                return
-                
-            print(f"👁️ [DEBUG] Abrindo PDF: {arquivo_pdf}")
-            
-            # Mostrar PDF no visualizador integrado
-            from pdf_viewer import mostrar_pdf
-            mostrar_pdf(arquivo_pdf)
-            
-            print(f"✅ [DEBUG] PDF aberto com sucesso: {template_data.get('nome')}")
-            
-        except Exception as e:
-            from biodesk_dialogs import mostrar_erro
-            print(f"❌ [DEBUG] Erro ao mostrar PDF: {e}")
-            import traceback
-            traceback.print_exc()
-            mostrar_erro(self, "❌ Erro", f"Erro ao abrir PDF:\n{e}")
-
-    def gerar_documento_word(self):
-        """Gera documento Word editável com dados do paciente"""
-        try:
-            # Verificar se há paciente selecionado
-            if not hasattr(self, 'paciente_data') or not self.paciente_data:
-                from biodesk_dialogs import mostrar_aviso
-                mostrar_aviso(self, "⚠️ Aviso", "Selecione um paciente primeiro.")
-                return
-                
-            print("📝 [DEBUG] Iniciando geração de documento Word")
-            
-            # Preparar dados do paciente
-            dados_paciente = {
-                'nome': self.paciente_data.get('nome', '[Nome do Paciente]'),
-                'idade': self.paciente_data.get('idade', '[Idade]'),
-                'peso': self.paciente_data.get('peso', '[Peso]'),
-                'altura': self.paciente_data.get('altura', '[Altura]'),
-                'telefone': self.paciente_data.get('contacto', '[Telefone]'),
-                'email': self.paciente_data.get('email', '[Email]'),
-            }
-            
-            # Verificar se há template PDF selecionado para personalizar
-            tipo_documento = "detox_hepatico"  # Padrão
-            nome_base = "Protocolo_Detox_Hepatico"
-            
-            if hasattr(self, 'template_selecionado') and self.template_selecionado:
-                template_data = self.template_selecionado
-                if template_data.get('tipo') == 'pdf':
-                    # Usar nome do PDF como base
-                    nome_pdf = template_data.get('nome', 'Documento')
-                    nome_base = nome_pdf.replace(' ', '_')
-                    print(f"📄 [DEBUG] Baseado no PDF: {nome_pdf}")
-            
-            # Gerar documento Word
-            from gerador_word import gerar_protocolo_detox
-            from datetime import datetime
-            
-            # Nome do arquivo
-            nome_paciente_limpo = dados_paciente['nome'].replace(' ', '_').replace('[', '').replace(']', '')
-            data_str = datetime.now().strftime('%Y%m%d_%H%M')
-            nome_arquivo = f"{nome_base}_{nome_paciente_limpo}_{data_str}.docx"
-            
-            print(f"📄 [DEBUG] Gerando arquivo: {nome_arquivo}")
-            
-            # Gerar documento
-            arquivo_criado = gerar_protocolo_detox(dados_paciente, nome_arquivo)
-            
-            if arquivo_criado:
-                # Perguntar o que fazer com o arquivo
-                from PyQt6.QtWidgets import QMessageBox
-                
-                resposta = QMessageBox.question(
-                    self,
-                    "📝 Documento Word Criado",
-                    f"Documento criado com sucesso!\n\n"
-                    f"📄 Arquivo: {arquivo_criado}\n\n"
-                    f"O que deseja fazer?",
-                    QMessageBox.StandardButton.Open | 
-                    QMessageBox.StandardButton.Save | 
-                    QMessageBox.StandardButton.Cancel,
-                    QMessageBox.StandardButton.Open
-                )
-                
-                if resposta == QMessageBox.StandardButton.Open:
-                    # Abrir documento
-                    try:
-                        import os
-                        os.startfile(arquivo_criado)
-                        print(f"📂 [DEBUG] Documento aberto: {arquivo_criado}")
-                    except Exception as e:
-                        print(f"❌ [DEBUG] Erro ao abrir documento: {e}")
-                        
-                elif resposta == QMessageBox.StandardButton.Save:
-                    # Salvar em local específico
-                    from PyQt6.QtWidgets import QFileDialog
-                    
-                    novo_local, _ = QFileDialog.getSaveFileName(
-                        self,
-                        "💾 Salvar Documento Word",
-                        arquivo_criado,
-                        "Documentos Word (*.docx);;Todos os Arquivos (*)"
-                    )
-                    
-                    if novo_local and novo_local != arquivo_criado:
-                        import shutil
-                        shutil.copy2(arquivo_criado, novo_local)
-                        print(f"💾 [DEBUG] Documento salvo em: {novo_local}")
-                
-                from biodesk_dialogs import mostrar_sucesso
-                mostrar_sucesso(
-                    self,
-                    "✅ Documento Word Criado",
-                    f"Documento personalizado criado!\n\n"
-                    f"📋 Paciente: {dados_paciente['nome']}\n"
-                    f"📄 Arquivo: {arquivo_criado}\n\n"
-                    f"💡 Agora pode:\n"
-                    f"• Editar no Word\n"
-                    f"• Salvar como PDF\n"
-                    f"• Enviar por email\n"
-                    f"• Imprimir diretamente"
-                )
-                
-            else:
-                from biodesk_dialogs import mostrar_erro
-                mostrar_erro(self, "❌ Erro", "Erro ao gerar documento Word.")
-                
-        except Exception as e:
-            from biodesk_dialogs import mostrar_erro
-            print(f"❌ [DEBUG] Erro ao gerar Word: {e}")
-            import traceback
-            traceback.print_exc()
-            mostrar_erro(self, "❌ Erro", f"Erro ao gerar documento Word:\n{e}")
-
-    def enviar_e_registrar_completo(self):
-        """Workflow completo: Gerar Word → Converter PDF → Enviar Email → Registrar Histórico"""
-        import os
-        from datetime import datetime
-        from PyQt6.QtCore import Qt
-        
-        # Definir cursor de carregamento no início
-        self.setCursor(Qt.CursorShape.WaitCursor)
-        
-        try:
-            print("🔄 [WORKFLOW] Iniciando processo completo")
-            
-            # Verificar se há paciente selecionado
-            if not hasattr(self, 'paciente_data') or not self.paciente_data:
-                from biodesk_dialogs import mostrar_aviso
-                mostrar_aviso(self, "⚠️ Aviso", "Selecione um paciente primeiro.")
-                self.setCursor(Qt.CursorShape.ArrowCursor)
-                return
-                
-            # Verificar se há template selecionado
-            if not hasattr(self, 'template_selecionado') or not self.template_selecionado:
-                from biodesk_dialogs import mostrar_aviso
-                mostrar_aviso(self, "⚠️ Aviso", "Selecione um template primeiro.")
-                self.setCursor(Qt.CursorShape.ArrowCursor)
-                return
-                
-            # 1. GERAR DOCUMENTO WORD
-            print("📝 [WORKFLOW] Passo 1: Gerando documento Word")
-            
-            dados_paciente = {
-                'nome': self.paciente_data.get('nome', '[Nome do Paciente]'),
-                'idade': self.paciente_data.get('idade', '[Idade]'),
-                'peso': self.paciente_data.get('peso', '[Peso]'),
-                'altura': self.paciente_data.get('altura', '[Altura]'),
-                'telefone': self.paciente_data.get('contacto', '[Telefone]'),
-                'email': self.paciente_data.get('email', '[Email]'),
-            }
-            
-            # Gerar documento Word
-            from gerador_word import gerar_protocolo_detox
-            from datetime import datetime
-            import tempfile
-            import os
-            from pathlib import Path
-            
-            # ===== SISTEMA DE ORGANIZAÇÃO POR PACIENTE =====
-            # Criar estrutura de pastas organizada por paciente
-            nome_paciente_limpo = dados_paciente['nome'].replace(' ', '_').replace('[', '').replace(']', '')
-            
-            # Criar pasta base para documentos de pacientes
-            pasta_pacientes = Path("Documentos_Pacientes")
-            pasta_pacientes.mkdir(exist_ok=True)
-            
-            # Criar pasta específica do paciente
-            pasta_paciente = pasta_pacientes / nome_paciente_limpo
-            pasta_paciente.mkdir(exist_ok=True)
-            
-            # Criar subpastas organizadas
-            (pasta_paciente / "Word").mkdir(exist_ok=True)
-            (pasta_paciente / "PDF").mkdir(exist_ok=True)
-            (pasta_paciente / "Emails").mkdir(exist_ok=True)
-            
-            print(f"📁 [ORGANIZAÇÃO] Estrutura criada: {pasta_paciente}")
-            
-            # Gerar nome do arquivo com timestamp
-            data_str = datetime.now().strftime('%Y%m%d_%H%M')
-            template_nome = self.template_selecionado.get('nome', 'Documento')
-            nome_base = template_nome.replace(' ', '_')
-            
-            # Arquivo Word na pasta específica do paciente
-            arquivo_word = pasta_paciente / "Word" / f"{nome_base}_{data_str}.docx"
-            arquivo_criado = gerar_protocolo_detox(dados_paciente, str(arquivo_word))
-            
-            if not arquivo_criado:
-                raise Exception("Erro ao gerar documento Word")
-                
-            print(f"✅ [WORKFLOW] Documento Word criado: {arquivo_criado}")
-            
-            # 2. CONVERTER PARA PDF
-            print("📄 [WORKFLOW] Passo 2: Convertendo para PDF")
-            
-            # PDF na pasta específica do paciente
-            arquivo_pdf = pasta_paciente / "PDF" / f"{nome_base}_{data_str}.pdf"
-            pdf_convertido = False
-            
-            try:
-                # Método 1: Tentar conversão usando win32com (se Word estiver instalado)
-                print("🔄 [PDF] Tentando conversão com Microsoft Word...")
-                from gerador_word import GeradorDocumentosWord
-                gerador = GeradorDocumentosWord()
-                pdf_convertido = gerador.converter_para_pdf(arquivo_criado, str(arquivo_pdf))
-                
-                if pdf_convertido:
-                    print(f"✅ [PDF] Conversão bem-sucedida com Word: {pdf_convertido}")
-                    arquivo_pdf = Path(pdf_convertido)  # Manter como Path object
-                else:
-                    raise Exception("Word não conseguiu converter")
-                    
-            except Exception as word_error:
-                print(f"⚠️ [PDF] Word falhou: {word_error}")
-                
-                try:
-                    # Método 2: Tentar com docx2pdf (biblioteca Python)
-                    print("🔄 [PDF] Tentando conversão com docx2pdf...")
-                    
-                    # Verificar se docx2pdf está disponível
-                    try:
-                        from docx2pdf import convert
-                        convert(arquivo_criado, str(arquivo_pdf))
-                        
-                        if arquivo_pdf.exists():
-                            print(f"✅ [PDF] Conversão bem-sucedida com docx2pdf: {arquivo_pdf}")
-                            pdf_convertido = True
-                        else:
-                            raise Exception("PDF não foi criado")
-                            
-                    except ImportError:
-                        print("📦 [PDF] docx2pdf não encontrado - usando arquivo Word")
-                        raise Exception("docx2pdf não instalado")
-                            
-                except Exception as pdf_error:
-                    print(f"❌ [PDF] Conversão docx2pdf falhou: {pdf_error}")
-                    
-                    # Método 3: Fallback - NÃO usar arquivo Word, mostrar erro
-                    print("❌ [WORKFLOW] Conversão para PDF falhou completamente")
-                    
-                    # Mostrar aviso ao usuário
-                    from biodesk_styled_dialogs import BiodeskMessageBox
-                    resposta = BiodeskMessageBox.question(
-                        self, 
-                        "⚠️ Problema na Conversão PDF", 
-                        "Não foi possível converter o documento para PDF.\n\n"
-                        "Deseja enviar o documento Word em vez do PDF?\n"
-                        "Nota: O destinatário poderá editar o documento Word."
-                    )
-                    
-                    if resposta:
-                        arquivo_pdf = Path(arquivo_criado)
-                        print("⚠️ [WORKFLOW] Usuário escolheu enviar arquivo Word")
-                    else:
-                        print("🚫 [WORKFLOW] Usuário cancelou envio - só PDF é aceitável")
-                        self.setCursor(Qt.CursorShape.ArrowCursor)
-                        return
-            
-            if pdf_convertido and str(arquivo_pdf).endswith('.pdf'):
-                print(f"🎉 [PDF] Documento convertido para PDF: {arquivo_pdf}")
-            else:
-                print(f"📝 [DOC] Usando documento Word: {arquivo_pdf}")
-                
-            # Log da organização final
-            print(f"📂 [ORGANIZAÇÃO] Arquivo salvo em: {arquivo_pdf.parent}")
-            print(f"📄 [ORGANIZAÇÃO] Nome final: {arquivo_pdf.name}")
-                
-            # 3. CONFIGURAR E ENVIAR EMAIL
-            print("✉️ [WORKFLOW] Passo 3: Preparando email")
-            
-            # Verificar se há dados de email
-            email_destino = self.paciente_data.get('email')
-            email_enviado_sucesso = False
-            
-            if email_destino:
-                try:
-                    print(f"📧 [WORKFLOW] Enviando email para: {email_destino}")
-                    
-                    # Verificar se o arquivo existe antes de enviar
-                    if not arquivo_pdf.exists():
-                        raise Exception(f"Arquivo não encontrado: {arquivo_pdf}")
-                        
-                    # Verificar tamanho do arquivo
-                    tamanho_arquivo = arquivo_pdf.stat().st_size
-                    print(f"📏 [WORKFLOW] Tamanho do arquivo: {tamanho_arquivo:,} bytes ({tamanho_arquivo/1024:.1f} KB)")
-                    
-                    # ✅ USAR NOVO SISTEMA DE EMAIL PERSONALIZADO
-                    try:
-                        from email_templates_biodesk import gerar_email_personalizado
-                        
-                        # Preparar conteúdo específico para protocolo de tratamento
-                        nome_paciente = dados_paciente['nome']
-                        
-                        conteudo_protocolo = f"""Em anexo encontra o seu protocolo de tratamento personalizado.
-
-📋 Template aplicado: {template_nome}
-📅 Data de criação: {datetime.now().strftime('%d/%m/%Y às %H:%M')}
-📄 Formato: {'PDF' if str(arquivo_pdf).endswith('.pdf') else 'Word'} anexo
-
-Este documento foi gerado automaticamente pelo sistema Biodesk com base na sua análise clínica. Por favor, siga todas as orientações descritas no protocolo.
-
-Em caso de dúvidas sobre o protocolo, não hesite em contactar-me."""
-                        
-                        # Gerar email personalizado
-                        email_personalizado = gerar_email_personalizado(
-                            nome_paciente=nome_paciente,
-                            conteudo_principal=conteudo_protocolo,
-                            assunto=f"Protocolo de Tratamento - {nome_paciente}"
-                        )
-                        
-                        # Usar email personalizado
-                        assunto = email_personalizado['assunto']
-                        mensagem = email_personalizado['corpo']
-                        
-                        print(f"✅ [WORKFLOW] Email personalizado gerado com redes sociais")
-                        
-                    except ImportError:
-                        # Fallback para email simples se sistema personalizado não disponível
-                        print(f"⚠️ [WORKFLOW] Sistema personalizado não disponível, usando email padrão")
-                        
-                        assunto = f"Protocolo de Tratamento - {dados_paciente['nome']}"
-                        mensagem = f"""
-Caro(a) {dados_paciente['nome']},
-
-Em anexo encontra o seu protocolo de tratamento personalizado.
-
-Template: {template_nome}
-Data: {datetime.now().strftime('%d/%m/%Y às %H:%M')}
-
-Este documento foi gerado automaticamente pelo sistema Biodesk.
-
-Cumprimentos,
-Equipa Biodesk
-                        """.strip()
-                    
-                    print(f"📝 [WORKFLOW] Assunto: {assunto}")
-                    print(f"📄 [WORKFLOW] Arquivo a anexar: {arquivo_pdf.name}")
-                    
-                    # Importar e usar o sistema de email
-                    from email_sender import EmailSender
-                    email_sender = EmailSender()
-                    
-                    # Verificar configuração primeiro
-                    if not email_sender.config.is_configured():
-                        raise Exception("Sistema de email não configurado")
-                    
-                    # Enviar email com anexo
-                    print("📤 [WORKFLOW] Iniciando envio...")
-                    resultado, mensagem_result = email_sender.send_email_with_attachment(
-                        to_email=email_destino,
-                        subject=assunto,
-                        body=mensagem,
-                        attachment_path=str(arquivo_pdf)  # Converter para string
-                    )
-                    
-                    print(f"📊 [WORKFLOW] Resultado do envio: {resultado}")
-                    print(f"📋 [WORKFLOW] Detalhes: {mensagem_result}")
-                    
-                    if resultado:
-                        email_enviado_sucesso = True
-                        print("✅ [WORKFLOW] Email enviado com sucesso!")
-                        print(f"ℹ️ [WORKFLOW] Detalhes: {mensagem_result}")
-                        
-                        # Criar log do email enviado
-                        log_email = pasta_paciente / "Emails" / f"email_log_{data_str}.txt"
-                        with open(log_email, 'w', encoding='utf-8') as f:
-                            f.write(f"EMAIL ENVIADO - {datetime.now().strftime('%d/%m/%Y %H:%M')}\n")
-                            f.write("=" * 50 + "\n")
-                            f.write(f"Para: {email_destino}\n")
-                            f.write(f"Assunto: {assunto}\n")
-                            f.write(f"Anexo: {arquivo_pdf.name}\n")
-                            f.write(f"Tamanho: {tamanho_arquivo:,} bytes\n")
-                            f.write(f"Tipo: {'PDF' if str(arquivo_pdf).endswith('.pdf') else 'Word'}\n")
-                            f.write(f"Status: {mensagem_result}\n")
-                            f.write("\nMensagem:\n")
-                            f.write(mensagem)
-                        
-                        print(f"📝 [EMAIL] Log criado: {log_email}")
-                    else:
-                        print("❌ [WORKFLOW] Falha no envio do email")
-                        print(f"❌ [WORKFLOW] Erro: {mensagem_result}")
-                        
-                        # Mostrar erro detalhado ao usuário
-                        from biodesk_styled_dialogs import BiodeskMessageBox
-                        BiodeskMessageBox.warning(
-                            self, 
-                            "⚠️ Problema no Email", 
-                            f"O email não foi enviado:\n{mensagem_result}\n\nO documento foi criado mas não foi enviado por email."
-                        )
-                        
-                except Exception as e:
-                    print(f"❌ [WORKFLOW] Erro ao enviar email: {e}")
-                    import traceback
-                    traceback.print_exc()
-            else:
-                from biodesk_dialogs import mostrar_aviso
-                resposta = mostrar_aviso(self, "⚠️ Email não encontrado", 
-                                       "O paciente não tem email cadastrado.\n"
-                                       "Deseja continuar apenas registrando no histórico?")
-                if not resposta:
-                    self.setCursor(Qt.CursorShape.ArrowCursor)
-                    return
-                
-            # 4. REGISTRAR NO HISTÓRICO
-            print("📋 [WORKFLOW] Passo 4: Registrando no histórico")
-            
-            try:
-                # Criar entrada no histórico
-                historico_entrada = {
-                    'data': datetime.now().strftime('%d/%m/%Y %H:%M'),
-                    'tipo': 'Documento Enviado',
-                    'template': template_nome,
-                    'arquivo': str(arquivo_pdf),  # Converter para string
-                    'paciente': dados_paciente['nome'],
-                    'email_enviado': email_enviado_sucesso,
-                    'email_destino': email_destino or 'N/A'
-                }
-                
-                # Adicionar ao histórico do paciente (implementar conforme necessário)
-                self.registrar_documento_no_historico(historico_entrada)
-                
-                print("✅ [WORKFLOW] Registrado no histórico")
-                
-            except Exception as e:
-                print(f"⚠️ [WORKFLOW] Erro ao registrar no histórico: {e}")
-                
-            # 5. MOSTRAR RESULTADO
-            from biodesk_styled_dialogs import BiodeskMessageBox
-            
-            mensagem_resultado = f"""🎉 WORKFLOW COMPLETADO COM SUCESSO!
-
-📋 Paciente: {dados_paciente['nome']}
-📄 Template: {template_nome}
-📁 Pasta: {pasta_paciente}
-📝 Documento Word: {Path(arquivo_criado).name}
-📄 Arquivo Final: {arquivo_pdf.name}
-
-✅ Ações realizadas:
-• Documento Word gerado com dados preenchidos
-• Arquivo organizado na pasta do paciente
-• {"PDF convertido automaticamente" if str(arquivo_pdf).endswith('.pdf') else "Arquivo Word preparado"}
-• {"Email enviado com sucesso" if email_enviado_sucesso else "Email não enviado" if email_destino else "Email não disponível"}
-• Registrado no histórico clínico
-
-💡 Próximos passos:
-• Arquivo está pronto para envio/impressão
-• Registro adicionado ao histórico do paciente
-• Documentos organizados por paciente"""
-            
-            # Mostrar mensagem de sucesso com estilo Biodesk
-            BiodeskMessageBox.success(
-                parent=self,
-                title="🎉 Workflow Completo", 
-                message="Processo completado com sucesso!",
-                details=mensagem_resultado
-            )
-            
-            # Perguntar se quer abrir o arquivo
-            from biodesk_styled_dialogs import BiodeskMessageBox
-            resposta = BiodeskMessageBox.question(
-                parent=self,
-                title="📂 Abrir Arquivo", 
-                message="Deseja abrir o documento gerado?",
-                details=f"📄 Arquivo: {arquivo_pdf.name}\n📁 Local: {arquivo_pdf.parent}"
-            )
-            
-            if resposta:
-                os.startfile(str(arquivo_pdf))
-                
-        except Exception as e:
-            from biodesk_styled_dialogs import BiodeskMessageBox
-            print(f"❌ [WORKFLOW] Erro no processo completo: {e}")
-            import traceback
-            traceback.print_exc()
-            BiodeskMessageBox.critical(self, "❌ Erro no Workflow", f"Erro no processo completo:\n{e}")
-        
-        finally:
-            # Restaurar cursor normal SEMPRE
-            self.setCursor(Qt.CursorShape.ArrowCursor)
-            print("🔄 [WORKFLOW] Cursor restaurado - processo finalizado")
-            
-    def registrar_documento_no_historico(self, entrada):
-        """Registra documento no histórico do paciente"""
-        try:
-            print(f"📋 [HISTÓRICO] Registrando: {entrada}")
-            
-            # Integrar com sistema de histórico existente
-            if hasattr(self, 'db') and self.db and hasattr(self, 'paciente_data'):
-                paciente_id = self.paciente_data.get('id')
-                if paciente_id:
-                    # Formatear entrada para o histórico
-                    texto_historico = f"""📄 DOCUMENTO ENVIADO
-📋 Template: {entrada['template']}
-📁 Arquivo: {entrada['arquivo']}
-📧 Email: {'Enviado para ' + entrada['email_destino'] if entrada['email_enviado'] else 'Não enviado'}
-📅 Data: {entrada['data']}"""
-                    
-                    # Adicionar ao histórico do paciente
-                    self.db.adicionar_historico(paciente_id, texto_historico)
-                    print(f"✅ [HISTÓRICO] Registrado na base de dados para paciente ID: {paciente_id}")
-                else:
-                    print("⚠️ [HISTÓRICO] ID do paciente não encontrado")
-            else:
-                print("⚠️ [HISTÓRICO] Sistema de BD não disponível")
-            
-        except Exception as e:
-            print(f"❌ [HISTÓRICO] Erro ao registrar: {e}")
-            import traceback
-            traceback.print_exc()
-
     # ====== MÉTODOS PARA CENTRO DE COMUNICAÇÃO ======
     def selecionar_canal(self, canal):
         """Método mantido para compatibilidade - email já está sempre selecionado"""
@@ -4917,2507 +1961,224 @@ Naturopata | Osteopata | Medicina Quântica
             print(f"[COMUNICAÇÃO] ❌ Erro inesperado: {e}")
 
     # ====== MÉTODOS PARA SUB-ABAS ADICIONAIS ======
-    def init_sub_declaracao_saude(self):
-        """Sub-aba: Declaração de Saúde (SISTEMA ORIGINAL RESTAURADO E CORRIGIDO)"""
-        # Layout principal da sub-aba
-        layout = QVBoxLayout(self.sub_declaracao_saude)
-        layout.setContentsMargins(15, 15, 15, 15)
-        layout.setSpacing(15)
-        
-        # ====== CABEÇALHO ======
-        header_frame = QFrame()
-        header_frame.setFixedHeight(80)
-        header_frame.setStyleSheet("""
-            QFrame {
-                background-color: #2980b9;
-                border-radius: 8px;
-            }
-        """)
-        header_layout = QHBoxLayout(header_frame)
-        
-        titulo_declaracao = QLabel("🩺 Declaração de Estado de Saúde")
-        titulo_declaracao.setStyleSheet("""
-            font-size: 18px; 
-            font-weight: 700; 
-            color: #ffffff;
-            padding: 20px 15px;
-        """)
-        header_layout.addWidget(titulo_declaracao)
-        
-        header_layout.addStretch()
-        
-        # Status da declaração
-        self.status_declaracao = QLabel("❌ Não preenchida")
-        self.status_declaracao.setStyleSheet("""
-            font-size: 14px; 
-            font-weight: 600;
-            color: #ffffff;
-            padding: 15px;
-            background-color: rgba(255,255,255,0.2);
-            border-radius: 6px;
-        """)
-        header_layout.addWidget(self.status_declaracao)
-        
-        layout.addWidget(header_frame)
-        
-        # ====== ÁREA PRINCIPAL DIVIDIDA ======
-        main_layout = QHBoxLayout()
-        main_layout.setSpacing(20)
-        
-        # ====== ESQUERDA: FORMULÁRIO ======
-        form_frame = QFrame()
-        form_frame.setStyleSheet("""
-            QFrame {
-                background-color: #ffffff;
-                border: 2px solid #e0e0e0;
-                border-radius: 10px;
-                padding: 15px;
-            }
-        """)
-        form_layout = QVBoxLayout(form_frame)
-        form_layout.setSpacing(10)
-        
-        # ====== TEMPLATE HTML DA DECLARAÇÃO ======
-        self.template_declaracao = self._criar_template_declaracao_saude()
-        
-        # WebEngine para a declaração com formulários interativos
-        self.texto_declaracao_editor = QWebEngineView()
-        self.texto_declaracao_editor.setMinimumHeight(400)
-        self.texto_declaracao_editor.setMaximumHeight(600)
-        self.texto_declaracao_editor.setHtml(self.template_declaracao)
-        
-        form_layout.addWidget(self.texto_declaracao_editor)
-        
-        main_layout.addWidget(form_frame, 2)
-        
-        # ====== DIREITA: AÇÕES ======
-        acoes_frame = QFrame()
-        acoes_frame.setFixedWidth(250)
-        acoes_frame.setStyleSheet("""
-            QFrame {
-                background-color: #f8f9fa;
-                border: 1px solid #dee2e6;
-                border-radius: 10px;
-            }
-        """)
-        acoes_layout = QVBoxLayout(acoes_frame)
-        acoes_layout.setContentsMargins(20, 20, 20, 20)
-        acoes_layout.setSpacing(12)
-        acoes_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        
-        # Título das ações
-        acoes_titulo = QLabel("⚡ Ações")
-        acoes_titulo.setStyleSheet("""
-            font-size: 16px; 
-            font-weight: 600; 
-            color: #2c3e50; 
-            margin-bottom: 10px;
-            padding: 15px;
-            background-color: #e9ecef;
-            border-radius: 8px;
-        """)
-        acoes_titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        acoes_layout.addWidget(acoes_titulo)
-        
-        # ====== BOTÕES CORRIGIDOS ======
-        botoes_principais_layout = QVBoxLayout()
-        botoes_principais_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        botoes_principais_layout.setSpacing(15)
-        
-        # Botão Assinar e Guardar (principal)
-        btn_assinar_guardar_declaracao = QPushButton("✍️ Assinar e Guardar")
-        btn_assinar_guardar_declaracao.setFixedSize(200, 50)
-        btn_assinar_guardar_declaracao.setToolTip("Abre canvas de assinatura e gera PDF automaticamente")
-        btn_assinar_guardar_declaracao.setStyleSheet("""
-            QPushButton {
-                background-color: #28a745;
-                color: white;
-                border: none;
-                border-radius: 8px;
-                font-size: 13px;
-                font-weight: bold;
-                padding: 10px;
-            }
-            QPushButton:hover {
-                background-color: #218838;
-                transform: translateY(-1px);
-            }
-            QPushButton:pressed {
-                background-color: #1e7e34;
-            }
-        """)
-        btn_assinar_guardar_declaracao.clicked.connect(self.assinar_e_guardar_declaracao_saude)
-        botoes_principais_layout.addWidget(btn_assinar_guardar_declaracao)
-        
-        # Nota informativa
-        nota_label = QLabel("� Use o botão acima para preencher, assinar e guardar a declaração automaticamente")
-        nota_label.setStyleSheet("""
-            QLabel {
-                color: #6c757d;
-                font-size: 11px;
-                font-style: italic;
-                padding: 10px;
-                text-align: center;
-            }
-        """)
-        nota_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        nota_label.setWordWrap(True)
-        botoes_principais_layout.addWidget(nota_label)
-        
-        acoes_layout.addLayout(botoes_principais_layout)
-        acoes_layout.addStretch()
-        
-        main_layout.addWidget(acoes_frame, 1)
-        
-        layout.addLayout(main_layout, 1)
-        
-        # Carregar dados existentes
-        self.carregar_declaracao_saude()
-
-    def carregar_declaracao_saude(self):
-        """Carrega declaração de saúde - VERSÃO SIMPLIFICADA"""
-        if not self.paciente_data:
-            return
-            
+    def init_sub_declaracao_saude_modular(self):
+        """Sub-aba: Declaração de Saúde - VERSÃO MODULAR"""
         try:
-            # Aplicar sempre o novo template simplificado
-            self.template_declaracao = self._criar_template_declaracao_saude()
-            self.texto_declaracao_editor.setHtml(self.template_declaracao)
+            # Import lazy do módulo especializado
+            _, _, _, _, _, DeclaracaoSaudeWidget, _, _ = importar_modulos_especializados()
             
-            # Status padrão
-            self.status_declaracao.setText("❌ Não preenchida")
-            self.status_declaracao.setStyleSheet("""
-                QLabel {
-                    color: #e74c3c;
-                    font-weight: bold;
-                    font-size: 12px;
-                    padding: 5px;
-                    background-color: #f8d7da;
-                    border: 1px solid #f5c6cb;
-                    border-radius: 4px;
-                }
-            """)
+            # Criar widget especializado
+            self.declaracao_saude_widget = DeclaracaoSaudeWidget(self)
             
-            print("✅ Template simplificado aplicado com sucesso!")
+            # Conectar sinais
+            self.declaracao_saude_widget.declaracao_assinada.connect(self.on_declaracao_assinada)
+            self.declaracao_saude_widget.dados_atualizados.connect(self.on_declaracao_dados_atualizados)
             
-        except Exception as e:
-            print(f"❌ Erro ao carregar declaração: {e}")
-            # Em caso de erro, criar template mínimo
-            template_minimo = """
-            <html><body style='font-family: Arial; padding: 20px;'>
-            <h1 style='color: #4a9f4a; text-align: center;'>🌿 Declaração de Saúde 🌿</h1>
-            <p style='text-align: center;'>Template simplificado carregado.</p>
-            </body></html>
-            """
-            self.texto_declaracao_editor.setHtml(template_minimo)
-            self.status_declaracao.setText("❌ Erro ao carregar")
-
-    def _criar_template_declaracao_saude(self):
-        """Cria template HTML SIMPLIFICADO com dropdowns"""
-        return """
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <title>Declaração de Saúde Simplificada</title>
-            <style>
-                body { 
-                    font-family: Arial, sans-serif; 
-                    margin: 20px; 
-                    background-color: #f9f9f9; 
-                    line-height: 1.6;
-                }
-                .container { 
-                    max-width: 800px; 
-                    margin: 0 auto; 
-                    background: white; 
-                    padding: 30px; 
-                    border-radius: 10px; 
-                    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-                }
-                h1 { 
-                    text-align: center; 
-                    color: #2e7d2e; 
-                    margin-bottom: 30px; 
-                    font-size: 28px;
-                    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
-                }
-                h2 { 
-                    color: #4a9f4a; 
-                    border-bottom: 2px solid #4a9f4a; 
-                    padding-bottom: 8px; 
-                    margin-top: 30px; 
-                }
-                .patient-info { 
-                    background-color: #f0f8f0; 
-                    padding: 20px; 
-                    border-radius: 8px; 
-                    margin-bottom: 25px; 
-                    border-left: 5px solid #4a9f4a;
-                }
-                .form-group { 
-                    margin-bottom: 20px; 
-                }
-                .form-group label { 
-                    display: block; 
-                    margin-bottom: 8px; 
-                    font-weight: bold; 
-                    color: #2e7d2e; 
-                }
-                select, textarea, input[type="text"] { 
-                    width: 100%; 
-                    padding: 12px; 
-                    border: 2px solid #4a9f4a; 
-                    border-radius: 8px; 
-                    font-size: 14px; 
-                    box-sizing: border-box;
-                    background-color: #fafcfa;
-                }
-                select:focus, textarea:focus, input:focus { 
-                    border-color: #2e7d2e; 
-                    outline: none; 
-                    background-color: white;
-                }
-                .legal-text { 
-                    background-color: #fff8dc; 
-                    border: 2px solid #4a9f4a; 
-                    border-radius: 10px; 
-                    padding: 25px; 
-                    margin: 30px 0; 
-                    font-size: 14px; 
-                    line-height: 1.8;
-                }
-                .signature-section { 
-                    margin-top: 40px; 
-                    border-top: 3px solid #4a9f4a; 
-                    padding-top: 25px; 
-                }
-                .signature-row { 
-                    display: grid; 
-                    grid-template-columns: 1fr 1fr; 
-                    gap: 40px; 
-                    margin-top: 25px; 
-                }
-                .signature-box { 
-                    text-align: center; 
-                    border-bottom: 2px solid #2e7d2e; 
-                    padding-bottom: 10px; 
-                    margin-bottom: 10px; 
-                    min-height: 50px; 
-                }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <h1>🌿 DECLARAÇÃO DE SAÚDE SIMPLIFICADA 🌿</h1>
-                
-                <div class="patient-info">
-                    <div><strong>👤 Nome:</strong> [NOME_PACIENTE]</div>
-                    <div><strong>📅 Data de Nascimento:</strong> [DATA_NASCIMENTO]</div>
-                    <div><strong>📋 Data da Declaração:</strong> [DATA_ATUAL]</div>
-                    <div><strong>🏥 Consultório:</strong> BioDesk Natural Health</div>
-                </div>
-
-                <h2>🌱 Histórico Médico</h2>
-                
-                <div class="form-group">
-                    <label for="consulta-anterior">Já consultou algum naturopata anteriormente?</label>
-                    <select id="consulta-anterior" name="consulta-anterior">
-                        <option value="">Selecione...</option>
-                        <option value="sim">Sim</option>
-                        <option value="nao">Não</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="condicoes-saude">Tem alguma condição de saúde importante?</label>
-                    <select id="condicoes-saude" name="condicoes-saude">
-                        <option value="">Selecione...</option>
-                        <option value="sim">Sim</option>
-                        <option value="nao">Não</option>
-                        <option value="nao-sei">Não sei</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="medicacao">Toma alguma medicação regularmente?</label>
-                    <select id="medicacao" name="medicacao">
-                        <option value="">Selecione...</option>
-                        <option value="sim">Sim</option>
-                        <option value="nao">Não</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="alergias">Tem alergias conhecidas?</label>
-                    <select id="alergias" name="alergias">
-                        <option value="">Selecione...</option>
-                        <option value="sim">Sim</option>
-                        <option value="nao">Não</option>
-                        <option value="desconheco">Desconheço</option>
-                    </select>
-                </div>
-
-                <h2>🍃 Estilo de Vida</h2>
-                
-                <div class="form-group">
-                    <label for="exercicio">Pratica exercício físico regularmente?</label>
-                    <select id="exercicio" name="exercicio">
-                        <option value="">Selecione...</option>
-                        <option value="sim-frequente">Sim, frequentemente</option>
-                        <option value="sim-ocasional">Sim, ocasionalmente</option>
-                        <option value="nao">Não</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="stress">Como avalia o seu nível de stress?</label>
-                    <select id="stress" name="stress">
-                        <option value="">Selecione...</option>
-                        <option value="baixo">Baixo</option>
-                        <option value="moderado">Moderado</option>
-                        <option value="alto">Alto</option>
-                        <option value="muito-alto">Muito Alto</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="sono">Como é a qualidade do seu sono?</label>
-                    <select id="sono" name="sono">
-                        <option value="">Selecione...</option>
-                        <option value="excelente">Excelente</option>
-                        <option value="bom">Bom</option>
-                        <option value="regular">Regular</option>
-                        <option value="mau">Mau</option>
-                    </select>
-                </div>
-
-                <h2>💭 Informações Adicionais</h2>
-                
-                <div class="form-group">
-                    <label for="motivo">Principal motivo da consulta:</label>
-                    <textarea id="motivo" name="motivo" rows="3" placeholder="Descreva brevemente o que o trouxe à consulta..."></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="objetivos">O que espera alcançar com as terapias naturais?</label>
-                    <textarea id="objetivos" name="objetivos" rows="3" placeholder="Descreva os seus objetivos..."></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="observacoes">Outras informações relevantes:</label>
-                    <textarea id="observacoes" name="observacoes" rows="3" placeholder="Qualquer outra informação importante..."></textarea>
-                </div>
-
-                <div class="legal-text">
-                    <h3 style="color: #2e7d2e; margin-top: 0;">🌿 DECLARAÇÃO E CONSENTIMENTO</h3>
-                    <p><strong>DECLARO QUE:</strong></p>
-                    <ul>
-                        <li>Todas as informações prestadas são verdadeiras e completas</li>
-                        <li>Compreendo que a naturopatia é complementar ao acompanhamento médico</li>
-                        <li>Informarei imediatamente sobre alterações no meu estado de saúde</li>
-                        <li>Autorizo o tratamento dos meus dados pessoais para fins terapêuticos (RGPD)</li>
-                    </ul>
-                </div>
-
-                <div class="signature-section">
-                    <h3>✍️ Assinaturas</h3>
-                    <div class="signature-row">
-                        <div>
-                            <div class="signature-box"></div>
-                            <p style="text-align: center; margin: 10px 0;"><strong>Assinatura do Paciente</strong></p>
-                            <p style="text-align: center; margin: 0; font-size: 12px;">Data: [DATA_ATUAL]</p>
-                        </div>
-                        <div>
-                            <div class="signature-box"></div>
-                            <p style="text-align: center; margin: 10px 0;"><strong>Assinatura do Naturopata</strong></p>
-                            <p style="text-align: center; margin: 0; font-size: 12px;">Data: [DATA_ATUAL]</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </body>
-        </html>
-        """
-
-    def guardar_declaracao_saude_completa(self):
-        """Gera PDF completo da declaração de saúde com assinaturas"""
-        try:
-            from PyQt6.QtPrintSupport import QPrinter
-            from PyQt6.QtGui import QTextDocument, QPageSize, QPageLayout
-            from PyQt6.QtCore import QMarginsF
-            import os
-            from datetime import datetime
+            # Layout para o widget modular
+            layout = QVBoxLayout(self.sub_declaracao_saude)
+            layout.setContentsMargins(0, 0, 0, 0)
+            layout.addWidget(self.declaracao_saude_widget)
             
-            print(f"📋 [PDF] Gerando PDF da declaração de saúde...")
+            # Carregar dados do paciente se disponível
+            if hasattr(self, 'paciente_data') and self.paciente_data:
+                self.declaracao_saude_widget.set_paciente_data(self.paciente_data)
             
-            # Obter dados do paciente
-            if not self.paciente_data:
-                BiodeskMessageBox.warning(self, "Aviso", "⚠️ Nenhum paciente selecionado.")
-                return False
-                
-            paciente_id = self.paciente_data.get('id')
-            nome_paciente = self.paciente_data.get('nome', 'N/A')
-            data_nascimento = self.paciente_data.get('data_nascimento', 'N/A')
-            
-            # Criar diretório se não existir
-            pasta_paciente = f"Documentos_Pacientes/{paciente_id}_{nome_paciente.replace(' ', '_')}"
-            os.makedirs(pasta_paciente, exist_ok=True)
-            
-            # Nome do arquivo PDF
-            data_str = datetime.now().strftime('%Y%m%d_%H%M%S')
-            nome_arquivo = f"Declaracao_Saude_{nome_paciente.replace(' ', '_')}_{data_str}.pdf"
-            caminho_pdf = os.path.join(pasta_paciente, nome_arquivo)
-            
-            # Criar documento para PDF
-            document = QTextDocument()
-            
-            # Gerar HTML do template com dados do paciente
-            html_content = self._criar_template_declaracao_saude()
-            html_content = html_content.replace('[NOME_PACIENTE]', nome_paciente)
-            html_content = html_content.replace('[DATA_NASCIMENTO]', str(data_nascimento))
-            html_content = html_content.replace('[DATA_ATUAL]', datetime.now().strftime('%d/%m/%Y'))
-            
-            # Capturar dados do formulário se estiver preenchido
-            try:
-                # Tentar capturar dados via JavaScript se o WebView estiver ativo
-                def processar_dados_form(dados):
-                    nonlocal html_content  # Permitir modificação da variável externa
-                    if dados:
-                        # Adicionar dados preenchidos ao HTML
-                        for campo, valor in dados.items():
-                            if valor and valor != "":
-                                # Substituir no HTML os valores selecionados
-                                html_content = html_content.replace(
-                                    f'<option value="{valor}">',
-                                    f'<option value="{valor}" selected>'
-                                )
-                    
-                    # Definir conteúdo do documento
-                    document.setHtml(html_content)
-                    
-                    # Configurar impressora/PDF
-                    printer = QPrinter(QPrinter.PrinterMode.HighResolution)
-                    printer.setOutputFormat(QPrinter.OutputFormat.PdfFormat)
-                    printer.setOutputFileName(caminho_pdf)
-                    printer.setPageSize(QPageSize(QPageSize.PageSizeId.A4))
-                    printer.setPageLayout(QPageLayout(
-                        QPageSize(QPageSize.PageSizeId.A4),
-                        QPageLayout.Orientation.Portrait,
-                        QMarginsF(15, 15, 15, 15)  # margens em mm
-                    ))
-                    
-                    # Gerar PDF
-                    document.print(printer)
-                    
-                    print(f"✅ [PDF] Declaração guardada: {caminho_pdf}")
-                    BiodeskMessageBox.information(self, "Sucesso", 
-                                                f"✅ Declaração de saúde guardada com sucesso!\n\n📁 {caminho_pdf}")
-                    return True
-                
-                # Tentar capturar dados do formulário
-                if hasattr(self, 'texto_declaracao_editor'):
-                    js_code = """
-                    function capturarDados() {
-                        var dados = {};
-                        var selects = document.querySelectorAll('select');
-                        for(var i = 0; i < selects.length; i++) {
-                            var sel = selects[i];
-                            if(sel.value) dados[sel.name || sel.id] = sel.value;
-                        }
-                        var textareas = document.querySelectorAll('textarea');
-                        for(var i = 0; i < textareas.length; i++) {
-                            var ta = textareas[i];
-                            if(ta.value) dados[ta.name || ta.id] = ta.value;
-                        }
-                        return dados;
-                    }
-                    capturarDados();
-                    """
-                    self.texto_declaracao_editor.page().runJavaScript(js_code, processar_dados_form)
-                else:
-                    # Fallback: gerar PDF sem dados específicos
-                    processar_dados_form({})
-                    
-            except Exception as e:
-                print(f"⚠️ [PDF] Erro ao capturar dados do formulário: {e}")
-                # Gerar PDF básico mesmo sem dados
-                document.setHtml(html_content)
-                
-                printer = QPrinter(QPrinter.PrinterMode.HighResolution)
-                printer.setOutputFormat(QPrinter.OutputFormat.PdfFormat)
-                printer.setOutputFileName(caminho_pdf)
-                printer.setPageSize(QPageSize(QPageSize.PageSizeId.A4))
-                
-                document.print(printer)
-                print(f"✅ [PDF] Declaração básica guardada: {caminho_pdf}")
-                BiodeskMessageBox.information(self, "Sucesso", 
-                                            f"✅ Declaração de saúde guardada!\n\n📁 {caminho_pdf}")
-                return True
-                
-        except Exception as e:
-            print(f"❌ [PDF] Erro ao gerar PDF: {e}")
-            BiodeskMessageBox.critical(self, "Erro", f"❌ Erro ao gerar PDF da declaração:\n\n{str(e)}")
-            return False
-
-    def init_sub_consentimentos(self):
-        """Sub-aba: Consentimentos (CÓDIGO COMPLETO MIGRADO)"""
-        # Usar exatamente o mesmo código excelente que já existia
-        layout = QVBoxLayout(self.sub_consentimentos)
-        layout.setContentsMargins(15, 15, 15, 15)
-        layout.setSpacing(15)
-        
-        # ====== LAYOUT HORIZONTAL PRINCIPAL ======
-        main_horizontal_layout = QHBoxLayout()
-        main_horizontal_layout.setSpacing(20)  # Aumentar espaçamento entre colunas
-        
-        # ====== 1. ESQUERDA: PAINEL DE STATUS COMPACTO ======
-        status_frame = QFrame()
-        status_frame.setFixedWidth(300)  # Aumentar largura para melhor organização
-        status_frame.setMinimumHeight(400)  # Garantir altura mínima adequada
-        status_frame.setStyleSheet("""
-            QFrame {
-                background-color: #f8f9fa;
-                border: 1px solid #dee2e6;
-                border-radius: 10px;
-                padding: 15px;
-            }
-        """)
-        status_layout = QVBoxLayout(status_frame)
-        status_layout.setSpacing(12)  # Aumentar espaçamento entre elementos
-        status_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        
-        # Título da seção
-        status_titulo = QLabel("📋 Tipos de Consentimentos")
-        status_titulo.setStyleSheet("""
-            font-size: 16px; 
-            font-weight: 600; 
-            color: #2c3e50; 
-            margin-bottom: 10px;
-            padding: 15px;
-            background-color: #e9ecef;
-            border-radius: 8px;
-        """)
-        status_titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        status_layout.addWidget(status_titulo)
-        
-        # Scroll area para os consentimentos
-        scroll_area = QScrollArea()
-        scroll_area.setWidgetResizable(True)
-        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        scroll_area.setStyleSheet("""
-            QScrollArea {
-                border: none;
-                background-color: transparent;
-            }
-
-        """)
-        
-        scroll_widget = QWidget()
-        scroll_layout = QVBoxLayout(scroll_widget)
-        scroll_layout.setSpacing(8)  # Espaçamento adequado entre consentimentos
-        scroll_layout.setContentsMargins(0, 8, 8, 8)  # Margem esquerda removida para alinhamento
-        scroll_layout.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)  # Alinhar à esquerda
-        
-        # Tipos de consentimento com cores pastéis elegantes
-        tipos_consentimento = [
-            ("🌿 Naturopatia", "naturopatia", "#81c784"),     # Verde suave
-            ("👁️ Iridologia", "iridologia", "#4fc3f7"),      # Azul céu
-            ("🦴 Osteopatia", "osteopatia", "#ffb74d"),       # Laranja suave
-            ("⚡ Medicina Quântica", "quantica", "#ba68c8"),  # Roxo elegante
-            ("💉 Mesoterapia", "mesoterapia", "#f06292"),     # Rosa vibrante (mudei do azul)
-            ("🛡️ RGPD", "rgpd", "#90a4ae")                   # Cinza azulado
-        ]
-        
-        self.botoes_consentimento = {}
-        self.labels_status = {}
-        
-        for nome, tipo, cor in tipos_consentimento:
-            # Cores pastéis predefinidas para cada tipo de consentimento
-            cores_pastel = {
-                "#81c784": "#e8f5e8",  # Verde suave para verde claro
-                "#4fc3f7": "#e3f2fd",  # Azul céu para azul claro
-                "#ffb74d": "#fff3e0",  # Laranja suave para laranja claro
-                "#ba68c8": "#f3e5f5",  # Roxo elegante para roxo claro
-                "#64b5f6": "#e3f2fd",  # Azul sereno para azul claro
-                "#90a4ae": "#f5f5f5"   # Cinza azulado para cinza claro
-            }
-            
-            cor_pastel = cores_pastel.get(cor, "#f5f5f5")
-            
-            # Botão direto no layout - ESTILO IGUAL AOS TEMPLATES
-            btn = QPushButton(nome)
-            btn.setCheckable(True)
-            btn.setFixedSize(220, 45)  # Largura reduzida para permitir alinhamento à esquerda
-            btn.setStyleSheet(f"""
-                QPushButton {{
-                    font-size: 13px !important;
-                    font-weight: 600 !important;
-                    border: none !important;
-                    border-radius: 8px !important;
-                    padding: 10px 15px !important;
-                    background-color: {cor} !important;
-                    color: #2c3e50 !important;
-                    text-align: left !important;
-                }}
-                QPushButton:hover {{
-                    background-color: {self._lighten_color(cor, 15)} !important;
-                    color: #2c3e50 !important;
-                }}
-                QPushButton:checked {{
-                    background-color: {self._lighten_color(cor, 25)} !important;
-                    color: #2c3e50 !important;
-                }}
-            """)
-            btn.clicked.connect(lambda checked, t=tipo: self.selecionar_tipo_consentimento(t))
-            self.botoes_consentimento[tipo] = btn
-            scroll_layout.addWidget(btn)
-        
-        # Adicionar stretch ao final para alinhamento superior
-        scroll_layout.addStretch()
-        
-        # Conectar o scroll_widget ao scroll_area
-        scroll_area.setWidget(scroll_widget)
-        
-        # Adicionar o scroll_area ao status_layout
-        status_layout.addWidget(scroll_area)
-        
-        main_horizontal_layout.addWidget(status_frame)
-        
-        # ====== 2. CENTRO: ÁREA GRANDE DE TEXTO ======
-        centro_frame = QFrame()
-        centro_frame.setStyleSheet("""
-            QFrame {
-                background-color: #ffffff;
-                border: 2px solid #e0e0e0;
-                border-radius: 10px;
-            }
-        """)
-        centro_layout = QVBoxLayout(centro_frame)
-        centro_layout.setContentsMargins(15, 15, 15, 15)
-        centro_layout.setSpacing(10)
-        
-        # Cabeçalho do centro
-        header_centro = QFrame()
-        header_centro.setFixedHeight(85)  # Aumentar altura para o texto ficar ainda mais visível
-        header_centro.setStyleSheet("""
-            QFrame {
-                background-color: #2980b9;
-                border-radius: 8px;
-            }
-        """)
-        header_layout = QHBoxLayout(header_centro)
-        
-        self.label_tipo_atual = QLabel("👈 Selecione um tipo de consentimento")
-        self.label_tipo_atual.setStyleSheet("""
-            font-size: 16px; 
-            font-weight: 700; 
-            color: #ffffff;
-            padding: 20px 15px;
-        """)
-        header_layout.addWidget(self.label_tipo_atual)
-        
-        header_layout.addStretch()
-        
-        self.label_data_consentimento = QLabel(f"📅 {self.data_atual()}")
-        self.label_data_consentimento.setStyleSheet("""
-            font-size: 16px; 
-            font-weight: 600;
-            color: #ffffff;
-            padding: 15px;
-        """)
-        header_layout.addWidget(self.label_data_consentimento)
-        
-        centro_layout.addWidget(header_centro)
-        
-        # Mensagem inicial (quando nenhum tipo está selecionado)
-        self.mensagem_inicial = QLabel("👈 Selecione um tipo de consentimento")
-        self.mensagem_inicial.setStyleSheet("""
-            font-size: 18px;
-            color: #7f8c8d;
-            padding: 80px;
-            border: 2px dashed #bdc3c7;
-            border-radius: 10px;
-            background-color: #f8f9fa;
-        """)
-        self.mensagem_inicial.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        centro_layout.addWidget(self.mensagem_inicial)
-        
-        # Editor de texto principal com altura controlada
-        self.editor_consentimento = QTextEdit()
-        self.editor_consentimento.setMinimumHeight(300)  # Altura aumentada
-        self.editor_consentimento.setMaximumHeight(400)  # Altura máxima aumentada
-        self._style_text_edit(self.editor_consentimento)
-        self.editor_consentimento.setPlaceholderText("Selecione um tipo de consentimento para editar o texto...")
-        self.editor_consentimento.setVisible(False)  # Inicialmente oculto
-        centro_layout.addWidget(self.editor_consentimento)
-        
-        # ====== BOTÕES DE ASSINATURA COMPACTOS ======
-        assinaturas_layout = QHBoxLayout()
-        assinaturas_layout.setContentsMargins(20, 15, 20, 15)
-        assinaturas_layout.setSpacing(25)
-        
-        # Espaçador esquerdo
-        assinaturas_layout.addStretch()
-        
-        # Botão Paciente - Compacto e bem formatado
-        self.assinatura_paciente = QPushButton("📝 Paciente")
-        self.assinatura_paciente.setFixedSize(140, 45)
-        self.assinatura_paciente.setStyleSheet("""
-            QPushButton {
-                border: 2px solid #2196F3;
-                border-radius: 8px;
-                background-color: #e3f2fd;
-                font-size: 12px;
-                color: #1976d2;
-                font-weight: 600;
-                padding: 8px;
-            }
-            QPushButton:hover {
-                background-color: #bbdefb;
-                border-color: #1976d2;
-            }
-            QPushButton:pressed {
-                background-color: #90caf9;
-                border-color: #0d47a1;
-            }
-        """)
-        self.assinatura_paciente.clicked.connect(self.abrir_assinatura_paciente_click)
-        assinaturas_layout.addWidget(self.assinatura_paciente)
-        
-        # Botão Terapeuta - Compacto e bem formatado
-        self.assinatura_terapeuta = QPushButton("👨‍⚕️ Terapeuta")
-        self.assinatura_terapeuta.setFixedSize(140, 45)
-        self.assinatura_terapeuta.setStyleSheet("""
-            QPushButton {
-                border: 2px solid #4CAF50;
-                border-radius: 8px;
-                background-color: #e8f5e8;
-                font-size: 12px;
-                color: #2e7d32;
-                font-weight: 600;
-                padding: 8px;
-            }
-            QPushButton:hover {
-                background-color: #c8e6c9;
-                border-color: #388e3c;
-            }
-            QPushButton:pressed {
-                background-color: #a5d6a7;
-                border-color: #1b5e20;
-            }
-        """)
-        self.assinatura_terapeuta.clicked.connect(self.abrir_assinatura_terapeuta_click)
-        assinaturas_layout.addWidget(self.assinatura_terapeuta)
-        
-        # Espaçador direito
-        assinaturas_layout.addStretch()
-        
-        # Adicionar layout de assinaturas ao centro
-        centro_layout.addLayout(assinaturas_layout)
-
-        main_horizontal_layout.addWidget(centro_frame, 1)  # Expandir no centro
-        
-        # ====== 3. DIREITA: BOTÕES DE AÇÃO (SEM FRAME) ======
-        # Layout vertical para botões diretamente no layout principal
-        acoes_layout = QVBoxLayout()
-        acoes_layout.setContentsMargins(15, 10, 15, 10)  # Margens externas
-        acoes_layout.setSpacing(8)  # Espaçamento reduzido entre botões
-        acoes_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        
-        # ====== BOTÕES DE AÇÕES UNIFORMES ======
-        # Todos os botões com ícone + texto, tamanho uniforme
-        
-        btn_guardar = QPushButton("💾 Guardar")
-        btn_guardar.setFixedSize(160, 30)
-        btn_guardar.setToolTip("Guardar Consentimento e Adicionar aos Documentos")
-        self._style_modern_button(btn_guardar, "#28a745")  # Verde (sucesso)
-        btn_guardar.clicked.connect(self.guardar_consentimento_completo)  # Nova função integrada
-        acoes_layout.addWidget(btn_guardar)
-        
-        # Separador visual
-        acoes_layout.addSpacing(15)
-        
-        btn_limpar = QPushButton("🗑️ Limpar")
-        btn_limpar.setFixedSize(160, 30)
-        btn_limpar.setToolTip("Limpar Consentimento")
-        self._style_modern_button(btn_limpar, "#dc3545")  # Vermelho (danger)
-        btn_limpar.clicked.connect(self.limpar_consentimento)
-        acoes_layout.addWidget(btn_limpar)
-        
-        # Botão de anular consentimento
-        self.btn_anular = QPushButton("❌ Anular")
-        self.btn_anular.setFixedSize(160, 30)
-        self.btn_anular.setToolTip("Anular Consentimento")
-        self._style_modern_button(self.btn_anular, "#dc3545")
-        self.btn_anular.clicked.connect(self.anular_consentimento_click)
-        self.btn_anular.setVisible(False)  # Inicialmente oculto
-        acoes_layout.addWidget(self.btn_anular)
-        
-        acoes_layout.addStretch()
-        main_horizontal_layout.addLayout(acoes_layout)  # Adicionar layout diretamente
-        
-        # Pequena margem direita
-        main_horizontal_layout.addSpacing(20)
-        
-        # Adicionar layout horizontal ao layout principal
-        layout.addLayout(main_horizontal_layout, 1)
-        
-        # Carregar status dos consentimentos
-        self.carregar_status_consentimentos()
-        
-        # Atualizar informações do paciente
-        self.atualizar_info_paciente_consentimento()
-
-    def init_sub_gestao_documentos(self):
-        """Sub-aba: Gestão de Documentos - Sistema completo de documentos do paciente"""
-        layout = QVBoxLayout(self.sub_gestao_documentos)
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.setSpacing(15)
-        
-        # Cabeçalho da seção
-        header_layout = QHBoxLayout()
-        
-        # Título principal
-        title_label = QLabel("📂 Gestão de Documentos")
-        title_label.setStyleSheet("""
-            QLabel {
-                font-size: 22px;
-                font-weight: bold;
-                color: #2c3e50;
-                padding: 10px 0;
-            }
-        """)
-        header_layout.addWidget(title_label)
-        
-        header_layout.addStretch()
-        
-        # Botão de atualizar
-        btn_refresh = QPushButton("🔄 Atualizar")
-        btn_refresh.setStyleSheet("""
-            QPushButton {
-                background-color: #f8f9fa;
-                color: #495057;
-                border: 2px solid #dee2e6;
-                border-radius: 8px;
-                padding: 8px 16px;
-                font-size: 14px;
-                font-weight: 600;
-                margin: 5px;
-            }
-            QPushButton:hover {
-                background-color: #e91e63;
-                color: white;
-                border-color: #e91e63;
-            }
-            QPushButton:pressed {
-                background-color: #c1185b;
-                border-color: #c1185b;
-            }
-        """)
-        btn_refresh.clicked.connect(self.atualizar_lista_documentos)
-        header_layout.addWidget(btn_refresh)
-        
-        # Botão de upload
-        btn_upload = QPushButton("📤 Adicionar Documento")
-        btn_upload.setObjectName("btn_doc_upload")  # Para identificação específica se necessário
-        btn_upload.clicked.connect(self.adicionar_documento)
-        header_layout.addWidget(btn_upload)
-        
-        layout.addLayout(header_layout)
-        
-        # Estatísticas rápidas
-        stats_frame = QFrame()
-        stats_frame.setStyleSheet("""
-            QFrame {
-                background-color: #f8f9fa;
-                border: 1px solid #dee2e6;
-                border-radius: 8px;
-                padding: 15px;
-            }
-        """)
-        stats_layout = QHBoxLayout(stats_frame)
-        
-        self.stats_total = QLabel("📄 Total: 0")
-        self.stats_total.setStyleSheet("font-weight: bold; color: #495057; font-size: 14px;")
-        
-        self.stats_consentimentos = QLabel("📋 Consentimentos: 0")
-        self.stats_consentimentos.setStyleSheet("font-weight: bold; color: #28a745; font-size: 14px;")
-        
-        self.stats_prescricoes = QLabel("💊 Prescrições: 0")
-        self.stats_prescricoes.setStyleSheet("font-weight: bold; color: #007bff; font-size: 14px;")
-        
-        self.stats_outros = QLabel("📁 Outros: 0")
-        self.stats_outros.setStyleSheet("font-weight: bold; color: #6c757d; font-size: 14px;")
-        
-        stats_layout.addWidget(self.stats_total)
-        stats_layout.addStretch()
-        stats_layout.addWidget(self.stats_consentimentos)
-        stats_layout.addStretch()
-        stats_layout.addWidget(self.stats_prescricoes)
-        stats_layout.addStretch()
-        stats_layout.addWidget(self.stats_outros)
-        
-        layout.addWidget(stats_frame)
-        
-        # Filtros
-        filter_layout = QHBoxLayout()
-        
-        filter_label = QLabel("🔍 Filtrar por:")
-        filter_label.setStyleSheet("font-weight: bold; color: #495057; font-size: 14px;")
-        filter_layout.addWidget(filter_label)
-        
-        self.filter_combo = QComboBox()
-        self.filter_combo.addItems([
-            "📄 Todos os Documentos",
-            "📋 Consentimentos", 
-            "💊 Prescrições",
-            "👁️ Análises de Íris",
-            "📧 Emails Enviados",
-            "📁 Documentos Externos"
-        ])
-        self.filter_combo.setStyleSheet("""
-            QComboBox {
-                padding: 6px 12px;
-                border: 1px solid #ced4da;
-                border-radius: 4px;
-                background-color: white;
-                font-size: 14px;
-                min-width: 200px;
-            }
-            QComboBox:focus {
-                border-color: #007bff;
-            }
-        """)
-        self.filter_combo.currentTextChanged.connect(self.filtrar_documentos)
-        filter_layout.addWidget(self.filter_combo)
-        
-        filter_layout.addStretch()
-        
-        # Campo de pesquisa
-        self.search_edit = QLineEdit()
-        self.search_edit.setPlaceholderText("Pesquisar documentos...")
-        self.search_edit.setStyleSheet("""
-            QLineEdit {
-                padding: 6px 12px;
-                border: 1px solid #ced4da;
-                border-radius: 4px;
-                background-color: white;
-                font-size: 14px;
-                min-width: 250px;
-            }
-            QLineEdit:focus {
-                border-color: #007bff;
-            }
-        """)
-        self.search_edit.textChanged.connect(self.pesquisar_documentos)
-        filter_layout.addWidget(self.search_edit)
-        
-        layout.addLayout(filter_layout)
-        
-        # Lista de documentos
-        self.documentos_list = QListWidget()
-        self.documentos_list.setStyleSheet("""
-            QListWidget {
-                border: 1px solid #dee2e6;
-                border-radius: 8px;
-                background-color: white;
-                alternate-background-color: #f8f9fa;
-                selection-background-color: #007bff;
-                selection-color: white;
-                font-size: 14px;
-            }
-            QListWidget::item {
-                padding: 12px;
-                border-bottom: 1px solid #e9ecef;
-            }
-            QListWidget::item:hover {
-                background-color: #e3f2fd;
-            }
-            QListWidget::item:selected {
-                background-color: #007bff;
-                color: white;
-            }
-        """)
-        self.documentos_list.setAlternatingRowColors(True)
-        self.documentos_list.itemDoubleClicked.connect(self.abrir_documento)
-        self.documentos_list.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        self.documentos_list.customContextMenuRequested.connect(self.mostrar_menu_contextual)
-        
-        layout.addWidget(self.documentos_list)
-        
-        # Painel de ações na parte inferior
-        actions_layout = QHBoxLayout()
-        
-        btn_visualizar = QPushButton("👁️ Visualizar")
-        btn_visualizar.setObjectName("btn_doc_visualizar")
-        btn_visualizar.clicked.connect(self.visualizar_documento_selecionado)
-        btn_visualizar.setEnabled(False)
-        
-        # ❌ BOTÃO ASSINAR REMOVIDO - deixou de fazer sentido conforme solicitado
-        # self.btn_assinar_doc = QPushButton("✍️ Assinar")
-        # self.btn_assinar_doc.setObjectName("btn_doc_assinar")
-        # self.btn_assinar_doc.clicked.connect(self.assinar_documento_selecionado)
-        # self.btn_assinar_doc.setEnabled(False)
-        
-        btn_enviar = QPushButton("📧 Enviar por Email")
-        btn_enviar.setObjectName("btn_doc_enviar")
-        btn_enviar.clicked.connect(self.enviar_documento_email)
-        btn_enviar.setEnabled(False)
-        
-        btn_remover = QPushButton("🗑️ Remover")
-        btn_remover.setObjectName("btn_doc_remover")
-        btn_remover.clicked.connect(self.remover_documento)
-        btn_remover.setEnabled(False)
-        
-        # Conectar seleção da lista para habilitar/desabilitar botões
-        self.documentos_list.itemSelectionChanged.connect(
-            lambda: self.atualizar_estado_botoes([btn_visualizar, btn_enviar, btn_remover])
-        )
-        
-        actions_layout.addWidget(btn_visualizar)
-        actions_layout.addWidget(btn_enviar)
-        actions_layout.addStretch()
-        actions_layout.addWidget(btn_remover)
-        
-        layout.addLayout(actions_layout)
-        
-        # Carregar documentos na inicialização
-        self.atualizar_lista_documentos()
-
-    def atualizar_estado_botoes(self, botoes):
-        """Atualiza o estado dos botões baseado na seleção"""
-        tem_selecao = len(self.documentos_list.selectedItems()) > 0
-        
-        for botao in botoes:
-            botao.setEnabled(tem_selecao)
-
-    def atualizar_lista_documentos(self):
-        """Carrega e atualiza a lista de documentos do paciente"""
-        # PROTEÇÃO CONTRA LOOP INFINITO
-        if hasattr(self, '_atualizando_lista') and self._atualizando_lista:
-            print("⚠️ [DOCUMENTOS] Já está atualizando, ignorando chamada...")
-            return
-            
-        self._atualizando_lista = True
-        
-        try:
-            from PyQt6.QtCore import Qt as QtCore
-            from PyQt6.QtGui import QColor
-            
-            self.documentos_list.clear()
-            
-            if not self.paciente_data:
-                # Mostrar mensagem quando não há paciente selecionado
-                item = QListWidgetItem("⚠️ Nenhum paciente selecionado")
-                item.setData(QtCore.ItemDataRole.UserRole, None)
-                self.documentos_list.addItem(item)
-                self.atualizar_estatisticas(0, 0, 0, 0)
-                return
-            
-            paciente_id = self.paciente_data.get('id', 'sem_id')
-            nome_paciente = self.paciente_data.get('nome', 'Paciente').replace(' ', '_')
-            
-            # CORREÇÃO: Caminho exato do paciente atual
-            pasta_paciente = f"Documentos_Pacientes/{paciente_id}_{nome_paciente}"
-            
-            documentos = []
-            total = 0
-            consentimentos = 0
-            prescricoes = 0
-            outros = 0
-            
-            # CORREÇÃO: Verificar apenas a pasta EXATA deste paciente
-            import os
-            if not os.path.exists(pasta_paciente):
-                print(f"📁 [DOCUMENTOS] Pasta não encontrada: {pasta_paciente}")
-                # Mostrar mensagem quando pasta não existe
-                item = QListWidgetItem("📭 Pasta de documentos não encontrada")
-                item.setData(QtCore.ItemDataRole.UserRole, None)
-                self.documentos_list.addItem(item)
-                self.atualizar_estatisticas(0, 0, 0, 0)
-                return
-            
-            print(f"🔍 [DOCUMENTOS] Verificando pasta: {pasta_paciente}")
-            
-            # Função para escanear uma pasta (sem duplicações)
-            def escanear_pasta(pasta, tipo_default="Documento", icone_default="📄"):
-                docs_encontrados = []
-                if os.path.exists(pasta):
-                    print(f"  📂 Escaneando: {pasta}")
-                    arquivos = os.listdir(pasta)
-                    print(f"  📊 Arquivos encontrados: {len(arquivos)}")
-                    
-                    for arquivo in arquivos:
-                        caminho_completo = os.path.abspath(os.path.join(pasta, arquivo))
-                        if os.path.isfile(caminho_completo) and not arquivo.endswith('.meta'):
-                            # Verificar extensões suportadas
-                            extensoes_suportadas = ['.pdf', '.docx', '.doc', '.jpg', '.jpeg', '.png', '.txt']
-                            if any(arquivo.lower().endswith(ext) for ext in extensoes_suportadas):
-                                
-                                # Ler metadados se existirem
-                                meta_file = f"{caminho_completo}.meta"
-                                categoria_meta = tipo_default
-                                descricao = ""
-                                
-                                if os.path.exists(meta_file):
-                                    try:
-                                        with open(meta_file, 'r', encoding='utf-8') as f:
-                                            linhas = f.readlines()
-                                            for linha in linhas:
-                                                if linha.startswith('Categoria:'):
-                                                    categoria_meta = linha.replace('Categoria:', '').strip()
-                                                elif linha.startswith('Descrição:'):
-                                                    descricao = linha.replace('Descrição:', '').strip()
-                                    except:
-                                        pass
-                                
-                                doc_info = {
-                                    'nome': arquivo,
-                                    'tipo': categoria_meta,
-                                    'icone': self.obter_icone_por_tipo(categoria_meta, arquivo),
-                                    'caminho': caminho_completo,
-                                    'data': self.obter_data_arquivo(caminho_completo),
-                                    'descricao': descricao
-                                }
-                                docs_encontrados.append(doc_info)
-                                print(f"    ✅ Arquivo: {arquivo}")
-                                
-                return docs_encontrados
-            
-            # CORREÇÃO: Escanear APENAS a pasta principal (sem subpastas automáticas)
-            # Removi o scan da pasta principal para evitar duplicações
-            
-            # CORREÇÃO: Escanear apenas subpastas válidas (sem duplicação maiúscula/minúscula)
-            subpastas_candidatas = [
-                (f"{pasta_paciente}/Consentimentos", "📋 Consentimento", "📋"),
-                (f"{pasta_paciente}/consentimentos", "📋 Consentimento", "📋"),
-                (f"{pasta_paciente}/declaracoes_saude", "🩺 Declaração de Saúde", "🩺"),
-                (f"{pasta_paciente}/exames", "🧪 Exame/Análise", "🧪"),
-                (f"{pasta_paciente}/correspondencia", "📧 Correspondência", "📧"),
-                (f"{pasta_paciente}/analises_iris", "👁️ Relatório de Íris", "👁️")
-            ]
-            
-            # CORREÇÃO: Verificar qual pasta de consentimentos existe (evitar duplicação)
-            pasta_consentimentos_encontrada = None
-            for pasta, tipo, icone in subpastas_candidatas:
-                if "onsentimento" in pasta:  # maiúscula ou minúscula
-                    if os.path.exists(pasta):
-                        if pasta_consentimentos_encontrada is None:
-                            pasta_consentimentos_encontrada = (pasta, tipo, icone)
-                            documentos.extend(escanear_pasta(pasta, tipo, icone))
-                            print(f"✅ [CONSENTIMENTOS] Usando pasta: {pasta}")
-                        else:
-                            print(f"⚠️ [CONSENTIMENTOS] Ignorando pasta duplicada: {pasta}")
-                else:
-                    # Outras pastas normalmente
-                    documentos.extend(escanear_pasta(pasta, tipo, icone))
-            
-            # Escanear pasta principal para arquivos soltos (mas evitar duplicações de subpastas)
-            arquivos_pasta_principal = escanear_pasta(pasta_paciente)
-            for doc in arquivos_pasta_principal:
-                # Apenas adicionar se não estiver em subpasta já escaneada
-                arquivo_em_subpasta = False
-                for subpasta, _, _ in subpastas_candidatas:
-                    if os.path.exists(subpasta) and doc['caminho'].startswith(subpasta):
-                        arquivo_em_subpasta = True
-                        break
-                
-                if not arquivo_em_subpasta:
-                    documentos.append(doc)
-                    print(f"📄 [PRINCIPAL] Arquivo: {doc['nome']}")
-            
-            # Categorizar e contar
-            for doc in documentos:
-                total += 1
-                tipo = doc['tipo']
-                
-                if 'Consentimento' in tipo:
-                    consentimentos += 1
-                elif any(palavra in tipo.lower() for palavra in ['prescrição', 'protocolo', 'suplementação']):
-                    prescricoes += 1
-                else:
-                    outros += 1
-            
-            # CORREÇÃO: Remover duplicações baseadas no caminho completo
-            documentos_unicos = []
-            caminhos_vistos = set()
-            
-            for doc in documentos:
-                if doc['caminho'] not in caminhos_vistos:
-                    documentos_unicos.append(doc)
-                    caminhos_vistos.add(doc['caminho'])
-                else:
-                    print(f"🗑️ [DUPLICAÇÃO] Removido: {doc['nome']}")
-            
-            documentos = documentos_unicos
-            
-            # Ordenar por data (mais recente primeiro)
-            documentos.sort(key=lambda x: x['data'], reverse=True)
-            
-            # Adicionar itens à lista
-            if not documentos:
-                item = QListWidgetItem("📭 Nenhum documento encontrado para este paciente")
-                item.setData(QtCore.ItemDataRole.UserRole, None)
-                self.documentos_list.addItem(item)
-            else:
-                for doc in documentos:
-                    from datetime import datetime
-                    data_formatada = doc['data'].strftime('%d/%m/%Y %H:%M')
-                    
-                    # Texto principal
-                    texto = f"{doc['icone']} {doc['nome']}\n    📅 {data_formatada} | 📁 {doc['tipo']}"
-                    
-                    # NOVO: Verificar status para declarações de saúde
-                    if doc['tipo'] == "🩺 Declaração de Saúde" and "Declaracao_Saude_" in doc['nome']:
-                        try:
-                            from consentimentos_manager import ConsentimentosManager
-                            consent_manager = ConsentimentosManager()
-                            status_info = consent_manager.verificar_status_declaracao_por_arquivo(
-                                paciente_id, doc['nome']
-                            )
-                            
-                            if status_info and status_info['status'] == 'alterada':
-                                data_alteracao = status_info['data_alteracao']
-                                # Converter data de alteração para formato legível
-                                try:
-                                    dt_alteracao = datetime.strptime(data_alteracao, '%Y-%m-%d %H:%M:%S')
-                                    data_alt_formatada = dt_alteracao.strftime('%d/%m/%Y')
-                                    texto += f"\n    ⚠️ SEM EFEITO desde {data_alt_formatada}"
-                                    # Alterar cor para cinzento/laranja para indicar status alterado
-                                    doc['status_alterado'] = True
-                                except:
-                                    texto += f"\n    ⚠️ SEM EFEITO (declaração alterada)"
-                                    doc['status_alterado'] = True
-                        except Exception as e:
-                            print(f"❌ Erro ao verificar status da declaração: {e}")
-                    
-                    # Adicionar descrição se existir
-                    if doc['descricao']:
-                        texto += f"\n    💬 {doc['descricao'][:50]}{'...' if len(doc['descricao']) > 50 else ''}"
-                    
-                    item = QListWidgetItem(texto)
-                    item.setData(QtCore.ItemDataRole.UserRole, doc)
-                    
-                    # NOVO: Aplicar cor diferente para declarações alteradas
-                    if doc.get('status_alterado', False):
-                        item.setForeground(QColor(150, 150, 150))  # Cinzento para indicar sem efeito
-                    
-                    self.documentos_list.addItem(item)
-            
-            # Atualizar estatísticas
-            self.atualizar_estatisticas(total, consentimentos, prescricoes, outros)
-            print(f"🔄 [DOCUMENTOS] Lista atualizada para paciente: {nome_paciente} (Total: {total})")
-            
-        finally:
-            self._atualizando_lista = False
-
-    def obter_icone_por_tipo(self, tipo, nome_arquivo=""):
-        """Retorna ícone apropriado baseado no tipo ou nome do arquivo"""
-        tipo_lower = tipo.lower()
-        nome_lower = nome_arquivo.lower()
-        
-        if 'consentimento' in tipo_lower:
-            return '📋'
-        elif any(palavra in tipo_lower for palavra in ['prescrição', 'protocolo', 'suplementação']):
-            return '💊'
-        elif any(palavra in tipo_lower for palavra in ['exame', 'análise', 'laboratório']):
-            return '🧪'
-        elif 'correspondência' in tipo_lower or 'email' in tipo_lower:
-            return '📧'
-        elif 'íris' in tipo_lower:
-            return '👁️'
-        elif 'relatório' in tipo_lower:
-            return '📊'
-        elif any(ext in nome_lower for ext in ['.jpg', '.jpeg', '.png']):
-            return '🖼️'
-        elif '.pdf' in nome_lower:
-            return '📄'
-        elif any(ext in nome_lower for ext in ['.docx', '.doc']):
-            return '📝'
-        else:
-            return '📄'
-
-    def obter_data_arquivo(self, caminho):
-        """Obtém a data de modificação do arquivo"""
-        import os
-        from datetime import datetime
-        try:
-            timestamp = os.path.getmtime(caminho)
-            return datetime.fromtimestamp(timestamp)
-        except:
-            return datetime.now()
-
-    def atualizar_estatisticas(self, total, consentimentos, prescricoes, outros):
-        """Atualiza os contadores de estatísticas"""
-        self.stats_total.setText(f"📄 Total: {total}")
-        self.stats_consentimentos.setText(f"📋 Consentimentos: {consentimentos}")
-        self.stats_prescricoes.setText(f"💊 Prescrições: {prescricoes}")
-        self.stats_outros.setText(f"📁 Outros: {outros}")
-
-    def filtrar_documentos(self):
-        """Filtra documentos por categoria"""
-        filtro = self.filter_combo.currentText()
-        
-        for i in range(self.documentos_list.count()):
-            item = self.documentos_list.item(i)
-            doc_data = item.data(Qt.ItemDataRole.UserRole)
-            
-            if doc_data is None:
-                continue
-                
-            mostrar = True
-            if "Consentimentos" in filtro and doc_data['tipo'] != 'Consentimento':
-                mostrar = False
-            elif "Prescrições" in filtro and doc_data['tipo'] != 'Prescrição':
-                mostrar = False
-            elif "Documentos Externos" in filtro and doc_data['tipo'] != 'Documento':
-                mostrar = False
-            
-            item.setHidden(not mostrar)
-
-    def pesquisar_documentos(self):
-        """Pesquisa documentos por nome"""
-        texto_busca = self.search_edit.text().lower()
-        
-        for i in range(self.documentos_list.count()):
-            item = self.documentos_list.item(i)
-            doc_data = item.data(Qt.ItemDataRole.UserRole)
-            
-            if doc_data is None:
-                continue
-                
-            mostrar = texto_busca in doc_data['nome'].lower()
-            item.setHidden(not mostrar)
-
-    def adicionar_documento(self):
-        """Permite adicionar um novo documento com categorização automática"""
-        if not self.paciente_data:
-            from biodesk_dialogs import mostrar_aviso
-            mostrar_aviso(self, "Aviso", "⚠️ Selecione um paciente primeiro!")
-            return
-        
-        # Diálogo melhorado para seleção de arquivo
-        from PyQt6.QtWidgets import QFileDialog, QDialog, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QPushButton, QTextEdit
-        
-        # Primeiro, seletor de arquivo
-        arquivo, _ = QFileDialog.getOpenFileName(
-            self,
-            "📎 Anexar Documento à Ficha do Paciente",
-            "",
-            "Documentos PDF (*.pdf);;Documentos Word (*.docx *.doc);;Imagens (*.jpg *.jpeg *.png);;Todos os arquivos (*.*)"
-        )
-        
-        if not arquivo:
-            return
-        
-        # Diálogo para categorizar o documento
-        dialog = QDialog(self)
-        dialog.setWindowTitle("📂 Categorizar Documento")
-        dialog.setModal(True)
-        dialog.resize(500, 400)
-        dialog.setStyleSheet("""
-            QDialog {
-                background-color: white;
-                border-radius: 10px;
-            }
-            QLabel {
-                color: #2c3e50;
-                font-weight: bold;
-            }
-        """)
-        
-        layout = QVBoxLayout(dialog)
-        layout.setSpacing(15)
-        layout.setContentsMargins(20, 20, 20, 20)
-        
-        # Título
-        titulo = QLabel("📎 Anexar Documento ao Paciente")
-        titulo.setStyleSheet("font-size: 18px; color: #27ae60; margin-bottom: 10px;")
-        layout.addWidget(titulo)
-        
-        # Info do arquivo
-        import os
-        nome_arquivo = os.path.basename(arquivo)
-        tamanho = os.path.getsize(arquivo) / 1024 / 1024  # MB
-        
-        info_arquivo = QLabel(f"📄 <b>Arquivo:</b> {nome_arquivo}<br>📏 <b>Tamanho:</b> {tamanho:.1f} MB")
-        info_arquivo.setStyleSheet("background-color: #f8f9fa; padding: 10px; border-radius: 5px; font-size: 14px;")
-        layout.addWidget(info_arquivo)
-        
-        # Seleção de categoria
-        categoria_layout = QHBoxLayout()
-        categoria_label = QLabel("📁 Categoria:")
-        categoria_label.setStyleSheet("font-size: 14px; min-width: 100px;")
-        categoria_layout.addWidget(categoria_label)
-        
-        categoria_combo = QComboBox()
-        categoria_combo.addItems([
-            "📋 Consentimento",
-            "💊 Prescrição/Protocolo", 
-            "🧪 Exame/Análise",
-            "📧 Correspondência",
-            "👁️ Relatório de Íris",
-            "📊 Relatório Médico",
-            "📄 Documento Geral"
-        ])
-        categoria_combo.setStyleSheet("""
-            QComboBox {
-                padding: 8px 12px;
-                border: 1px solid #ced4da;
-                border-radius: 5px;
-                background-color: white;
-                font-size: 14px;
-            }
-        """)
-        categoria_layout.addWidget(categoria_combo)
-        layout.addLayout(categoria_layout)
-        
-        # Campo de descrição/observações
-        desc_label = QLabel("📝 Descrição/Observações (opcional):")
-        desc_label.setStyleSheet("font-size: 14px; margin-top: 10px;")
-        layout.addWidget(desc_label)
-        
-        desc_edit = QTextEdit()
-        desc_edit.setPlaceholderText("Ex: Análises clínicas do laboratório XYZ, enviadas por email em 17/08/2025...")
-        desc_edit.setMaximumHeight(80)
-        desc_edit.setStyleSheet("""
-            QTextEdit {
-                border: 1px solid #ced4da;
-                border-radius: 5px;
-                padding: 8px;
-                font-size: 14px;
-                background-color: white;
-            }
-        """)
-        layout.addWidget(desc_edit)
-        
-        # Botões
-        buttons_layout = QHBoxLayout()
-        
-        btn_cancelar = QPushButton("❌ Cancelar")
-        btn_cancelar.setStyleSheet("""
-            QPushButton {
-                background-color: #6c757d;
-                color: white;
-                border: none;
-                padding: 10px 20px;
-                border-radius: 5px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #5a6268;
-            }
-        """)
-        btn_cancelar.clicked.connect(dialog.reject)
-        
-        btn_anexar = QPushButton("📎 Anexar Documento")
-        btn_anexar.setStyleSheet("""
-            QPushButton {
-                background-color: #28a745;
-                color: white;
-                border: none;
-                padding: 10px 20px;
-                border-radius: 5px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #218838;
-            }
-        """)
-        btn_anexar.clicked.connect(dialog.accept)
-        
-        buttons_layout.addWidget(btn_cancelar)
-        buttons_layout.addStretch()
-        buttons_layout.addWidget(btn_anexar)
-        layout.addLayout(buttons_layout)
-        
-        # Executar diálogo
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            categoria_selecionada = categoria_combo.currentText()
-            descricao = desc_edit.toPlainText().strip()
-            
-            self.importar_documento_categorizado(arquivo, categoria_selecionada, descricao)
-
-    def importar_documento_categorizado(self, caminho_origem, categoria, descricao=""):
-        """Importa um documento para a pasta do paciente com categorização"""
-        import os
-        import shutil
-        from datetime import datetime
-        
-        paciente_id = self.paciente_data.get('id', 'sem_id')
-        nome_paciente = self.paciente_data.get('nome', 'Paciente').replace(' ', '_')
-        pasta_base = f"Documentos_Pacientes/{paciente_id}_{nome_paciente}"
-        
-        # Determinar pasta de destino baseada na categoria
-        pasta_destino = pasta_base
-        if "Consentimento" in categoria:
-            pasta_destino = f"{pasta_base}/consentimentos"
-        elif "Exame" in categoria or "Análise" in categoria:
-            pasta_destino = f"{pasta_base}/exames"
-        elif "Correspondência" in categoria:
-            pasta_destino = f"{pasta_base}/correspondencia"
-        elif "Íris" in categoria:
-            pasta_destino = f"{pasta_base}/analises_iris"
-        
-        # Criar pasta se não existir
-        os.makedirs(pasta_destino, exist_ok=True)
-        
-        # Preparar nome do arquivo
-        nome_original = os.path.basename(caminho_origem)
-        nome_base, extensao = os.path.splitext(nome_original)
-        
-        # Adicionar timestamp para evitar conflitos
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        nome_final = f"{nome_base}_{timestamp}{extensao}"
-        caminho_destino = f"{pasta_destino}/{nome_final}"
-        
-        # Verificar se já existe (precaução extra)
-        contador = 1
-        caminho_final = caminho_destino
-        while os.path.exists(caminho_final):
-            nome_final = f"{nome_base}_{timestamp}_{contador}{extensao}"
-            caminho_final = f"{pasta_destino}/{nome_final}"
-            contador += 1
-        
-        try:
-            # Copiar arquivo
-            shutil.copy2(caminho_origem, caminho_final)
-            
-            # Criar arquivo de metadados (opcional)
-            if descricao:
-                meta_file = f"{caminho_final}.meta"
-                with open(meta_file, 'w', encoding='utf-8') as f:
-                    f.write(f"Categoria: {categoria}\n")
-                    f.write(f"Data de Anexação: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\n")
-                    f.write(f"Arquivo Original: {nome_original}\n")
-                    f.write(f"Descrição: {descricao}\n")
-            
-            # Mensagem de sucesso detalhada
-            from biodesk_dialogs import mostrar_sucesso
-            mostrar_sucesso(
-                self, 
-                "✅ Documento Anexado", 
-                f"📎 <b>Documento anexado com sucesso!</b><br><br>"
-                f"📄 <b>Arquivo:</b> {nome_original}<br>"
-                f"📁 <b>Categoria:</b> {categoria}<br>"
-                f"📂 <b>Localização:</b> {os.path.basename(pasta_destino)}<br>"
-                f"🕒 <b>Data:</b> {datetime.now().strftime('%d/%m/%Y %H:%M')}"
-                + (f"<br>📝 <b>Descrição:</b> {descricao}" if descricao else "")
-            )
-            
-            # Atualizar lista
-            self.atualizar_lista_documentos()
-            
-            # Log para debug
-            print(f"✅ [GESTÃO DOCS] Documento anexado:")
-            print(f"   📄 Original: {caminho_origem}")
-            print(f"   📁 Destino: {caminho_final}")
-            print(f"   🏷️ Categoria: {categoria}")
-            
-        except Exception as e:
-            from biodesk_dialogs import mostrar_erro
-            mostrar_erro(
-                self, 
-                "❌ Erro ao Anexar", 
-                f"Não foi possível anexar o documento:<br><br>"
-                f"<b>Erro:</b> {str(e)}<br><br>"
-                f"📄 <b>Arquivo:</b> {nome_original}<br>"
-                f"📁 <b>Destino:</b> {pasta_destino}"
-            )
-
-    def abrir_documento(self, item):
-        """Abre documento com duplo clique"""
-        self.visualizar_documento_selecionado()
-
-    def visualizar_documento_selecionado(self):
-        """Visualiza o documento selecionado diretamente - SEM janelas intermediárias"""
-        item = self.documentos_list.currentItem()
-        if not item:
-            from biodesk_dialogs import mostrar_informacao
-            mostrar_informacao(self, "Aviso", "⚠️ Selecione um documento primeiro!")
-            return
-            
-        doc_data = item.data(Qt.ItemDataRole.UserRole)
-        if not doc_data:
-            from biodesk_dialogs import mostrar_informacao
-            mostrar_informacao(self, "Aviso", "⚠️ Dados do documento não encontrados!")
-            return
-        
-        import os
-        
-        # Garantir caminho absoluto
-        caminho = doc_data['caminho']
-        if not os.path.isabs(caminho):
-            caminho = os.path.abspath(caminho)
-        
-        # Verificar se arquivo existe
-        if not os.path.exists(caminho):
-            from biodesk_dialogs import mostrar_erro
-            mostrar_erro(
-                self, 
-                "Arquivo Não Encontrado", 
-                f"❌ O arquivo não foi localizado:\n\n📄 {doc_data['nome']}\n📁 {caminho}\n\n💡 Verifique se o arquivo não foi movido ou excluído."
-            )
-            return
-        
-        # Abrir DIRETAMENTE - sem janelas intermediárias
-        try:
-            print(f"📄 [GESTÃO DOCS] Abrindo diretamente: {doc_data['nome']}")
-            print(f"📁 [GESTÃO DOCS] Caminho: {caminho}")
-            
-            # Método mais direto no Windows
-            if os.name == 'nt':
-                os.startfile(caminho)
-                print(f"✅ [GESTÃO DOCS] Documento aberto externamente: {doc_data['nome']}")
-            else:
-                # Para outros sistemas operacionais
-                import subprocess
-                if os.uname().sysname == 'Darwin':  # macOS
-                    subprocess.run(['open', caminho], check=True)
-                else:  # Linux
-                    subprocess.run(['xdg-open', caminho], check=True)
-                print(f"✅ [GESTÃO DOCS] Documento aberto externamente: {doc_data['nome']}")
-                
-        except Exception as e:
-            print(f"⚠️ [GESTÃO DOCS] Erro ao abrir externamente: {str(e)}")
-            from biodesk_dialogs import mostrar_erro  
-            mostrar_erro(
-                self,
-                "Erro ao Abrir Documento",
-                f"❌ Não foi possível abrir o documento:\n\n"
-                f"📄 <b>Arquivo:</b> {doc_data['nome']}\n"
-                f"📁 <b>Local:</b> {caminho}\n"
-                f"🚫 <b>Erro:</b> {str(e)}\n\n"
-                f"💡 <b>Dica:</b> Verifique se tem uma aplicação associada a este tipo de arquivo."
-            )
-
-    def enviar_documento_email(self):
-        """Envia documento por email"""
-        item = self.documentos_list.currentItem()
-        if not item:
-            return
-            
-        doc_data = item.data(Qt.ItemDataRole.UserRole)
-        if not doc_data:
-            return
-        
-        # Mudar para aba Email e pré-configurar anexo
-        self.clinico_comunicacao_tabs.setCurrentWidget(self.sub_centro_comunicacao)
-        
-        # TODO: Implementar pré-configuração do email com anexo
-        from biodesk_dialogs import mostrar_informacao
-        mostrar_informacao(
-            self, 
-            "Email", 
-            f"📧 Redirecionado para aba Email\n\n"
-            f"📎 Documento a anexar:\n{doc_data['nome']}\n\n"
-            f"💡 Configure o email e anexe manualmente o documento localizado em:\n"
-            f"{doc_data['caminho']}"
-        )
-
-    def remover_documento(self):
-        """Remove documento selecionado - versão melhorada com limpeza completa"""
-        item = self.documentos_list.currentItem()
-        if not item:
-            from biodesk_dialogs import mostrar_aviso
-            mostrar_aviso(self, "Aviso", "Nenhum documento selecionado para remover.")
-            return
-            
-        doc_data = item.data(Qt.ItemDataRole.UserRole)
-        if not doc_data:
-            from biodesk_dialogs import mostrar_aviso
-            mostrar_aviso(self, "Aviso", "Documento sem dados válidos.")
-            return
-        
-        from biodesk_dialogs import perguntar_confirmacao
-        if perguntar_confirmacao(
-            self,
-            "Confirmar Remoção", 
-            f"❌ Tem certeza que deseja remover este documento?\n\n"
-            f"📄 {doc_data['nome']}\n\n"
-            f"⚠️ Esta ação remove o documento permanentemente do sistema!\n"
-            f"Isso inclui:\n"
-            f"• Arquivo físico\n"
-            f"• Registros da base de dados\n"
-            f"• Histórico de assinaturas\n\n"
-            f"Esta ação não pode ser desfeita!"
-        ):
-            try:
-                import os
-                
-                # 1. Remover arquivo físico se existir
-                doc_caminho = doc_data.get('caminho', '')
-                if doc_caminho and os.path.exists(doc_caminho):
-                    os.remove(doc_caminho)
-                    print(f"✅ Arquivo físico removido: {doc_caminho}")
-                
-                # 2. Remover registros relacionados da base de dados
-                if self.paciente_data and 'id' in self.paciente_data:
-                    paciente_id = self.paciente_data['id']
-                    doc_nome = doc_data.get('nome', '')
-                    
-                    # Conectar à base de dados
-                    from db_manager import DBManager
-                    db = DBManager()
-                    conn = db._connect()
-                    if conn:
-                        cursor = conn.cursor()
-                        
-                        # Remover da tabela consentimentos (declarações de saúde, termos, etc.)
-                        cursor.execute("""
-                            DELETE FROM consentimentos 
-                            WHERE paciente_id = ? AND (
-                                conteudo_texto LIKE ? OR
-                                tipo_consentimento LIKE ?
-                            )
-                        """, (paciente_id, f"%{doc_nome}%", f"%declaracao%"))
-                        
-                        # Confirmação da remoção
-                        linhas_removidas = cursor.rowcount
-                        
-                        conn.commit()
-                        conn.close()
-                        
-                        if linhas_removidas > 0:
-                            print(f"✅ {linhas_removidas} registro(s) da base de dados removidos para: {doc_nome}")
-                        else:
-                            print(f"ℹ️ Nenhum registro encontrado na base de dados para: {doc_nome}")
-                
-                # 3. Atualizar interface
-                BiodeskMessageBox.success(self, "Sucesso", f"🗑️ Documento '{doc_nome}' removido completamente do sistema!")
-                self.atualizar_lista_documentos()
-                
-                # 4. Atualizar status se for declaração de saúde
-                if hasattr(self, 'atualizar_status_declaracao_saude'):
-                    self.atualizar_status_declaracao_saude()
-                
-            except Exception as e:
-                from biodesk_dialogs import mostrar_erro
-                mostrar_erro(self, "Erro", f"❌ Erro ao remover documento:\n\n{str(e)}")
-                print(f"❌ Erro detalhado na remoção: {e}")
-                import traceback
-                traceback.print_exc()
-
-    def assinar_documento_selecionado(self):
-        """Abre diálogo de assinatura para o documento selecionado"""
-        try:
-            # Verificar se há documento selecionado
-            item = self.documentos_list.currentItem()
-            if not item:
-                from biodesk_dialogs import mostrar_aviso
-                mostrar_aviso(self, "Aviso", "Nenhum documento selecionado.")
-                return
-            
-            # Obter dados do documento
-            doc_data = item.data(Qt.ItemDataRole.UserRole)
-            if not doc_data:
-                from biodesk_dialogs import mostrar_aviso
-                mostrar_aviso(self, "Aviso", "Documento sem dados válidos.")
-                return
-            
-            doc_tipo = doc_data.get('tipo', '')
-            doc_nome = doc_data.get('nome', '')
-            doc_caminho = doc_data.get('caminho', '')
-            
-            print(f"🔍 [ASSINATURA] Documento selecionado: {doc_nome}")
-            print(f"🔍 [ASSINATURA] Tipo: {doc_tipo}")
-            
-            # Determinar tipo de assinatura baseado no documento
-            if 'Consentimento' in doc_tipo:
-                self.assinar_consentimento_documento(doc_data)
-            elif 'Declaração' in doc_tipo:
-                self.assinar_declaracao_documento(doc_data)
-            else:
-                # Documento genérico - apenas assinatura do paciente
-                self.assinar_documento_generico(doc_data)
-                
-        except Exception as e:
-            from biodesk_dialogs import mostrar_erro
-            mostrar_erro(self, "Erro", f"❌ Erro ao iniciar assinatura:\n\n{str(e)}")
-
-    def assinar_consentimento_documento(self, doc_data):
-        """Abre diálogo de assinatura para consentimentos (paciente + terapeuta)"""
-        try:
-            from PyQt6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QLabel
-            from PyQt6.QtCore import Qt
-            
-            # Criar diálogo específico para consentimentos
-            dialog = QDialog(self)
-            dialog.setWindowTitle("Assinatura Digital - Consentimento")
-            dialog.setModal(True)
-            dialog.resize(500, 300)
-            
-            layout = QVBoxLayout(dialog)
-            
-            # Título
-            titulo = QLabel(f"✍️ Assinatura do Consentimento")
-            titulo.setStyleSheet("""
-                font-size: 16px;
-                font-weight: bold;
-                color: #2980b9;
-                padding: 15px;
-                text-align: center;
-            """)
-            titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            layout.addWidget(titulo)
-            
-            # Informações do documento
-            info_label = QLabel(f"📄 {doc_data.get('nome', 'Documento')}")
-            info_label.setStyleSheet("padding: 10px; background-color: #f8f9fa; border-radius: 5px;")
-            layout.addWidget(info_label)
-            
-            # Botões de assinatura
-            botoes_layout = QVBoxLayout()
-            botoes_layout.setSpacing(10)
-            
-            # Botão Paciente
-            btn_paciente = QPushButton("👤 Assinar como Paciente")
-            btn_paciente.setFixedHeight(50)
-            btn_paciente.setStyleSheet("""
-                QPushButton {
-                    background-color: #28a745;
-                    color: white;
-                    border: none;
-                    padding: 12px;
-                    border-radius: 6px;
-                    font-size: 14px;
-                    font-weight: bold;
-                }
-                QPushButton:hover {
-                    background-color: #218838;
-                }
-            """)
-            btn_paciente.clicked.connect(lambda: self.processar_assinatura_documento(doc_data, 'paciente', dialog))
-            
-            # Botão Terapeuta
-            btn_terapeuta = QPushButton("👨‍⚕️ Assinar como Terapeuta")
-            btn_terapeuta.setFixedHeight(50)
-            btn_terapeuta.setStyleSheet("""
-                QPushButton {
-                    background-color: #007bff;
-                    color: white;
-                    border: none;
-                    padding: 12px;
-                    border-radius: 6px;
-                    font-size: 14px;
-                    font-weight: bold;
-                }
-                QPushButton:hover {
-                    background-color: #0056b3;
-                }
-            """)
-            btn_terapeuta.clicked.connect(lambda: self.processar_assinatura_documento(doc_data, 'terapeuta', dialog))
-            
-            botoes_layout.addWidget(btn_paciente)
-            botoes_layout.addWidget(btn_terapeuta)
-            layout.addLayout(botoes_layout)
-            
-            # Botão Cancelar
-            btn_cancelar = QPushButton("❌ Cancelar")
-            btn_cancelar.clicked.connect(dialog.reject)
-            layout.addWidget(btn_cancelar)
-            
-            dialog.exec()
-            
-        except Exception as e:
-            from biodesk_dialogs import mostrar_erro
-            mostrar_erro(self, "Erro", f"❌ Erro na assinatura de consentimento:\n\n{str(e)}")
-
-    def assinar_declaracao_documento(self, doc_data):
-        """Abre diálogo de assinatura para declarações de saúde (apenas paciente)"""
-        try:
-            # Usar o método existente mas adaptado para documento específico
-            self.processar_assinatura_documento(doc_data, 'paciente', None)
-            
-        except Exception as e:
-            from biodesk_dialogs import mostrar_erro
-            mostrar_erro(self, "Erro", f"❌ Erro na assinatura de declaração:\n\n{str(e)}")
-
-    def assinar_documento_generico(self, doc_data):
-        """Abre diálogo de assinatura para documentos genéricos (apenas paciente)"""
-        try:
-            self.processar_assinatura_documento(doc_data, 'paciente', None)
-            
-        except Exception as e:
-            from biodesk_dialogs import mostrar_erro
-            mostrar_erro(self, "Erro", f"❌ Erro na assinatura de documento:\n\n{str(e)}")
-
-    def processar_assinatura_documento(self, doc_data, tipo_assinatura, parent_dialog=None):
-        """Processa a assinatura do documento com canvas"""
-        try:
-            from PyQt6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QLabel
-            from PyQt6.QtCore import Qt
-            
-            # Fechar diálogo pai se existir
-            if parent_dialog:
-                parent_dialog.accept()
-            
-            # Criar diálogo de assinatura
-            dialog = QDialog(self)
-            dialog.setWindowTitle(f"Canvas de Assinatura - {tipo_assinatura.title()}")
-            dialog.setModal(True)
-            dialog.resize(600, 450)
-            
-            layout = QVBoxLayout(dialog)
-            
-            # Título
-            emoji = "👤" if tipo_assinatura == 'paciente' else "👨‍⚕️"
-            titulo = QLabel(f"{emoji} Assinatura Digital - {tipo_assinatura.title()}")
-            titulo.setStyleSheet("""
-                font-size: 16px;
-                font-weight: bold;
-                color: #2980b9;
-                padding: 15px;
-                text-align: center;
-            """)
-            titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            layout.addWidget(titulo)
-            
-            # Informações do documento
-            info_text = f"📄 {doc_data.get('nome', 'Documento')}\n📁 {doc_data.get('tipo', 'Tipo desconhecido')}"
-            info_label = QLabel(info_text)
-            info_label.setStyleSheet("padding: 10px; background-color: #f8f9fa; border-radius: 5px;")
-            layout.addWidget(info_label)
-            
-            # Canvas de assinatura com dimensões controladas
-            signature_canvas = SignatureCanvas()
-            signature_canvas.setMinimumHeight(150)
-            signature_canvas.setMaximumHeight(250)
-            signature_canvas.setMinimumWidth(400)
-            signature_canvas.setMaximumWidth(600)
-            layout.addWidget(signature_canvas)
-            
-            # Instruções
-            instrucoes = QLabel("✍️ Assine no campo acima usando o mouse ou toque")
-            instrucoes.setStyleSheet("color: #6c757d; text-align: center; padding: 5px;")
-            instrucoes.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            layout.addWidget(instrucoes)
-            
-            # Botões
-            botoes_layout = QHBoxLayout()
-            
-            btn_limpar = QPushButton("🗑️ Limpar")
-            btn_limpar.clicked.connect(signature_canvas.clear)
-            
-            btn_cancelar = QPushButton("❌ Cancelar")
-            btn_cancelar.clicked.connect(dialog.reject)
-            
-            btn_confirmar = QPushButton("✅ Confirmar Assinatura")
-            btn_confirmar.setStyleSheet("""
-                QPushButton {
-                    background-color: #28a745;
-                    color: white;
-                    border: none;
-                    padding: 10px 20px;
-                    border-radius: 5px;
-                    font-weight: bold;
-                }
-                QPushButton:hover {
-                    background-color: #218838;
-                }
-            """)
-            
-            def confirmar_assinatura():
-                try:
-                    if signature_canvas.is_empty():
-                        from biodesk_dialogs import mostrar_aviso
-                        mostrar_aviso(dialog, "Assinatura Vazia", "Por favor, assine no campo antes de confirmar.")
-                        return
-                    
-                    # Guardar assinatura na base de dados para declarações de saúde
-                    tipo_documento = doc_data.get('tipo_documento', '')
-                    if tipo_documento == 'declaracao_saude':
-                        try:
-                            # Converter assinatura para bytes
-                            signature_pixmap = signature_canvas.toPixmap()
-                            from PyQt6.QtCore import QBuffer, QIODevice
-                            buffer = QBuffer()
-                            buffer.open(QIODevice.OpenModeFlag.WriteOnly)
-                            signature_pixmap.save(buffer, 'PNG')
-                            signature_data = buffer.data().data()
-                            
-                            # Guardar na base de dados
-                            from consentimentos_manager import ConsentimentosManager
-                            manager = ConsentimentosManager()
-                            paciente_id = self.paciente_data.get('id')
-                            nome_pessoa = self.paciente_data.get('nome', '') if tipo_assinatura == 'paciente' else 'Terapeuta'
-                            
-                            sucesso_bd = manager.guardar_assinatura_declaracao(
-                                paciente_id, 'declaracao_saude', tipo_assinatura, 
-                                signature_data, nome_pessoa
-                            )
-                            
-                            if sucesso_bd:
-                                print(f"✅ Assinatura {tipo_assinatura} guardada na BD para declaração de saúde")
-                                
-                                # Atualizar status visual da declaração se for paciente
-                                if tipo_assinatura == 'paciente' and hasattr(self, 'status_declaracao'):
-                                    self.status_declaracao.setText("✅ Assinada")
-                                    self.status_declaracao.setStyleSheet("""
-                                        QLabel {
-                                            color: #27ae60;
-                                            font-weight: bold;
-                                            font-size: 12px;
-                                            padding: 5px;
-                                            background-color: #d4edda;
-                                            border: 1px solid #c3e6cb;
-                                            border-radius: 4px;
-                                        }
-                                    """)
-                                
-                                from biodesk_dialogs import mostrar_sucesso
-                                mostrar_sucesso(dialog, "Sucesso", f"✅ Assinatura de {tipo_assinatura} guardada com sucesso!")
-                                dialog.accept()
-                                return
-                            else:
-                                print(f"❌ Falha ao guardar assinatura {tipo_assinatura} na BD")
-                                
-                        except Exception as e:
-                            print(f"❌ Erro ao guardar assinatura na BD: {e}")
-                    
-                    # Para outros documentos, inserir assinatura no PDF
-                    sucesso = self.inserir_assinatura_no_pdf(doc_data, signature_canvas, tipo_assinatura)
-                    
-                    if sucesso:
-                        from biodesk_dialogs import mostrar_sucesso
-                        mostrar_sucesso(dialog, "Sucesso", f"✅ Assinatura de {tipo_assinatura} inserida com sucesso!")
-                        dialog.accept()
-                        
-                        # Atualizar lista de documentos
-                        self.atualizar_lista_documentos()
-                    else:
-                        from biodesk_dialogs import mostrar_erro
-                        mostrar_erro(dialog, "Erro", "❌ Erro ao inserir assinatura no documento.")
-                        
-                except Exception as e:
-                    from biodesk_dialogs import mostrar_erro
-                    mostrar_erro(dialog, "Erro", f"❌ Erro ao confirmar assinatura:\n\n{str(e)}")
-            
-            btn_confirmar.clicked.connect(confirmar_assinatura)
-            
-            botoes_layout.addWidget(btn_limpar)
-            botoes_layout.addStretch()
-            botoes_layout.addWidget(btn_cancelar)
-            botoes_layout.addWidget(btn_confirmar)
-            
-            layout.addLayout(botoes_layout)
-            
-            # Mostrar diálogo
-            dialog.exec()
-            
-        except Exception as e:
-            from biodesk_dialogs import mostrar_erro
-            mostrar_erro(self, "Erro", f"❌ Erro no processamento de assinatura:\n\n{str(e)}")
-
-    def inserir_assinatura_no_pdf(self, doc_data, signature_canvas, tipo_assinatura):
-        """Insere a assinatura diretamente no PDF existente"""
-        try:
-            import os
-            import tempfile
-            from reportlab.pdfgen import canvas
-            from reportlab.lib.pagesizes import A4
-            from PyQt6.QtCore import QBuffer, QIODevice
-            
-            doc_caminho = doc_data.get('caminho', '')
-            
-            if not os.path.exists(doc_caminho):
-                print(f"❌ [ASSINATURA] Arquivo não encontrado: {doc_caminho}")
-                return False
-            
-            print(f"🔄 [ASSINATURA] Inserindo assinatura de {tipo_assinatura} em: {doc_caminho}")
-            
-            # Converter assinatura para imagem temporária
-            signature_pixmap = signature_canvas.toPixmap()
-            
-            # Converter pixmap para bytes PNG
-            from PyQt6.QtCore import QBuffer, QIODevice
-            buffer = QBuffer()
-            buffer.open(QIODevice.OpenModeFlag.WriteOnly)
-            signature_pixmap.save(buffer, "PNG")
-            signature_bytes = buffer.data()
-            buffer.close()
-            
-            # Salvar como ficheiro temporário para debug
-            temp_sig_path = tempfile.mktemp(suffix='.png')
-            with open(temp_sig_path, 'wb') as f:
-                f.write(signature_bytes)
-            
-            print(f"📁 [ASSINATURA] Ficheiro temporário criado: {temp_sig_path}")
-            print(f"📊 [ASSINATURA] Tamanho da imagem: {len(signature_bytes)} bytes")
-            
-            # Criar backup do original
-            backup_path = doc_caminho + '.backup'
-            if not os.path.exists(backup_path):
-                import shutil
-                shutil.copy2(doc_caminho, backup_path)
-                print(f"💾 [ASSINATURA] Backup criado: {backup_path}")
-            
-            # Inserir assinatura no PDF usando ReportLab + PyPDF2
-            try:
-                from reportlab.pdfgen import canvas
-                from reportlab.lib.pagesizes import letter
-                from reportlab.lib.utils import ImageReader
-                import PyPDF2
-                import io
-                
-                # Ler o PDF original
-                with open(doc_caminho, 'rb') as pdf_file:
-                    pdf_reader = PyPDF2.PdfReader(pdf_file)
-                    
-                    # Criar novo PDF com assinatura
-                    packet = io.BytesIO()
-                    c = canvas.Canvas(packet, pagesize=letter)
-                    
-                    # Posição da assinatura (canto inferior direito)
-                    signature_width = 150
-                    signature_height = 75
-                    x_pos = 450  # Margem direita
-                    y_pos = 50   # Margem inferior
-                    
-                    # Adicionar imagem da assinatura usando o ficheiro temporário
-                    from reportlab.lib.utils import ImageReader
-                    image_reader = ImageReader(temp_sig_path)
-                    c.drawImage(image_reader, x_pos, y_pos, 
-                              width=signature_width, height=signature_height, 
-                              mask='auto', preserveAspectRatio=True)
-                    
-                    # Adicionar texto informativo
-                    c.setFont("Helvetica", 8)
-                    c.drawString(x_pos, y_pos - 15, f"Assinado: {tipo_assinatura}")
-                    c.drawString(x_pos, y_pos - 25, f"Data: {QDateTime.currentDateTime().toString('dd/MM/yyyy hh:mm')}")
-                    
-                    c.save()
-                    
-                    # Mover para o início do buffer
-                    packet.seek(0)
-                    signature_pdf = PyPDF2.PdfReader(packet)
-                    
-                    # Criar PDF de saída
-                    output_pdf = PyPDF2.PdfWriter()
-                    
-                    # Adicionar cada página do original com a assinatura na primeira página
-                    for page_num in range(len(pdf_reader.pages)):
-                        page = pdf_reader.pages[page_num]
-                        
-                        # Na primeira página, adicionar a assinatura
-                        if page_num == 0:
-                            signature_page = signature_pdf.pages[0]
-                            page.merge_page(signature_page)
-                        
-                        output_pdf.add_page(page)
-                    
-                    # Escrever o PDF modificado
-                    with open(doc_caminho, 'wb') as output_file:
-                        output_pdf.write(output_file)
-                    
-                    print(f"✅ [ASSINATURA] PDF modificado com assinatura de {tipo_assinatura}")
-                    
-            except ImportError as e:
-                print(f"⚠️ [ASSINATURA] Biblioteca em falta: {e}")
-                print("💡 [ASSINATURA] Para inserir assinaturas nos PDFs, instale: pip install PyPDF2")
-                return False
-            except Exception as e:
-                print(f"❌ [ASSINATURA] Erro ao modificar PDF: {e}")
-                # Restaurar backup em caso de erro
-                if os.path.exists(backup_path):
-                    import shutil
-                    shutil.copy2(backup_path, doc_caminho)
-                    print(f"🔄 [ASSINATURA] PDF restaurado do backup")
-                return False
-            
-            # Limpar ficheiro temporário
-            try:
-                os.unlink(temp_sig_path)
-            except:
-                pass
-            
+            print("✅ Módulo DeclaracaoSaudeWidget carregado com sucesso")
             return True
             
         except Exception as e:
-            print(f"❌ [ASSINATURA] Erro ao inserir assinatura: {e}")
-            return False
-
-    def mostrar_menu_contextual(self, posicao):
-        """Mostra menu contextual com clique direito"""
-        item = self.documentos_list.itemAt(posicao)
-        if not item or not item.data(Qt.ItemDataRole.UserRole):
-            return
+            print(f"❌ Erro ao carregar módulo DeclaracaoSaudeWidget: {e}")
+            return self.init_sub_declaracao_saude_fallback()
+    
+    def init_sub_declaracao_saude_fallback(self):
+        """Fallback para declaração de saúde caso o módulo falhe"""
+        layout = QVBoxLayout(self.sub_declaracao_saude)
+        layout.setContentsMargins(20, 20, 20, 20)
         
-        from PyQt6.QtWidgets import QMenu
-        menu = QMenu(self)
+        label = QLabel("❌ Módulo de Declaração de Saúde indisponível")
+        label.setStyleSheet("color: #e74c3c; font-size: 16px; font-weight: bold;")
+        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(label)
         
-        action_visualizar = menu.addAction("👁️ Visualizar")
-        action_visualizar.triggered.connect(self.visualizar_documento_selecionado)
+        print("⚠️ Usando fallback para DeclaracaoSaudeWidget")
+        return False
+    
+    # Callbacks para o módulo de declaração de saúde
+    def on_declaracao_assinada(self, dados):
+        """Callback quando declaração é assinada"""
+        print(f"✅ Declaração assinada para paciente {dados.get('paciente_id')}")
         
-        action_email = menu.addAction("📧 Enviar por Email")
-        action_email.triggered.connect(self.enviar_documento_email)
+        # Atualizar lista de documentos no gestor
+        if hasattr(self, 'gestao_documentos_widget'):
+            try:
+                print("🔄 Atualizando lista de documentos...")
+                self.gestao_documentos_widget.atualizar_lista_documentos()
+                print("✅ Lista de documentos atualizada")
+            except Exception as e:
+                print(f"⚠️ Erro ao atualizar gestor de documentos: {e}")
         
-        menu.addSeparator()
-        
-        action_remover = menu.addAction("🗑️ Remover")
-        action_remover.triggered.connect(self.remover_documento)
-        
-        menu.exec(self.documentos_list.mapToGlobal(posicao))
-
-    def init_sub_iris_analise(self):
-        """✅ Análise de Íris - Layout ULTRA-OTIMIZADO com galeria dupla funcional"""
-        from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QFrame, QPushButton, QLabel, QScrollArea, QWidget, QSizePolicy
-        from PyQt6.QtCore import Qt
-        from PyQt6.QtGui import QPixmap
-
-        # Layout principal horizontal
-        main_layout = QHBoxLayout(self.sub_iris_analise)
-        main_layout.setContentsMargins(4, 4, 4, 4)
-        main_layout.setSpacing(6)
-
-        # === GALERIA VISUAL DUPLA (ESQUERDA) ===
-        galeria_frame = QFrame()
-        galeria_frame.setFixedWidth(220)  # Largura aumentada para melhor visualização
-        galeria_frame.setStyleSheet("""
-            QFrame {
-                background-color: #f8f8f8;
-                border: 1px solid #ddd;
-                border-radius: 6px;
-            }
-        """)
-        galeria_layout = QVBoxLayout(galeria_frame)
-        galeria_layout.setContentsMargins(6, 6, 6, 6)  # Mais margem
-        galeria_layout.setSpacing(8)  # Mais espaçamento
-
-        # Botões com design uniforme + hover colorido
-        botoes_layout = QHBoxLayout()
-        botoes_layout.setSpacing(8)  # Mais espaço entre botões
-        
-        self.btn_adicionar_iris = QPushButton("📷")  # Ícone moderno de câmera
-        self.btn_adicionar_iris.setFixedSize(85, 28)
-        self.btn_adicionar_iris.setToolTip("Adicionar nova íris")
-        self.btn_adicionar_iris.setStyleSheet("""
-            QPushButton {
-                background-color: #f8f9fa;
-                color: #6c757d;
-                border: 1px solid #e0e0e0;
-                border-radius: 6px;
-                font-size: 12px;
-                font-weight: bold;
-            }
-            QPushButton:hover { 
-                background-color: #28a745;
-                color: white;
-                border-color: #28a745;            }
-        """)
-        self.btn_adicionar_iris.clicked.connect(self.adicionar_nova_iris)
-
-        self.btn_remover_iris = QPushButton("🗑️")  # Ícone de lixeira
-        self.btn_remover_iris.setFixedSize(85, 28)
-        self.btn_remover_iris.setToolTip("Remover íris selecionada")
-        self.btn_remover_iris.setStyleSheet("""
-            QPushButton {
-                background-color: #f8f9fa;
-                color: #6c757d;
-                border: 1px solid #e0e0e0;
-                border-radius: 6px;
-                font-size: 12px;
-                font-weight: bold;
-            }
-            QPushButton:hover { 
-                background-color: #dc3545;
-                color: white;
-                border-color: #dc3545;            }
-        """)
-        self.btn_remover_iris.clicked.connect(self.apagar_imagem_selecionada)
-
-        botoes_layout.addWidget(self.btn_adicionar_iris)
-        botoes_layout.addWidget(self.btn_remover_iris)
-        galeria_layout.addLayout(botoes_layout)
-        
-        # Espaçador para separar botões dos ícones das íris
-        galeria_layout.addSpacing(12)  # Espaço adicional para evitar sobreposição
-
-        # Área de scroll com 2 colunas para ESQ/DRT
-        self.scroll_area_imagens = QScrollArea()
-        self.scroll_area_imagens.setWidgetResizable(True)
-        self.scroll_area_imagens.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.scroll_area_imagens.setStyleSheet("""
-            QScrollArea {
-                border: none;
-                background-color: transparent;
-            }
-        """)
-
-        self.galeria_widget = QWidget()
-        self.galeria_layout_principal = QVBoxLayout(self.galeria_widget)
-        self.galeria_layout_principal.setSpacing(8)  # Mais espaçamento vertical
-        self.galeria_layout_principal.setContentsMargins(4, 4, 4, 4)
-        
-        # Layout horizontal para 2 colunas
-        self.colunas_layout = QHBoxLayout()
-        self.colunas_layout.setSpacing(8)  # Mais espaço entre colunas ESQ/DRT
-        
-        # Coluna ESQ
-        self.col_esq_layout = QVBoxLayout()
-        self.col_esq_layout.setSpacing(8)  # Mais espaço vertical entre ícones
-        self.col_esq_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        
-        # Coluna DRT  
-        self.col_drt_layout = QVBoxLayout()
-        self.col_drt_layout.setSpacing(8)  # Mais espaço vertical entre ícones
-        self.col_drt_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        
-        self.colunas_layout.addLayout(self.col_esq_layout)
-        self.colunas_layout.addLayout(self.col_drt_layout)
-        self.galeria_layout_principal.addLayout(self.colunas_layout)
-        self.galeria_layout_principal.addStretch()
-
-        self.scroll_area_imagens.setWidget(self.galeria_widget)
-        galeria_layout.addWidget(self.scroll_area_imagens, 1)
-
-        main_layout.addWidget(galeria_frame)
-
-        # === CANVAS OTIMIZADO (CENTRO) - Coluna apenas 4px mais larga que a imagem ===
-        canvas_frame = QFrame()
-        canvas_frame.setFixedWidth(654)  # 650px da imagem + 4px de margem total
-        canvas_frame.setStyleSheet("""
-            QFrame {
-                background-color: white;
-                border: 1px solid #ccc;
-                border-radius: 6px;
-            }
-        """)
-        canvas_layout = QVBoxLayout(canvas_frame)
-        canvas_layout.setContentsMargins(2, 2, 2, 2)  # Margens mínimas (4px total horizontal)
-        canvas_layout.setSpacing(0)
-
-        # Canvas sem decorações
+        # Tentar atualizar também via método delegate se disponível
         try:
-            from iris_canvas import IrisCanvas
-            self.iris_canvas = IrisCanvas(paciente_data=self.paciente_data)
-            self.iris_canvas.setMinimumSize(650, 550)  # Tamanho ligeiramente aumentado
-            self.iris_canvas.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+            self.atualizar_lista_documentos()
+            print("✅ Lista atualizada via delegate")
+        except Exception as e:
+            print(f"ℹ️ Delegate não disponível: {e}")
+    
+    def on_declaracao_dados_atualizados(self, dados):
+        """Callback quando dados da declaração são atualizados"""
+        print(f"📄 Dados da declaração atualizados: {dados}")
+    
+    def init_sub_consentimentos_modular(self):
+        """Sub-aba: Consentimentos - MÓDULO OTIMIZADO"""
+        try:
+            # ✅ USAR MÓDULO OTIMIZADO DE CONSENTIMENTOS
+            _, _, _, _, _, _, ConsentimentosWidget, _ = importar_modulos_especializados()
             
-            # ✅ CONECTAR SINAIS PARA ANÁLISE DE ZONAS
-            if hasattr(self.iris_canvas, 'zonaClicada'):
-                self.iris_canvas.zonaClicada.connect(self.on_zona_clicada)
+            # Criar layout principal
+            layout = QVBoxLayout(self.sub_consentimentos)
             
-            canvas_layout.addWidget(self.iris_canvas, 1)
+            # Criar widget especializado
+            self.consentimentos_widget = ConsentimentosWidget(self.paciente_data, self)
             
-            # IrisCanvas carregado com funcionalidade de análise de sinais ativa
+            # Conectar sinais para comunicação
+            self.consentimentos_widget.consentimento_guardado.connect(self.on_consentimento_guardado)
+            self.consentimentos_widget.consentimento_assinado.connect(self.on_consentimento_assinado)
+            self.consentimentos_widget.template_carregado.connect(self.on_template_consentimento_carregado)
+            
+            # Adicionar ao layout
+            layout.addWidget(self.consentimentos_widget)
+            
+            print("✅ Consentimentos carregado com sucesso")
+            
+        except Exception as e:
+            print(f"❌ ERRO no Consentimentos: {e}")
+            # Fallback para interface antiga
+            self.init_sub_consentimentos_fallback()
+    
+    def init_sub_consentimentos_fallback(self):
+        """Fallback para consentimentos"""
+        layout = QVBoxLayout(self.sub_consentimentos)
+        
+        fallback_label = QLabel("⚠️ Módulo de Consentimentos indisponível")
+        fallback_label.setStyleSheet("color: orange; font-size: 14px; padding: 20px;")
+        layout.addWidget(fallback_label)
+    
+    # Callbacks para integração com o módulo especializado
+    def on_consentimento_guardado(self, tipo, caminho_pdf):
+        """Callback quando consentimento é guardado"""
+        print(f"💾 Consentimento guardado: {tipo} -> {caminho_pdf}")
+    
+    def on_consentimento_assinado(self, tipo, tipo_assinatura):
+        """Callback quando consentimento é assinado"""
+        print(f"✍️ Consentimento assinado: {tipo} por {tipo_assinatura}")
+    
+    def on_template_consentimento_carregado(self, tipo):
+        """Callback quando template é carregado"""
+        print(f"📋 Template de consentimento carregado: {tipo}")
+
+    def init_sub_gestao_documentos_modular(self):
+        """Sub-aba: Gestão de Documentos - MÓDULO OTIMIZADO"""
+        # ✅ USAR MÓDULO OTIMIZADO DE GESTÃO DE DOCUMENTOS
+        from ficha_paciente.gestao_documentos import GestaoDocumentosWidget
+        
+        # Criar layout principal
+        layout = QVBoxLayout(self.sub_gestao_documentos)
+        layout.setContentsMargins(0, 0, 0, 0)
+        
+        # Criar widget especializado
+        self.gestao_documentos_widget = GestaoDocumentosWidget(self)
+        
+        # Definir ID do paciente
+        if self.paciente_data and 'id' in self.paciente_data:
+            self.gestao_documentos_widget.set_paciente_id(self.paciente_data['id'])
+        elif self.paciente_data and 'nome' in self.paciente_data:
+            # Se não houver ID, usar nome como fallback
+            self.gestao_documentos_widget.set_paciente_id(self.paciente_data['nome'])
+        
+        # Conectar sinais para comunicação
+        self.gestao_documentos_widget.documento_adicionado.connect(self.on_documento_adicionado)
+        self.gestao_documentos_widget.documento_removido.connect(self.on_documento_removido)
+        self.gestao_documentos_widget.documento_visualizado.connect(self.on_documento_visualizado)
+        self.gestao_documentos_widget.documento_assinado.connect(self.on_documento_assinado)
+        
+        # Adicionar ao layout
+        layout.addWidget(self.gestao_documentos_widget)
+        
+        print("✅ Gestão de Documentos carregado com sucesso")
+    
+    # Callbacks para integração com o módulo especializado
+    def on_documento_adicionado(self, caminho_documento):
+        """Callback quando documento é adicionado"""
+        print(f"📄 Documento adicionado: {caminho_documento}")
+    
+    def on_documento_removido(self, caminho_documento):
+        """Callback quando documento é removido"""
+        print(f"🗑️ Documento removido: {caminho_documento}")
+    
+    def on_documento_visualizado(self, caminho_documento):
+        """Callback quando documento é visualizado"""
+        print(f"👁️ Documento visualizado: {caminho_documento}")
+    
+    def on_documento_assinado(self, caminho_documento):
+        """Callback quando documento é assinado"""
+        print(f"✍️ Documento assinado: {caminho_documento}")
+    
+    def atualizar_lista_documentos(self):
+        """Delegado para atualizar a lista no Gestor de Documentos."""
+        try:
+            if hasattr(self, "gestao_documentos_widget") and self.gestao_documentos_widget:
+                # Garantir que está a usar o ID atual
+                pid = self.paciente_data.get("id") or self.paciente_data.get("nome")
+                if pid:
+                    self.gestao_documentos_widget.set_paciente_id(pid)
+                self.gestao_documentos_widget.atualizar_lista_documentos()
+                print("🔄 [DOCUMENTOS] Refresh pedido pela FichaPaciente")
+        except Exception as e:
+            print(f"❌ [DOCUMENTOS] Erro no refresh delegado: {e}")
+    
+    def _on_tab_clinico_changed(self, idx):
+        """Callback quando muda de aba na área clínica - refresh automático do gestor"""
+        try:
+            if hasattr(self, 'clinico_comunicacao_tabs') and hasattr(self, 'sub_gestao_documentos'):
+                if self.clinico_comunicacao_tabs.widget(idx) is self.sub_gestao_documentos:
+                    self.atualizar_lista_documentos()
+                    # (Opcional) arrancar auto-refresh enquanto esta aba está ativa
+                    if hasattr(self, "gestao_documentos_widget") and hasattr(self.gestao_documentos_widget, 'refresh_timer'):
+                        self.gestao_documentos_widget.refresh_timer.start(3000)  # de 3 em 3s
+                else:
+                    if hasattr(self, "gestao_documentos_widget") and hasattr(self.gestao_documentos_widget, 'refresh_timer'):
+                        self.gestao_documentos_widget.refresh_timer.stop()
+        except Exception as e:
+            print(f"⚠️ [DOCUMENTOS] Erro no on_tab_changed: {e}")
+    
+    def init_sub_iris_analise(self):
+        """Análise de Íris - Módulo Otimizado"""
+        try:
+            from ficha_paciente.iris_integration import IrisIntegrationWidget
+            
+            layout = QVBoxLayout(self.sub_iris_analise)
+            layout.setContentsMargins(0, 0, 0, 0)
+            
+            # Usar módulo especializado
+            self.iris_widget = IrisIntegrationWidget(self.paciente_data, self)
+            layout.addWidget(self.iris_widget)
+            
+            # Conectar sinais
+            self.iris_widget.zona_clicada.connect(self.on_zona_clicada)
+            self.iris_widget.imagem_selecionada.connect(self.on_imagem_iris_selecionada)
+            self.iris_widget.notas_exportadas.connect(self.on_notas_iris_exportadas)
+            
+            print("✅ Módulo de Íris carregado com sucesso")
             
         except ImportError as e:
-            canvas_placeholder = QLabel("Canvas da Íris\n(Módulo não disponível)")
-            canvas_placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            canvas_placeholder.setMinimumSize(450, 380)
-            canvas_placeholder.setStyleSheet("""
-                QLabel {
-                    background: #f8f8f8;
-                    border: 2px dashed #ccc;
-                    border-radius: 8px;
-                    font-size: 16px;
-                    color: #666;
-                }
-            """)
-            canvas_layout.addWidget(canvas_placeholder, 1)
-            print(f"[AVISO] Erro ao importar IrisCanvas: {e}")
+            print(f"❌ Erro ao carregar módulo de íris: {e}")
+            self.init_sub_iris_analise_fallback()
+    
 
-        main_layout.addWidget(canvas_frame)  # Sem expansão, largura fixa
+    
 
-        # === NOTAS FUNCIONAIS (DIREITA) ===
-        notas_frame = QFrame()
-        notas_frame.setFixedWidth(380)  # Largura aumentada para melhor organização das notas
-        notas_frame.setStyleSheet("""
-            QFrame {
-                background-color: #fafafa;
-                border: 1px solid #ddd;
-                border-radius: 6px;
-            }
-        """)
-        notas_layout = QVBoxLayout(notas_frame)
-        notas_layout.setContentsMargins(8, 8, 8, 8)
-        notas_layout.setSpacing(6)
+    
 
-        # Widget de notas
-        try:
-            from checkbox_notes_widget import CheckboxNotesWidget
-            self.notas_iris = CheckboxNotesWidget()
-            self.notas_iris.setMinimumHeight(350)  # Reduzido para mostrar botões
-            notas_layout.addWidget(self.notas_iris, 1)
-        except ImportError:
-            from PyQt6.QtWidgets import QTextEdit
-            self.notas_iris = QTextEdit()
-            self.notas_iris.setPlaceholderText("Notas da análise...")
-            self.notas_iris.setMinimumHeight(350)
-            notas_layout.addWidget(self.notas_iris, 1)
-
-        # Botões com design uniforme + hover específico
-        self.btn_exportar_notas = QPushButton("📋 Histórico")  # Ícone de prancheta
-        self.btn_exportar_notas.setFixedHeight(36)
-        self.btn_exportar_notas.setStyleSheet("""
-            QPushButton {
-                background-color: #f8f9fa;
-                color: #6c757d;
-                border: 1px solid #e0e0e0;
-                border-radius: 6px;
-                font-size: 12px;
-                font-weight: bold;
-                padding: 6px;
-            }
-            QPushButton:hover { 
-                background-color: #007bff;
-                color: white;
-                border-color: #007bff;            }
-        """)
-        self.btn_exportar_notas.clicked.connect(self.exportar_notas_iris)
-
-        self.btn_exportar_terapia = QPushButton("⚡ Terapia")  # Ícone de raio
-        self.btn_exportar_terapia.setFixedHeight(36)
-        self.btn_exportar_terapia.setStyleSheet("""
-            QPushButton {
-                background-color: #f8f9fa;
-                color: #6c757d;
-                border: 1px solid #e0e0e0;
-                border-radius: 6px;
-                font-size: 12px;
-                font-weight: bold;
-                padding: 6px;
-            }
-            QPushButton:hover { 
-                background-color: #6f42c1;
-                color: white;
-                border-color: #6f42c1;            }
-        """)
-        self.btn_exportar_terapia.clicked.connect(self.exportar_para_terapia_quantica)
-
-        btn_limpar_notas = QPushButton("🧹 Limpar")  # Ícone moderno de limpeza
-        btn_limpar_notas.setFixedHeight(36)
-        btn_limpar_notas.setStyleSheet("""
-            QPushButton {
-                background-color: #f8f9fa;
-                color: #6c757d;
-                border: 1px solid #e0e0e0;
-                border-radius: 6px;
-                font-size: 12px;
-                font-weight: bold;
-                padding: 6px;
-            }
-            QPushButton:hover { 
-                background-color: #dc3545;
-                color: white;
-                border-color: #dc3545;            }
-        """)
-        btn_limpar_notas.clicked.connect(self.limpar_notas_iris)
-
-        notas_layout.addWidget(self.btn_exportar_notas)
-        notas_layout.addWidget(self.btn_exportar_terapia)
-        notas_layout.addWidget(btn_limpar_notas)
-
-        main_layout.addWidget(notas_frame)
-
-        # Carregar imagens existentes
-        if hasattr(self, "atualizar_galeria_iris"):
-            self.atualizar_galeria_iris()
-
-        # Layout da íris ULTRA-LIMPO aplicado - sem poluição visual!
 
     def on_zona_clicada(self, nome_zona):
         """
@@ -7451,6 +2212,16 @@ Naturopata | Osteopata | Medicina Quântica
         # O popup de análise detalhada é aberto automaticamente pelo próprio ZonaReflexa
         # através do método abrir_analise_sinais() no mousePressEvent
 
+    def on_imagem_iris_selecionada(self, imagem_data):
+        """Callback para quando uma imagem é selecionada na galeria"""
+        print(f"🖼️ Imagem selecionada: {imagem_data}")
+        # Processar seleção de imagem conforme necessário
+        
+    def on_notas_iris_exportadas(self, notas):
+        """Callback para quando notas são exportadas"""
+        print(f"📝 Notas exportadas: {len(notas)} itens")
+        # Processar exportação de notas conforme necessário
+
     def atualizar_textos_botoes(self, texto_linha=None):
         """Atualiza os textos dos botões mostrando quantas linhas estão selecionadas"""
         if not hasattr(self, 'notas_iris') or not self.notas_iris:
@@ -7469,686 +2240,7 @@ Naturopata | Osteopata | Medicina Quântica
         except Exception as e:
             print(f"[DEBUG] Erro ao atualizar textos dos botões: {e}")
 
-    def limpar_notas_iris(self):
-        """Limpa todas as notas de análise de íris"""
-        try:
-            from biodesk_dialogs import mostrar_confirmacao
-            
-            resposta = mostrar_confirmacao(
-                self,
-                "Confirmar Limpeza",
-                "⚠️ Tem certeza que deseja limpar todas as notas de análise?\n\nEsta ação não pode ser desfeita."
-            )
-            
-            if resposta and hasattr(self, 'notas_iris') and self.notas_iris:
-                self.notas_iris.limpar_todas()
-                self.atualizar_textos_botoes()
-                
-                from biodesk_dialogs import mostrar_informacao
-                mostrar_informacao(self, "Sucesso", "✅ Notas de análise limpas com sucesso!")
-                
-        except Exception as e:
-            print(f"[ERRO] Erro ao limpar notas: {e}")
-            from biodesk_dialogs import mostrar_erro
-            mostrar_erro(self, "Erro", f"❌ Erro ao limpar notas:\n\n{str(e)}")
 
-    def atualizar_galeria_iris(self):
-        """Atualiza a galeria de íris para mostrar miniaturas visuais clicáveis (versão compacta)"""
-        from PyQt6.QtWidgets import QLabel, QFrame
-        from PyQt6.QtGui import QPixmap
-        from PyQt6.QtCore import Qt
-        from db_manager import DBManager
-        import os
-
-        # Limpar galeria visual (colunas ESQ/DRT se existirem)
-        if hasattr(self, 'col_esq_layout') and hasattr(self, 'col_drt_layout'):
-            for lay in (self.col_esq_layout, self.col_drt_layout):
-                for i in reversed(range(lay.count())):
-                    item = lay.itemAt(i)
-                    w = item.widget()
-                    if w:
-                        w.setParent(None)
-        elif hasattr(self, 'galeria_layout'):
-            for i in reversed(range(self.galeria_layout.count())):
-                widget = self.galeria_layout.itemAt(i).widget()
-                if widget:
-                    widget.setParent(None)
-        else:
-            return
-
-        paciente_id = self.paciente_data.get('id')
-        if not paciente_id:
-            return
-
-        db = DBManager()
-        imagens = db.get_imagens_por_paciente(paciente_id)
-
-        if not imagens:
-            label = QLabel("Nenhuma imagem")
-            label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            label.setStyleSheet('color: #888; padding: 8px; font-size: 11px;')
-            if hasattr(self, 'galeria_layout'):
-                self.galeria_layout.addWidget(label)
-            if hasattr(self, 'iris_canvas'):
-                self.iris_canvas.set_image(None, None)
-            return
-
-        # Inicializar mapa de miniaturas (para estado selecionado)
-        self._miniaturas_iris = {}
-        
-        # Inicializar lista de containers da galeria
-        if not hasattr(self, 'galeria_containers'):
-            self.galeria_containers = []
-        else:
-            self.galeria_containers.clear()
-
-        # Agrupar imagens por tipo (ESQ / DRT) e ordenar cada grupo por data/ID
-        def _ord_key(im):
-            return im.get('data_analise') or im.get('data') or im.get('id') or 0
-
-        grupos = {}
-        for im in imagens:
-            tipo = (im.get('tipo') or 'IMG').strip().upper()
-            if tipo.startswith('E'):
-                tipo_norm = 'ESQ'
-            elif tipo.startswith('D'):
-                tipo_norm = 'DRT'
-            else:
-                tipo_norm = 'IMG'
-            grupos.setdefault(tipo_norm, []).append(im)
-
-        # Ordenar internamente cada grupo
-        for k in grupos:
-            grupos[k] = sorted(grupos[k], key=_ord_key)
-
-        # Construir lista final preservando ordem ESQ, DRT, IMG
-        ordem_tipos = [t for t in ['ESQ', 'DRT', 'IMG'] if t in grupos]
-        imagens_processadas = []
-        etiqueta_map = {}
-        for tipo in ordem_tipos:
-            for idx, im in enumerate(grupos[tipo], start=1):
-                label_calc = f"{tipo}{idx:03d}"
-                etiqueta_map[im.get('id')] = label_calc
-                imagens_processadas.append(im)
-
-        # Adicionar miniaturas
-        for img in imagens_processadas:
-            thumb_path = img.get('caminho_imagem', '') or img.get('caminho', '')
-            tipo_id = img.get('id')
-            label_text = etiqueta_map.get(tipo_id, 'IMG')
-
-            thumb_container = QFrame()
-            thumb_container.setFixedSize(75, 85)  # Menor para caber em 2 colunas
-            style_normal = (
-                "QFrame {"
-                "background: white;"
-                "border: 2px solid #e0e0e0;"
-                "border-radius: 12px;"
-                "padding: 4px;"
-                "}"
-                "QFrame:hover {"
-                "border: 2px solid #2196F3;"
-                "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #f8fcff, stop:1 #e3f2fd);"
-                "}"
-            )
-            style_selecionado = (
-                "QFrame {"
-                "background: #e8f3ff;"
-                "border: 3px solid #1976D2;"
-                "border-radius: 12px;"
-                "padding: 3px;"
-                "}"
-                "QFrame:hover {"
-                "border: 3px solid #1565C0;"
-                "background: #e2f0ff;"
-                "}"
-            )
-            thumb_container.setStyleSheet(style_normal)
-            thumb_container.setProperty('style_base_normal', style_normal)
-            thumb_container.setProperty('style_base_selecionado', style_selecionado)
-
-            thumb_layout = QVBoxLayout(thumb_container)
-            thumb_layout.setContentsMargins(4, 4, 4, 4)
-            thumb_layout.setSpacing(6)
-            thumb_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-            thumb_label = QLabel()
-            thumb_label.setFixedSize(70, 50)  # Ajustado proporcionalmente
-            thumb_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            thumb_label.setStyleSheet(
-                "QLabel { border: 1px solid #ddd; border-radius: 8px; background: #f5f5f5; }"
-            )
-            if thumb_path and os.path.exists(thumb_path):
-                pix = QPixmap(thumb_path)
-                if not pix.isNull():
-                    thumb_label.setPixmap(
-                        pix.scaled(
-                            68,
-                            48,  # Ajustado proporcionalmente
-                            Qt.AspectRatioMode.KeepAspectRatio,
-                            Qt.TransformationMode.SmoothTransformation,
-                        )
-                    )
-                else:
-                    thumb_label.setText('❌')
-                    thumb_label.setStyleSheet(thumb_label.styleSheet() + 'color: #f44336; font-size: 20px;')
-            else:
-                thumb_label.setText('📷')
-                thumb_label.setStyleSheet(thumb_label.styleSheet() + 'color: #666; font-size: 24px;')
-
-            texto_label = QLabel(label_text)
-            texto_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            texto_label.setStyleSheet(
-                "font-size: 10px; color: #424242; font-weight: 600; background: transparent; padding: 0px;"
-            )
-
-            from PyQt6.QtWidgets import QSpacerItem, QSizePolicy as _SP
-            spacer = QSpacerItem(0, 2, _SP.Policy.Minimum, _SP.Policy.Fixed)
-            thumb_layout.addWidget(thumb_label)
-            thumb_layout.addItem(spacer)
-            thumb_layout.addWidget(texto_label)
-
-            tooltip_partes = [f"Etiqueta: {label_text}"]
-            dt = img.get('data_analise') or img.get('data')
-            if dt:
-                tooltip_partes.append(f"Data: {dt}")
-            tooltip_partes.append(f"Tipo original: {img.get('tipo','-')}")
-            tooltip_partes.append(f"ID: {img.get('id','-')}")
-            tooltip_partes.append(
-                f"Caminho: {thumb_path if thumb_path else 'Sem ficheiro'}"
-            )
-            thumb_container.setToolTip("\n".join(tooltip_partes))
-            thumb_container.mousePressEvent = lambda e, img=img: self.selecionar_imagem_galeria(img)
-            
-            # IMPORTANTE: Adicionar a propriedade img_data para a função de apagar funcionar
-            thumb_container.setProperty('img_data', img)
-            
-            # Adicionar à lista de containers da galeria
-            self.galeria_containers.append(thumb_container)
-
-            if img.get('id') is not None:
-                self._miniaturas_iris[img.get('id')] = thumb_container
-
-            tipo_calc = 'OUTRO'
-            if label_text.startswith('ESQ'):
-                tipo_calc = 'ESQ'
-            elif label_text.startswith('DRT'):
-                tipo_calc = 'DRT'
-            
-            # Adicionar às colunas ESQ/DRT organizadamente
-            if tipo_calc == 'ESQ':
-                self.col_esq_layout.addWidget(thumb_container)
-            elif tipo_calc == 'DRT':
-                self.col_drt_layout.addWidget(thumb_container)
-            else:
-                # Se não for ESQ nem DRT, adiciona à primeira coluna
-                self.col_esq_layout.addWidget(thumb_container)
-
-    def on_galeria_item_clicked(self, item):
-        """Callback quando um item da galeria é clicado"""
-        img_data = item.data(Qt.ItemDataRole.UserRole)
-        if img_data and hasattr(self, 'iris_canvas'):
-            self.iris_canvas.set_image(img_data['caminho_imagem'], img_data['tipo'])
-            self.imagem_iris_selecionada = img_data
-
-    def on_galeria_click(self, event, img):
-        self.atualizar_selecao_galeria(img)
-
-    def on_galeria_double_click(self, event, img):
-        self.selecionar_imagem_iris(img)
-
-    def atualizar_selecao_galeria(self, img_selecionada):
-        if not hasattr(self, 'galeria_containers'):
-            return
-        for container in self.galeria_containers:
-            img_data = container.property('img_data') if hasattr(container, 'property') else None
-            if img_data is not None:
-                if img_data == img_selecionada:
-                    container.setStyleSheet("""
-                        QWidget {
-                            background: #e3f2fd;
-                            border: 2px solid #1976d2;
-                            border-radius: 8px;
-                            margin: 2px;
-                            padding: 8px;
-                        }
-                        QWidget:hover {
-                            border-color: #1565c0;
-                            background: #e1f5fe;
-                        }
-                    """)
-                else:
-                    container.setStyleSheet("""
-                        QWidget {
-                            background: #ffffff;
-                            border: 2px solid #e0e0e0;
-                            border-radius: 8px;
-                            margin: 2px;
-                            padding: 8px;
-                        }
-                        QWidget:hover {
-                            border-color: #1976d2;
-                            background: #f8f9fa;
-                        }
-                    """)
-
-    def selecionar_imagem_selecionada_galeria(self):
-        if not hasattr(self, 'galeria_containers'):
-            return
-        for container in self.galeria_containers:
-            img_data = container.property('img_data') if hasattr(container, 'property') else None
-            if img_data is not None and container.styleSheet().find('#e3f2fd') != -1:
-                self.selecionar_imagem_iris(img_data)
-                return
-        if hasattr(self, 'galeria_containers') and self.galeria_containers:
-            primeiro_container = self.galeria_containers[0]
-            img_data = primeiro_container.property('img_data') if hasattr(primeiro_container, 'property') else None
-            if img_data is not None:
-                self.selecionar_imagem_iris(img_data)
-
-    def selecionar_imagem_iris(self, img):
-        self.imagem_iris_selecionada = img
-        self.iris_canvas.set_image(img['caminho_imagem'], img['tipo'])
-        self.notas_iris.limpar_todas_linhas()  # Limpar todas as linhas com checkboxes
-        
-        # ═══════════════ INTEGRAÇÃO: ANÁLISE DE ÍRIS ═══════════════
-        # Definir imagem atual para análise (se widget existir)
-        if hasattr(self.iris_canvas, 'definir_imagem_atual'):
-            self.iris_canvas.definir_imagem_atual(img['id'])
-            print(f"[FICHA] Imagem {img['id']} definida para análise de íris")
-        
-        self.atualizar_selecao_galeria(img)
-
-    def apagar_imagem_selecionada(self):
-        """Apaga a imagem de íris selecionada na galeria"""
-        print("[DEBUG] Tentando apagar imagem selecionada")
-        
-        # Debug adicional para entender o estado da galeria
-        print(f"[DEBUG] hasattr galeria_containers: {hasattr(self, 'galeria_containers')}")
-        
-        if hasattr(self, 'galeria_containers'):
-            print(f"[DEBUG] galeria_containers length: {len(self.galeria_containers)}")
-        else:
-            print("[DEBUG] galeria_containers não existe - criando...")
-            self.galeria_containers = []
-        
-        # Se não há containers, tentar procurar na interface diretamente
-        if not hasattr(self, 'galeria_containers') or len(self.galeria_containers) == 0:
-            print("[DEBUG] Lista galeria_containers vazia - buscando na interface...")
-            
-            # Tentar buscar diretamente no scroll area
-            if hasattr(self, 'scroll_area_imagens') and self.scroll_area_imagens:
-                widget = self.scroll_area_imagens.widget()
-                if widget and widget.layout():
-                    print(f"[DEBUG] Scroll area widget found, layout items: {widget.layout().count()}")
-                    
-                    # Debug: Analisar cada item do layout
-                    self.galeria_containers = []
-                    for i in range(widget.layout().count()):
-                        item = widget.layout().itemAt(i)
-                        if item and item.widget():
-                            w = item.widget()
-                            print(f"[DEBUG] Layout item {i}: {type(w).__name__} - objectName: '{w.objectName()}'")
-                            
-                            # Verificar se é um layout (col_esq_layout ou col_drt_layout)
-                            if hasattr(w, 'layout') and w.layout():
-                                sub_layout = w.layout()
-                                print(f"[DEBUG]   Sub-layout com {sub_layout.count()} items")
-                                
-                                # Buscar nos containers do sub-layout
-                                for j in range(sub_layout.count()):
-                                    sub_item = sub_layout.itemAt(j)
-                                    if sub_item and sub_item.widget():
-                                        sub_w = sub_item.widget()
-                                        print(f"[DEBUG]     Sub-item {j}: {type(sub_w).__name__} - Has img_data: {hasattr(sub_w, 'property') and sub_w.property('img_data') is not None}")
-                                        
-                                        if hasattr(sub_w, 'property') and sub_w.property('img_data'):
-                                            self.galeria_containers.append(sub_w)
-                                            img_data = sub_w.property('img_data')
-                                            print(f"[DEBUG]     ✅ Container encontrado: {img_data.get('caminho_imagem', 'N/A')}")
-                            
-                            # Também verificar o próprio widget
-                            if hasattr(w, 'property') and w.property('img_data'):
-                                self.galeria_containers.append(w)
-                                img_data = w.property('img_data')
-                                print(f"[DEBUG] ✅ Container direto encontrado: {img_data.get('caminho_imagem', 'N/A')}")
-                    
-                    # Buscar recursivamente todos os filhos também
-                    all_children = widget.findChildren(QWidget)
-                    print(f"[DEBUG] Total de widgets filhos encontrados: {len(all_children)}")
-                    
-                    for child in all_children:
-                        if hasattr(child, 'property') and child.property('img_data') and child not in self.galeria_containers:
-                            self.galeria_containers.append(child)
-                            img_data = child.property('img_data')
-                            print(f"[DEBUG] ✅ Container adicional encontrado via findChildren: {img_data.get('caminho_imagem', 'N/A')}")
-            
-            # Se ainda não encontrou, mostrar aviso
-            if len(self.galeria_containers) == 0:
-                print("[DEBUG] Nenhuma galeria encontrada")
-                from biodesk_dialogs import mostrar_aviso
-                mostrar_aviso(self, "Galeria Vazia", "Nenhuma imagem na galeria para apagar.")
-                return
-        
-        print(f"[DEBUG] Verificando {len(self.galeria_containers)} containers")
-        
-        # Procurar container selecionado usando métodos mais robustos
-        container_selecionado = None
-        img_data_selecionada = None
-        
-        for i, container in enumerate(self.galeria_containers):
-            if hasattr(container, 'property'):
-                # Verificar se tem dados da imagem
-                img_data = container.property('img_data')
-                if img_data:
-                    # Verificar se está selecionado pela propriedade 'selecionado'
-                    is_selected = container.property('selecionado') == True
-                    
-                    # Debug adicional
-                    style = container.styleSheet()
-                    selecionado_prop = container.property('selecionado')
-                    
-                    print(f"[DEBUG] Container {i}: {img_data.get('caminho_imagem', 'N/A')}")
-                    print(f"[DEBUG] Propriedade 'selecionado': {selecionado_prop}")
-                    print(f"[DEBUG] Style: {style[:100]}...")  # Primeiros 100 chars
-                    print(f"[DEBUG] Container {i} selecionado: {is_selected}")
-                    
-                    if is_selected:
-                        container_selecionado = container
-                        img_data_selecionada = img_data
-                        print(f"[DEBUG] ✅ Container selecionado encontrado: {img_data.get('caminho_imagem', 'N/A')}")
-                        break
-        
-        if container_selecionado and img_data_selecionada:
-            print(f"[DEBUG] Eliminando imagem: {img_data_selecionada.get('caminho_imagem', 'N/A')}")
-            self.eliminar_imagem_iris(img_data_selecionada)
-        else:
-            # Se chegou aqui, nenhuma imagem estava selecionada
-            print("[DEBUG] ❌ Nenhuma imagem selecionada detectada")
-            from biodesk_dialogs import mostrar_aviso
-            mostrar_aviso(self, "Seleção Necessária", "Por favor, clique em uma imagem da galeria para selecioná-la antes de apagar.")
-
-    def eliminar_imagem_iris(self, img):
-        from biodesk_dialogs import mostrar_confirmacao, mostrar_erro
-        
-        if mostrar_confirmacao(
-            self, 
-            "Eliminar imagem",
-            f"Tem a certeza que quer eliminar a imagem {img['caminho_imagem']}?"
-        ):
-            try:
-                import os
-                os.remove(img['caminho_imagem'])
-            except Exception as e:
-                mostrar_erro(self, "Erro", f"Não foi possível eliminar ficheiro: {e}")
-            db = DBManager()
-            db.execute_query("DELETE FROM imagens_iris WHERE id = ?", (img['id'],))
-            self.atualizar_galeria_iris()
-
-    def adicionar_nova_iris(self):
-        """Captura nova imagem de íris usando a câmera e salva automaticamente"""
-        print("[DEBUG] adicionar_nova_iris chamado")
-        
-        # Importações necessárias
-        from biodesk_dialogs import escolher_lateralidade, mostrar_aviso, mostrar_informacao, mostrar_erro
-        
-        try:
-            # Verificar se existe um paciente carregado
-            if not self.paciente_data or 'id' not in self.paciente_data:
-                mostrar_aviso(
-                    self, 
-                    "Paciente Necessário", 
-                    "É necessário ter um paciente selecionado para capturar e salvar imagens de íris."
-                )
-                return
-            
-            # Importar dependências necessárias
-            from PyQt6.QtWidgets import (QDialog, QVBoxLayout, QPushButton, QLabel, 
-                                       QHBoxLayout, QApplication)
-            from PyQt6.QtCore import QTimer, pyqtSignal
-            from PyQt6.QtGui import QImage, QPixmap
-            # cv2 importado quando necessário
-            import os
-            from datetime import datetime
-            from db_manager import DBManager
-            
-            # Criar classe de preview inline
-            class IridoscopioPreview(QDialog):
-                def __init__(self, parent=None):
-                    super().__init__(parent)
-                    self.setWindowTitle("Iridoscópio - Preview ao Vivo")
-                    self.setFixedSize(800, 600)
-                    self.setModal(True)
-                    
-                    self.cap = None
-                    self.frame = None
-                    self.timer = QTimer()
-                    self.timer.timeout.connect(self.update_frame)
-                    
-                    self.setup_ui()
-                    self.start_camera()
-                
-                def setup_ui(self):
-                    layout = QVBoxLayout(self)
-                    
-                    # Label para mostrar video
-                    self.video_label = QLabel()
-                    self.video_label.setMinimumSize(640, 480)
-                    self.video_label.setAlignment(Qt.AlignmentFlag.AlignCenter)  # Centralizar imagem
-                    self.video_label.setScaledContents(False)  # Não esticar a imagem
-                    self.video_label.setStyleSheet("""
-                        QLabel {
-                            border: 2px solid #9C27B0;
-                            border-radius: 8px;
-                            background-color: #000000;
-                        }
-                    """)
-                    layout.addWidget(self.video_label)
-                    
-                    # Instruções
-                    instrucoes = QLabel("📹 Posicione o olho e ajuste o foco. Clique 'Capturar' quando estiver pronto.")
-                    instrucoes.setStyleSheet("""
-                        QLabel {
-                            padding: 10px;
-                            background-color: #e3f2fd;
-                            border-radius: 6px;
-                            color: #1976d2;
-                            font-weight: bold;
-                        }
-                    """)
-                    layout.addWidget(instrucoes)
-                    
-                    # Botões
-                    botoes_layout = QHBoxLayout()
-                    
-                    self.btn_capturar = QPushButton("📸 Capturar Imagem")
-                    self.btn_capturar.setStyleSheet("""
-                        QPushButton {
-                            background-color: #4CAF50;
-                            color: white;
-                            border: none;
-                            padding: 12px 24px;
-                            border-radius: 6px;
-                            font-weight: bold;
-                            font-size: 14px;
-                        }
-                        QPushButton:hover {
-                            background-color: #45a049;
-                        }
-                    """)
-                    self.btn_capturar.clicked.connect(self.capturar_imagem)
-                    
-                    self.btn_cancelar = QPushButton("❌ Cancelar")
-                    self.btn_cancelar.setStyleSheet("""
-                        QPushButton {
-                            background-color: #f44336;
-                            color: white;
-                            border: none;
-                            padding: 12px 24px;
-                            border-radius: 6px;
-                            font-weight: bold;
-                            font-size: 14px;
-                        }
-                        QPushButton:hover {
-                            background-color: #da190b;
-                        }
-                    """)
-                    self.btn_cancelar.clicked.connect(self.reject)
-                    
-                    botoes_layout.addWidget(self.btn_capturar)
-                    botoes_layout.addWidget(self.btn_cancelar)
-                    layout.addLayout(botoes_layout)
-                
-                def start_camera(self):
-                    # Import lazy do cv2 apenas quando necessário
-                    import cv2
-                    # Tentar iridoscópio primeiro (câmera 1)
-                    self.cap = cv2.VideoCapture(1)
-                    if not self.cap.isOpened():
-                        # Fallback para câmera 0
-                        self.cap = cv2.VideoCapture(0)
-                        if not self.cap.isOpened():
-                            self.video_label.setText("❌ Erro: Não foi possível acessar nenhuma câmera")
-                            return
-                        else:
-                            print("⚠️ Usando câmera padrão - iridoscópio não encontrado")
-                    else:
-                        print("✅ Iridoscópio conectado")
-                    
-                    # Configurar resolução
-                    self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-                    self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-                    
-                    # Iniciar timer para atualização
-                    self.timer.start(30)  # 30ms = ~33 FPS
-                
-                def update_frame(self):
-                    if self.cap and self.cap.isOpened():
-                        ret, frame = self.cap.read()
-                        if ret:
-                            self.current_frame = frame.copy()
-                            
-                            # Converter para QImage e exibir
-                            rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                            h, w, ch = rgb_image.shape
-                            bytes_per_line = ch * w
-                            qt_image = QImage(rgb_image.data, w, h, bytes_per_line, QImage.Format.Format_RGB888)
-                            
-                            # Redimensionar para caber no label
-                            pixmap = QPixmap.fromImage(qt_image)
-                            scaled_pixmap = pixmap.scaled(
-                                self.video_label.size(), 
-                                Qt.AspectRatioMode.KeepAspectRatio,
-                                Qt.TransformationMode.SmoothTransformation
-                            )
-                            self.video_label.setPixmap(scaled_pixmap)
-                
-                def capturar_imagem(self):
-                    if hasattr(self, 'current_frame') and self.current_frame is not None:
-                        self.frame = self.current_frame.copy()
-                        self.accept()
-                    else:
-                        self.video_label.setText("❌ Erro: Nenhuma imagem disponível para captura")
-                
-                def closeEvent(self, event):
-                    self.stop_camera()
-                    event.accept()
-                
-                def stop_camera(self):
-                    if self.timer.isActive():
-                        self.timer.stop()
-                    if self.cap:
-                        self.cap.release()
-            
-            # 1. Abrir preview do iridoscópio
-            preview = IridoscopioPreview(parent=self)
-            if preview.exec() == QDialog.DialogCode.Accepted and preview.frame is not None:
-                frame = preview.frame
-            else:
-                print("[INFO] Captura cancelada pelo usuário")
-                return
-            
-            if frame is None:
-                mostrar_erro(self, "Erro de Captura", "Não foi possível capturar imagem da câmera.")
-                return
-            
-            try:
-                # 2. Determinar olho (esquerdo/direito) com diálogo moderno
-                tipo = escolher_lateralidade(self)
-                if not tipo:
-                    return  # Usuário cancelou
-                
-                # 3. Salvar imagem em arquivo permanente
-                imagens_dir = os.path.join(os.path.dirname(__file__), "imagens_iris", str(self.paciente_data['id']))
-                os.makedirs(imagens_dir, exist_ok=True)
-                
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                filename = f"{tipo}_{timestamp}.jpg"
-                caminho = os.path.join(imagens_dir, filename)
-                
-                # Salvar com qualidade alta
-                success = cv2.imwrite(caminho, frame, [cv2.IMWRITE_JPEG_QUALITY, 95])
-                if not success:
-                    raise Exception("Falha ao salvar a imagem no disco")
-                
-                print(f"✅ Imagem salva: {caminho}")
-                
-                # 4. Atualizar BD
-                db = DBManager()
-                db.adicionar_imagem_iris(self.paciente_data['id'], tipo, caminho)
-                print(f"✅ Registro adicionado ao BD: paciente={self.paciente_data['id']}, tipo={tipo}")
-                
-                # 5. Atualizar UI
-                self.atualizar_galeria_iris()
-                print("✅ Galeria atualizada")
-                
-                # 6. Exibir imagem no canvas
-                self.iris_canvas.set_image(caminho, tipo)
-                self.notas_iris.limpar_todas_linhas()  # Limpar todas as linhas com checkboxes
-                print("✅ Imagem carregada no canvas")
-                
-                # 7. Informar sucesso
-                tipo_nome = "Esquerda" if tipo == 'esq' else "Direita"
-                mostrar_informacao(
-                    self, 
-                    "Sucesso", 
-                    f"Imagem capturada e guardada com sucesso!\n\n"
-                    f"📁 Arquivo: {filename}\n"
-                    f"👁️ Lateralidade: Íris {tipo_nome}\n"
-                    f"👤 Paciente: {self.paciente_data.get('nome', 'N/A')}\n\n"
-                    "A imagem foi automaticamente adicionada à galeria e está pronta para análise.",
-                    "success"
-                )
-                
-            except Exception as e:
-                print(f"❌ Erro ao processar a imagem: {e}")
-                import traceback
-                traceback.print_exc()
-                mostrar_erro(
-                    self, 
-                    "Erro", 
-                    f"Erro ao processar a imagem:\n\n{str(e)}"
-                )
-            else:
-                print("[INFO] Captura cancelada pelo usuário")
-                
-        except ImportError as e:
-            print(f"❌ Erro de importação: {e}")
-            mostrar_erro(
-                self, 
-                "Erro de Módulo", 
-                "Não foi possível carregar o módulo da câmera.\n\n"
-                "Verifique se o arquivo iris_anonima_canvas.py está presente."
-            )
-        except Exception as e:
-            print(f"❌ Erro geral em adicionar_nova_iris: {e}")
-            import traceback
-            traceback.print_exc()
-            mostrar_erro(
-                self, 
-                "Erro na Captura", 
-                f"Ocorreu um erro ao tentar capturar a imagem:\n\n{str(e)}"
-            )
 
     def init_tab_terapia(self):
         """Inicializa a aba de terapia quântica - Interface Zero"""
@@ -8296,578 +2388,21 @@ Naturopata | Osteopata | Medicina Quântica
             mensagem
         )
 
-    def exportar_notas_iris(self):
-        # Obter apenas as linhas selecionadas
-        linhas_selecionadas = self.notas_iris.get_linhas_selecionadas()
-        
-        if not linhas_selecionadas:
-            from biodesk_dialogs import mostrar_aviso
-            mostrar_aviso(self, 'Nenhuma nota selecionada', 
-                         'Selecione pelo menos uma nota para exportar para o histórico.')
-            return
-        
-        # Criar texto formatado das linhas selecionadas
-        notas = '\n'.join(linhas_selecionadas)
-        
-        from datetime import datetime
-        data_hoje = datetime.today().strftime('%d/%m/%Y')
-        
-        print(f"[DEBUG] Exportando notas para data: {data_hoje}")
-        print(f"[DEBUG] Número de linhas selecionadas: {len(linhas_selecionadas)}")
-        
-        # Usar a mesma verificação robusta que o botão de data usa
-        existe, tipo = self._data_ja_existe_no_historico(data_hoje)
-        
-        print(f"[DEBUG] Data existe no histórico: {existe}, tipo: {tipo}")
-        
-        if not existe:
-            # Se não existe data de hoje, avisar o utilizador
-            from biodesk_dialogs import mostrar_aviso
-            mostrar_aviso(
-                self, 
-                'Data não encontrada', 
-                f'Não foi encontrada uma entrada para hoje ({data_hoje}) no histórico.\n\n'
-                'Use o botão 📅 para inserir a data primeiro.'
-            )
-            return
-        
-        # Formatar as notas
-        notas_formatadas = self._formatar_notas_para_exportacao(notas)
-        
-        # Método mais robusto para encontrar e inserir após a data
-        sucesso = self._inserir_notas_apos_data(data_hoje, notas_formatadas)
-        
-        if sucesso:
-            # Remover as linhas exportadas do widget
-            self._remover_linhas_selecionadas()
-            
-            from biodesk_dialogs import mostrar_informacao
-            mostrar_informacao(self, 'Exportado', 
-                             f'✅ {len(linhas_selecionadas)} nota(s) adicionada(s) ao histórico clínico!')
-        else:
-            from biodesk_dialogs import mostrar_erro
-            mostrar_erro(
-                self, 
-                'Erro ao localizar data', 
-                f'Não foi possível localizar a data {data_hoje} no histórico para inserir as notas.'
-            )
+
+
+
+
+
+
+
+
+
+
+
     
-    def _remover_linhas_selecionadas(self):
-        """Remove as linhas que estão marcadas (após exportação)"""
-        # Obter widgets das linhas selecionadas
-        linhas_para_remover = []
-        for linha_data in self.notas_iris.linhas_notas:
-            if linha_data['checkbox'].isChecked():
-                linhas_para_remover.append(linha_data['widget'])
-        
-        # Remover cada linha
-        for linha_widget in linhas_para_remover:
-            self.notas_iris.remover_linha(linha_widget)
-        
-        # Atualizar textos dos botões
-        self.atualizar_textos_botoes()
+
     
-    def data_atual(self):
-        """Retorna a data atual formatada"""
-        from datetime import datetime
-        return datetime.today().strftime('%d/%m/%Y')
 
-    def _formatar_notas_para_exportacao(self, notas):
-        """
-        Formata as notas da íris para exportação com parágrafos e vírgulas adequadas
-        """
-        # Dividir as notas em linhas
-        linhas = [linha.strip() for linha in notas.split('\n') if linha.strip()]
-
-        if not linhas:
-            return ""
-
-        linhas_formatadas = []
-        for i, linha in enumerate(linhas):
-            if i == 0:
-                linhas_formatadas.append(linha)
-            else:
-                linhas_formatadas.append(f"<b>{linha}</b>")
-
-        resultado = '<br>'.join(linhas_formatadas)
-        return resultado
-
-    def _adicionar_nota_zona(self, nome_zona):
-        """
-        Slot chamado ao clicar numa zona da íris; adiciona uma linha na caixa de notas.
-        """
-        texto = f"Alteração na área reflexa: {nome_zona}"
-        print(f"[NOTA] Adicionando nota para zona: {nome_zona}")
-        
-        # Adiciona a linha no widget com checkbox
-        self.notas_iris.adicionar_linha(texto)
-        
-        # Feedback visual opcional
-        print(f"✅ Nota adicionada: {texto}")
-
-    def init_tab_dados(self):
-        layout = QVBoxLayout()
-        grid = QGridLayout()
-        grid.setHorizontalSpacing(32)
-        grid.setVerticalSpacing(28)
-        grid.setContentsMargins(24, 18, 24, 18)
-
-        # Linha 1: Nome
-        self.nome_edit = QLineEdit()
-        self.nome_edit.setMinimumWidth(320)
-        self._style_line_edit(self.nome_edit)
-        grid.addWidget(self._create_label('Nome'), 0, 0)
-        grid.addWidget(self.nome_edit, 0, 1, 1, 3)
-
-        # Linha 2: Data de nascimento | Sexo (Widget moderno)
-        self.nasc_edit = ModernDateWidget()
-        self.nasc_edit.setDate(QDate(1920, 1, 1))
-        
-        self.sexo_combo = QComboBox()
-        self.sexo_combo.addItems(['', 'Masculino', 'Feminino', 'Outro'])
-        self.sexo_combo.setFixedWidth(200)
-        self._style_combo_box(self.sexo_combo)
-        
-        grid.addWidget(self._create_label('Data de nascimento'), 1, 0)
-        grid.addWidget(self.nasc_edit, 1, 1, Qt.AlignmentFlag.AlignLeft)
-        grid.addWidget(self._create_label('Sexo'), 1, 2)
-        grid.addWidget(self.sexo_combo, 1, 3)
-
-        # Linha 3: Profissão | Naturalidade
-        self.profissao_edit = QLineEdit()
-        self.profissao_edit.setMinimumWidth(200)
-        self._style_line_edit(self.profissao_edit)
-        
-        self.naturalidade_edit = QLineEdit()
-        self.naturalidade_edit.setMinimumWidth(200)
-        self._style_line_edit(self.naturalidade_edit)
-        
-        grid.addWidget(self._create_label('Profissão'), 2, 0)
-        grid.addWidget(self.profissao_edit, 2, 1)
-        grid.addWidget(self._create_label('Naturalidade'), 2, 2)
-        grid.addWidget(self.naturalidade_edit, 2, 3)
-
-        # Linha 4: Estado civil | Local habitual
-        self.estado_civil_combo = QComboBox()
-        self.estado_civil_combo.addItems(['', 'Solteiro(a)', 'Casado(a)', 'Divorciado(a)', 'Viúvo(a)', 'União de facto', 'Outro'])
-        self.estado_civil_combo.setFixedWidth(200)
-        self._style_combo_box(self.estado_civil_combo)
-        
-        self.local_combo = QComboBox()
-        self.local_combo.addItems(['', 'Chão de Lopes', 'Coruche', 'Campo Maior', 'Elvas', 'Cliniprata', 'Spazzio Vita', 'Samora Correia', 'Online', 'Outro'])
-        self.local_combo.setFixedWidth(200)
-        self._style_combo_box(self.local_combo)
-        
-        grid.addWidget(self._create_label('Estado civil'), 3, 0)
-        grid.addWidget(self.estado_civil_combo, 3, 1)
-        grid.addWidget(self._create_label('Local habitual'), 3, 2)
-        grid.addWidget(self.local_combo, 3, 3)
-
-        # Linha 5: Contacto | Email
-        self.contacto_edit = QLineEdit()
-        self.contacto_edit.setFixedWidth(200)
-        self.contacto_edit.textChanged.connect(self.formatar_contacto)
-        self._style_line_edit(self.contacto_edit)
-        
-        self.email_edit = QLineEdit()
-        self.email_edit.setMinimumWidth(220)
-        self._style_line_edit(self.email_edit)
-        
-        grid.addWidget(self._create_label('Contacto'), 4, 0)
-        grid.addWidget(self.contacto_edit, 4, 1)
-        grid.addWidget(self._create_label('Email'), 4, 2)
-        grid.addWidget(self.email_edit, 4, 3)
-
-        layout.addLayout(grid)
-        layout.addSpacing(36)
-        layout.addItem(QSpacerItem(20, 30, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
-
-        self.tab_dados.setLayout(layout)
-
-    def formatar_contacto(self, text):
-        digits = ''.join(filter(str.isdigit, text))
-        if len(digits) > 9:
-            digits = digits[:9]
-        formatted = ' '.join([digits[i:i+3] for i in range(0, len(digits), 3)])
-        if text != formatted:
-            self.contacto_edit.blockSignals(True)
-            self.contacto_edit.setText(formatted)
-            self.contacto_edit.blockSignals(False)
-
-    def formatar_data(self, text):
-        """Formata a data no formato dd/mm/aaaa"""
-        # Remove caracteres não numéricos exceto barras
-        digits = ''.join(filter(lambda x: x.isdigit() or x == '/', text))
-        
-        # Remove barras para trabalhar apenas com dígitos
-        only_digits = ''.join(filter(str.isdigit, digits))
-        
-        # Limita a 8 dígitos
-        if len(only_digits) > 8:
-            only_digits = only_digits[:8]
-        
-        # Formata conforme o número de dígitos
-        if len(only_digits) <= 2:
-            formatted = only_digits
-        elif len(only_digits) <= 4:
-            formatted = only_digits[:2] + '/' + only_digits[2:]
-        elif len(only_digits) <= 8:
-            formatted = only_digits[:2] + '/' + only_digits[2:4] + '/' + only_digits[4:]
-        else:
-            formatted = text
-        
-        # Atualiza o campo se necessário
-        if text != formatted:
-            self.nasc_edit.blockSignals(True)
-            self.nasc_edit.setText(formatted)
-            self.nasc_edit.blockSignals(False)
-
-    def formatar_nif(self, text):
-        """Formata o NIF no formato 123 456 789"""
-        # Remove caracteres não numéricos
-        digits = ''.join(filter(str.isdigit, text))
-        
-        # Limita a 9 dígitos
-        if len(digits) > 9:
-            digits = digits[:9]
-        
-        # Formata conforme o número de dígitos
-        if len(digits) <= 3:
-            formatted = digits
-        elif len(digits) <= 6:
-            formatted = digits[:3] + ' ' + digits[3:]
-        elif len(digits) <= 9:
-            formatted = digits[:3] + ' ' + digits[3:6] + ' ' + digits[6:]
-        else:
-            formatted = text
-        
-        # Atualiza o campo se necessário
-        if text != formatted:
-            self.nif_edit.blockSignals(True)
-            self.nif_edit.setText(formatted)
-            self.nif_edit.blockSignals(False)
-
-    def init_tab_historico(self):
-        splitter = QSplitter(Qt.Orientation.Horizontal)
-        historico_widget = QWidget()
-        hist_layout = QVBoxLayout(historico_widget)
-
-        # Estado emocional e Biotipo lado a lado
-        emo_bio_row = QHBoxLayout()
-        self.estado_emo_combo = QComboBox()
-        self.estado_emo_combo.addItems([
-            '', 'calmo', 'ansioso', 'agitado', 'deprimido', 'indiferente', 'eufórico', 'apático', 'irritável', 'motivado', 'desmotivado', 'confuso', 'triste', 'alegre', 'preocupado', 'tenso', 'relaxado', 'culpado', 'esperançoso', 'pessimista', 'otimista', 'outro'
-        ])
-        self.estado_emo_combo.setCurrentIndex(0)
-        self.estado_emo_combo.setFixedWidth(200)
-        self._style_combo_box(self.estado_emo_combo)
-        
-        emo_bio_row.addWidget(self._create_label('Estado emocional:'))
-        emo_bio_row.addWidget(self.estado_emo_combo)
-        
-        self.biotipo_combo = QComboBox()
-        self.biotipo_combo.addItems([
-            '', 'Longilíneo', 'Brevilíneo', 'Normolíneo', 'Atlético', 'Outro'
-        ])
-        self.biotipo_combo.setFixedWidth(200)
-        self._style_combo_box(self.biotipo_combo)
-        
-        emo_bio_row.addSpacing(20)
-        emo_bio_row.addWidget(self._create_label('Biotipo:'))
-        emo_bio_row.addWidget(self.biotipo_combo)
-        emo_bio_row.addStretch()
-        hist_layout.addLayout(emo_bio_row)
-        # Legenda do biotipo
-        self.biotipo_desc = QLabel(
-            "Biotipos:<br>"
-            "• Longilíneo – magro, esguio, estatura alta<br>"
-            "  → Tendência para ansiedade, hiperatividade, digestão rápida<br>"
-            "• Brevilíneo – baixo, robusto, arredondado<br>"
-            "  → Propenso a retenção, congestão, metabolismo lento<br>"
-            "• Normolíneo – equilibrado, proporcional<br>"
-            "  → Regulação geral estável, adaptação moderada<br>"
-            "• Atlético – musculado, estrutura firme<br>"
-            "  → Boa resistência, recuperação rápida, resposta forte a terapias físicas"
-        )
-        self.biotipo_desc.setWordWrap(True)
-        self.biotipo_desc.setStyleSheet('font-size: 12px; color: #555; margin-top: 2px; margin-bottom: 8px;')
-        print("✅ Legenda do biotipo clara e alinhada.")
-        hist_layout.addWidget(self.biotipo_desc)
-
-        # Toolbar com margens e hover
-        self.toolbar = QToolBar()
-        self.toolbar.setStyleSheet("""
-            QToolBar { margin-bottom: 8px; }
-            QToolButton { margin-right: 6px; padding: 4px 8px; border-radius: 6px; }
-            QToolButton:hover { background: #eaf3fa; }
-        """)
-        self.action_bold = QAction('B', self)
-        self.action_bold.setShortcut('Ctrl+B')
-        self.action_bold.triggered.connect(lambda: self.toggle_bold())
-        self.action_italic = QAction('I', self)
-        self.action_italic.setShortcut('Ctrl+I')
-        self.action_italic.triggered.connect(lambda: self.toggle_italic())
-        self.action_underline = QAction('U', self)
-        self.action_underline.setShortcut('Ctrl+U')
-        self.action_underline.triggered.connect(lambda: self.toggle_underline())
-        self.action_date = QAction('📅', self)
-        self.action_date.triggered.connect(self.inserir_data_negrito)
-        self.toolbar.addAction(self.action_bold)
-        self.toolbar.addAction(self.action_italic)
-        self.toolbar.addAction(self.action_underline)
-        self.toolbar.addSeparator()
-        self.toolbar.addAction(self.action_date)
-        hist_layout.addWidget(self.toolbar)
-
-        # Editor de histórico
-        self.historico_edit = QTextEdit()
-        self.historico_edit.setPlaceholderText(
-            "Descreva queixas, sintomas, evolução do caso ou aspetos emocionais relevantes..."
-        )
-        self.historico_edit.setMinimumHeight(250)  # Altura reduzida para não sobrepor botão guardar
-        self.historico_edit.setMaximumHeight(300)  # Altura máxima para controlar melhor
-        self._style_text_edit(self.historico_edit)
-        hist_layout.addWidget(self.historico_edit)
-        hist_layout.addStretch()
-
-        # Rodapé com botão Guardar
-        rodape = QHBoxLayout()
-        rodape.addStretch()
-        self.btn_guardar = QPushButton('💾 Guardar')
-        self._style_modern_button(self.btn_guardar, "#4CAF50")
-        self.btn_guardar.setFixedWidth(140)
-        self.btn_guardar.clicked.connect(self.guardar)
-        rodape.addWidget(self.btn_guardar)
-        hist_layout.addLayout(rodape)
-
-        # Divisão visual entre editor e IA
-        frame = QFrame()
-        frame.setFrameShape(QFrame.Shape.VLine)
-        frame.setLineWidth(2)
-        frame.setStyleSheet("color: #e0e0e0; background: #e0e0e0; min-width: 2px;")
-        splitter.addWidget(historico_widget)
-        splitter.addWidget(frame)
-        self.chat_widget = IAChatWidget(self.paciente_data)
-        splitter.addWidget(self.chat_widget)
-        splitter.setSizes([700, 10, 350])
-        layout = QVBoxLayout(self.tab_historico)
-        layout.addWidget(splitter)
-
-
-
-    def format_text(self, fmt):
-        cursor = self.historico_edit.textCursor()
-        fmt_obj = self.historico_edit.currentCharFormat()
-        if fmt == 'italic':
-            fmt_obj.setFontItalic(not fmt_obj.fontItalic())
-        elif fmt == 'underline':
-            fmt_obj.setFontUnderline(not fmt_obj.fontUnderline())
-        cursor.mergeCharFormat(fmt_obj)
-        self.historico_edit.setTextCursor(cursor)
-
-    def _data_ja_existe_no_historico(self, data_procurada):
-        """
-        Verifica de forma robusta se uma data já existe no histórico clínico.
-        Retorna: (existe, tipo) onde tipo pode ser 'simples', 'iris' ou None
-        """
-        # Obter texto puro para verificação mais confiável
-        texto_puro = self.historico_edit.toPlainText()
-        
-        # Verificar se já existe qualquer entrada para esta data
-        # Procurar por diferentes padrões no texto
-        linhas = texto_puro.split('\n')
-        
-        for linha in linhas:
-            linha_limpa = linha.strip()
-            
-            # Verificar se é uma linha de data exata
-            if linha_limpa == data_procurada:
-                return (True, 'simples')
-            
-            # Verificar se é uma linha de análise de íris
-            if linha_limpa.startswith(f'{data_procurada} - Análise de Íris'):
-                return (True, 'iris')
-        
-        return (False, None)
-
-    def _inserir_notas_apos_data(self, data_procurada, notas):
-        """
-        Método robusto para inserir notas após uma data específica no histórico.
-        Trata tanto texto puro quanto HTML formatado.
-        
-        Args:
-            data_procurada (str): Data no formato dd/mm/yyyy
-            notas (str): Texto das notas a inserir (pode conter HTML)
-            
-        Returns:
-            bool: True se conseguiu inserir, False caso contrário
-        """
-        try:
-            # Método 1: Procurar na representação HTML
-            html_content = self.historico_edit.toHtml()
-            
-            # Padrões de busca para a data em HTML
-            data_patterns = [
-                f'<b>{data_procurada}</b>',
-                f'<strong>{data_procurada}</strong>',
-                data_procurada
-            ]
-            
-            for pattern in data_patterns:
-                if pattern in html_content:
-                    # Encontrar posição do padrão
-                    pos = html_content.find(pattern)
-                    if pos != -1:
-                        # Encontrar o final do padrão
-                        fim_pattern = pos + len(pattern)
-                        
-                        # Se for tag HTML, pular para depois da tag de fecho
-                        if pattern.startswith('<b>'):
-                            fim_pattern = html_content.find('</b>', pos) + 4
-                        elif pattern.startswith('<strong>'):
-                            fim_pattern = html_content.find('</strong>', pos) + 9
-                        
-                        # Preparar as notas para inserção em HTML
-                        if '<br>' in notas or '<b>' in notas:
-                            # Já está formatado em HTML
-                            notas_html = f'<br>{notas}<br>'
-                        else:
-                            # Converter texto puro para HTML
-                            notas_html = f'<br>{notas.replace(chr(10), "<br>")}<br>'
-                        
-                        # Inserir as notas
-                        novo_html = html_content[:fim_pattern] + notas_html + html_content[fim_pattern:]
-                        self.historico_edit.setHtml(novo_html)
-                        
-                        # Mover cursor para o final
-                        cursor = self.historico_edit.textCursor()
-                        cursor.movePosition(QTextCursor.MoveOperation.End)
-                        self.historico_edit.setTextCursor(cursor)
-                        
-                        return True
-            
-            # Método 2: Busca usando find() do QTextEdit
-            self.historico_edit.moveCursor(QTextCursor.MoveOperation.Start)
-            encontrou = self.historico_edit.find(data_procurada)
-            
-            if encontrou:
-                cursor = self.historico_edit.textCursor()
-                cursor.movePosition(QTextCursor.MoveOperation.EndOfLine)
-                
-                # Inserir as notas usando insertHtml se contiver HTML
-                if '<br>' in notas or '<b>' in notas:
-                    cursor.insertHtml(f'<br>{notas}<br>')
-                else:
-                    cursor.insertText(f'\n{notas}\n')
-                
-                return True
-            
-            # Método 3: Busca manual por linhas de texto puro
-            texto_puro = self.historico_edit.toPlainText()
-            linhas = texto_puro.split('\n')
-            
-            for i, linha in enumerate(linhas):
-                if data_procurada in linha.strip():
-                    # Posicionar cursor na linha da data
-                    cursor = self.historico_edit.textCursor()
-                    cursor.movePosition(QTextCursor.MoveOperation.Start)
-                    
-                    # Mover para a linha correta
-                    for _ in range(i):
-                        cursor.movePosition(QTextCursor.MoveOperation.Down)
-                    
-                    # Mover para o final da linha
-                    cursor.movePosition(QTextCursor.MoveOperation.EndOfLine)
-                    
-                    # Inserir as notas
-                    if '<br>' in notas or '<b>' in notas:
-                        cursor.insertHtml(f'<br>{notas}<br>')
-                    else:
-                        cursor.insertText(f'\n{notas}\n')
-                    
-                    return True
-            
-            print(f"[DEBUG] Não foi possível encontrar a data '{data_procurada}' no histórico")
-            return False
-            
-        except Exception as e:
-            print(f"[ERRO] Erro ao inserir notas após data: {e}")
-            import traceback
-            traceback.print_exc()
-            return False
-    
-    def toggle_bold(self):
-        """Aplica/remove formatação de negrito no texto selecionado"""
-        try:
-            cursor = self.historico_edit.textCursor()
-            if cursor.hasSelection():
-                # Texto selecionado - aplicar/remover negrito
-                format = cursor.charFormat()
-                current_weight = format.fontWeight()
-                if current_weight == QFont.Weight.Bold:
-                    # Remover negrito
-                    format.setFontWeight(QFont.Weight.Normal)
-                    print("[DEBUG] Negrito removido")
-                else:
-                    # Aplicar negrito
-                    format.setFontWeight(QFont.Weight.Bold)
-                    print("[DEBUG] Negrito aplicado")
-                cursor.mergeCharFormat(format)
-                # Manter seleção ativa para visual feedback
-                self.historico_edit.setTextCursor(cursor)
-            else:
-                # Nenhuma seleção - alternar estado para próxima digitação
-                format = self.historico_edit.currentCharFormat()
-                current_weight = format.fontWeight()
-                if current_weight == QFont.Weight.Bold:
-                    format.setFontWeight(QFont.Weight.Normal)
-                    print("[DEBUG] Modo negrito desativado")
-                else:
-                    format.setFontWeight(QFont.Weight.Bold)
-                    print("[DEBUG] Modo negrito ativado")
-                self.historico_edit.setCurrentCharFormat(format)
-        except Exception as e:
-            print(f"[DEBUG] Erro toggle_bold: {e}")
-    
-    def toggle_italic(self):
-        """Aplica/remove formatação de itálico no texto selecionado"""
-        try:
-            cursor = self.historico_edit.textCursor()
-            if cursor.hasSelection():
-                format = cursor.charFormat()
-                current_italic = format.fontItalic()
-                format.setFontItalic(not current_italic)
-                cursor.mergeCharFormat(format)
-                self.historico_edit.setTextCursor(cursor)
-                print(f"[DEBUG] Itálico {'removido' if current_italic else 'aplicado'}")
-            else:
-                format = self.historico_edit.currentCharFormat()
-                current_italic = format.fontItalic()
-                format.setFontItalic(not current_italic)
-                self.historico_edit.setCurrentCharFormat(format)
-                print(f"[DEBUG] Modo itálico {'desativado' if current_italic else 'ativado'}")
-        except Exception as e:
-            print(f"[DEBUG] Erro toggle_italic: {e}")
-    
-    def toggle_underline(self):
-        """Aplica/remove formatação de sublinhado no texto selecionado"""
-        try:
-            cursor = self.historico_edit.textCursor()
-            if cursor.hasSelection():
-                format = cursor.charFormat()
-                current_underline = format.fontUnderline()
-                format.setFontUnderline(not current_underline)
-                cursor.mergeCharFormat(format)
-                self.historico_edit.setTextCursor(cursor)
-                print(f"[DEBUG] Sublinhado {'removido' if current_underline else 'aplicado'}")
-            else:
-                format = self.historico_edit.currentCharFormat()
-                current_underline = format.fontUnderline()
-                format.setFontUnderline(not current_underline)
-                self.historico_edit.setCurrentCharFormat(format)
-                print(f"[DEBUG] Modo sublinhado {'desativado' if current_underline else 'ativado'}")
-        except Exception as e:
-            print(f"[DEBUG] Erro toggle_underline: {e}")
 
     def inserir_data_negrito(self):
         import time
@@ -8981,479 +2516,144 @@ Naturopata | Osteopata | Medicina Quântica
         return html
 
     def load_data(self):
-        d = self.paciente_data
-        self.nome_edit.setText(d.get('nome', ''))
-        self.sexo_combo.setCurrentText(d.get('sexo', ''))
-        nasc = d.get('data_nascimento')
-        if nasc:
-            try:
-                self.nasc_edit.setDate(QDate.fromString(nasc, 'dd/MM/yyyy'))
-            except:
-                pass
-        self.naturalidade_edit.setText(d.get('naturalidade', ''))
-        self.profissao_edit.setText(d.get('profissao', ''))
-        self.estado_civil_combo.setCurrentText(d.get('estado_civil', ''))
-        self.contacto_edit.setText(d.get('contacto', ''))
-        self.email_edit.setText(d.get('email', ''))
+        """Carrega os dados do paciente nos widgets especializados"""
+        # CORREÇÃO: Prevenir callbacks de marcar como dirty durante carregamento
+        self._carregando_dados = True
         
-        # Carregar novos campos se existirem
-        if hasattr(self, 'observacoes_edit'):
-            self.observacoes_edit.setText(d.get('observacoes', ''))
-        if hasattr(self, 'conheceu_combo'):
-            self.conheceu_combo.setCurrentText(d.get('conheceu', ''))
-        if hasattr(self, 'referenciado_edit'):
-            self.referenciado_edit.setText(d.get('referenciado', ''))
-        if hasattr(self, 'nif_edit'):
-            self.nif_edit.setText(d.get('nif', ''))
-        if hasattr(self, 'local_combo'):
-            self.local_combo.setCurrentText(d.get('local_habitual', ''))
-        
-        # REMOVIDO: Campos biotipo e estado emocional não existem mais na nova interface
-        # self.estado_emo_combo.setCurrentText(d.get('estado_emocional', ''))
-        # self.biotipo_combo.setCurrentText(d.get('biotipo', ''))
-        
-        # Histórico clínico
-        historico = d.get('historico', [])
-        # print('DEBUG HISTÓRICO:', type(historico), str(historico)[:120])  # Comentar para reduzir output
-        # 1. Formato texto+tags
-        if isinstance(historico, dict) and 'text' in historico and 'tags' in historico:
-            print('Formato: texto+tags')
-            html = self.text_with_tags_to_html(historico['text'], historico['tags'])
-            self.historico_edit.setHtml(html)
-        # 2. JSON rich text (lista de chars)
-        elif isinstance(historico, str) and historico.strip().startswith('[{'):
-            print('Formato: JSON rich text')
-            try:
-                historico_json = json.loads(historico)
-                html = self.json_richtext_to_html(historico_json)
-                self.historico_edit.setHtml(html)
-            except Exception as e:
-                print('Erro ao converter histórico JSON:', e)
-                self.historico_edit.setPlainText(historico)
-        # 3. HTML (tem tags <b>, <div>, etc.)
-        elif isinstance(historico, str) and ('<' in historico and '>' in historico):
-            print('Formato: HTML')
-            self.historico_edit.setHtml(historico)
-        # 4. Lista de dicts (ex: [{'data':..., 'texto':...}, ...])
-        elif isinstance(historico, list) and all(isinstance(x, dict) for x in historico):
-            print('Formato: lista de dicts')
-            texto = ''
-            for item in historico[-5:]:
-                data = item.get('data', '')
-                texto_item = item.get('texto', '')
-                texto += f"""
-                    <div style='margin-bottom: 18px; padding-bottom: 8px; border-bottom: 1px dashed #aaa;'>
-                        <div style='font-weight: bold; font-size: 14px; color: #2a2a2a;'>{data}</div>
-                        <div style='margin-top: 6px;'>{texto_item}</div>
-                    </div>
-                """
-            self.historico_edit.setHtml(texto)
-        # 5. Lista de strings
-        elif isinstance(historico, list) and all(isinstance(x, str) for x in historico):
-            print('Formato: lista de strings')
-            self.historico_edit.setHtml('<br>'.join(historico))
-        # 6. Texto simples
-        elif isinstance(historico, str):
-            print('Formato: texto simples')
-            self.historico_edit.setPlainText(historico)
-        # 7. Notas antigas migradas para histórico
-        elif d.get('notas') and not self.historico_edit.toPlainText():
-            print('Formato: notas antigas')
-            self.historico_edit.setHtml(d.get('notas'))
-        else:
-            print('Formato desconhecido')
-            self.historico_edit.setPlainText(str(historico))
-        
-        # ✅ CORREÇÃO: Carregar dados do email automaticamente
-        if hasattr(self, 'carregar_dados_paciente_email'):
-            self.carregar_dados_paciente_email()
+        try:
+            d = self.paciente_data
             
-        # ✅ NOVO: Carregar dados da declaração de saúde
-        if hasattr(self, 'carregar_dados_paciente_declaracao'):
-            self.carregar_dados_paciente_declaracao()
-            # Dados do email recarregados automaticamente
+            # Carregar dados pessoais no widget especializado
+            if hasattr(self, 'dados_pessoais_widget'):
+                try:
+                    # O widget usa self.paciente_data internamente
+                    self.dados_pessoais_widget.paciente_data = d
+                    self.dados_pessoais_widget.carregar_dados()
+                    print("✅ Dados pessoais carregados no widget especializado")
+                except Exception as e:
+                    print(f"❌ Erro ao carregar dados pessoais: {e}")
+            
+            # Carregar histórico clínico no widget especializado  
+            if hasattr(self, 'historico_widget'):
+                try:
+                    historico = d.get('historico_clinico', '') or d.get('historico', '')
+                    # O widget usa self.historico_texto internamente
+                    self.historico_widget.historico_texto = historico
+                    self.historico_widget.carregar_historico()
+                    print("✅ Histórico clínico carregado no widget especializado")
+                except Exception as e:
+                    print(f"❌ Erro ao carregar histórico: {e}")
+            
+            # Carregar outros dados que ainda não foram modularizados
+            
+            # Carregar novos campos se existirem
+            if hasattr(self, 'observacoes_edit'):
+                self.observacoes_edit.setText(d.get('observacoes', ''))
+            if hasattr(self, 'conheceu_combo'):
+                self.conheceu_combo.setCurrentText(d.get('conheceu', ''))
+            if hasattr(self, 'referenciado_edit'):
+                self.referenciado_edit.setText(d.get('referenciado', ''))
+            if hasattr(self, 'nif_edit'):
+                self.nif_edit.setText(d.get('nif', ''))
+            if hasattr(self, 'local_combo'):
+                self.local_combo.setCurrentText(d.get('local_habitual', ''))
         
-        # ✅ CORREÇÃO: Atualizar lista de documentos quando o paciente é carregado
-        if hasattr(self, 'atualizar_lista_documentos'):
-            try:
-                self.atualizar_lista_documentos()
-                print(f"🔄 [DOCUMENTOS] Lista atualizada para paciente: {d.get('nome', 'Sem nome')}")
-            except Exception as e:
-                print(f"❌ [DOCUMENTOS] Erro ao atualizar lista: {e}")
+            # ✅ CORREÇÃO: Carregar dados do email automaticamente
+            if hasattr(self, 'carregar_dados_paciente_email'):
+                self.carregar_dados_paciente_email()
+                
+            # ✅ NOVO: Carregar dados da declaração de saúde
+            if hasattr(self, 'carregar_dados_paciente_declaracao'):
+                self.carregar_dados_paciente_declaracao()
+                # Dados do email recarregados automaticamente
+            
+            # ✅ CORREÇÃO: Atualizar lista de documentos quando o paciente é carregado
+            if hasattr(self, 'atualizar_lista_documentos'):
+                try:
+                    self.atualizar_lista_documentos()
+                    print(f"🔄 [DOCUMENTOS] Lista atualizada para paciente: {d.get('nome', 'Sem nome')}")
+                except Exception as e:
+                    print(f"❌ [DOCUMENTOS] Erro ao atualizar lista: {e}")
+        
+        finally:
+            # CORREÇÃO: Reativar callbacks após carregamento completo
+            self._carregando_dados = False
+            # Resetar estado dirty após carregamento inicial
+            self.dirty = False
 
     def guardar(self):
-        """Guarda os dados do utente na base de dados"""
+        """Guarda os dados do utente na base de dados usando widgets especializados"""
         from db_manager import DBManager
-        dados = {
-            'nome': self.nome_edit.text(),
-            'sexo': self.sexo_combo.currentText(),
-            'data_nascimento': self.nasc_edit.date().toString('dd/MM/yyyy'),  # Volta para QDate
-            'naturalidade': self.naturalidade_edit.text(),
-            'profissao': self.profissao_edit.text(),
-            'estado_civil': self.estado_civil_combo.currentText(),
-            'contacto': self.contacto_edit.text(),
-            'email': self.email_edit.text(),
-            'local_habitual': getattr(self, 'local_combo', None) and self.local_combo.currentText() or '',
-            # APENAS campos que EXISTEM na interface atual
-            'observacoes': getattr(self, 'observacoes_edit', None) and self.observacoes_edit.text() or '',
-            'conheceu': getattr(self, 'conheceu_combo', None) and self.conheceu_combo.currentText() or '',
-            'referenciado': getattr(self, 'referenciado_edit', None) and self.referenciado_edit.text() or '',
-            'nif': getattr(self, 'nif_edit', None) and self.nif_edit.text() or '',
-            # CORREÇÃO URGENTE: Adicionar histórico clínico!
-            'historico': getattr(self, 'historico_edit', None) and self.historico_edit.toHtml() or ''
-            # REMOVIDOS: cc, emergencia, parentesco - NÃO existem na interface!
-        }
+        
+        # Obter dados do widget de dados pessoais
+        dados = {}
+        if hasattr(self, 'dados_pessoais_widget'):
+            try:
+                dados_pessoais = self.dados_pessoais_widget.obter_dados()
+                dados.update(dados_pessoais)
+                print("✅ Dados pessoais obtidos do widget especializado")
+            except Exception as e:
+                print(f"❌ Erro ao obter dados pessoais: {e}")
+        
+        # Obter histórico clínico do widget especializado
+        if hasattr(self, 'historico_widget'):
+            try:
+                historico = self.historico_widget.obter_historico()
+                dados['historico'] = historico
+                print("✅ Histórico clínico obtido do widget especializado")
+            except Exception as e:
+                print(f"❌ Erro ao obter histórico: {e}")
+        
+        # Todos os campos já vêm do widget dados_pessoais, não precisamos de campos adicionais
+        
         if 'id' in self.paciente_data:
             dados['id'] = self.paciente_data['id']
+        
+        # Lazy import do DBManager
+        from db_manager import DBManager
         db = DBManager()
         # Prevenção de duplicação por nome + data_nascimento
         query = "SELECT * FROM pacientes WHERE nome = ? AND data_nascimento = ?"
         params = (dados['nome'], dados['data_nascimento'])
         duplicados = db.execute_query(query, params)
         if duplicados and (not ('id' in dados and duplicados[0].get('id') == dados['id'])):
-            from biodesk_dialogs import mostrar_aviso
-            mostrar_aviso(self, "Duplicado", "Já existe um utente com este nome e data de nascimento.")
+            from biodesk_styled_dialogs import BiodeskMessageBox
+            BiodeskMessageBox.warning(self, "Duplicado", "Já existe um utente com este nome e data de nascimento.")
             return
         novo_id = db.save_or_update_paciente(dados)
         if novo_id != -1:
             self.paciente_data['id'] = novo_id
+            # Atualizar dados do paciente para reflexão na interface
+            self.paciente_data.update(dados)
             self.setWindowTitle(dados['nome'])
             self.dirty = False
-            from biodesk_dialogs import mostrar_informacao
-            mostrar_informacao(self, "Sucesso", "Utente guardado com sucesso!")
+            from biodesk_styled_dialogs import BiodeskMessageBox
+            BiodeskMessageBox.information(self, "Sucesso", "Utente guardado com sucesso!")
         else:
-            from biodesk_dialogs import mostrar_erro
-            mostrar_erro(self, "Erro", "Erro ao guardar utente.")
+            from biodesk_styled_dialogs import BiodeskMessageBox
+            BiodeskMessageBox.warning(self, "Erro", "Erro ao guardar utente.")
 
     @staticmethod
     def mostrar_seletor(callback, parent=None):
+        """Interface modular de pesquisa de pacientes"""
+        try:
+            # Usar módulo especializado
+            _, _, _, _, _, _, _, PesquisaPacientesManager = importar_modulos_especializados()
+            PesquisaPacientesManager.mostrar_seletor(callback, parent)
+            print("✅ Pesquisa de Pacientes carregada com sucesso")
+        except Exception as e:
+            print(f"❌ Erro no módulo de pesquisa: {e}")
+            # Fallback básico em caso de erro
+            from biodesk_dialogs import mostrar_erro
+            mostrar_erro(parent, "Erro", f"Erro no sistema de pesquisa: {str(e)}")
         from PyQt6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QTableWidget, QTableWidgetItem, QMenu, QHeaderView
         from PyQt6.QtCore import Qt, QPoint
+        from db_manager import DBManager
         
-        class SeletorDialog(QDialog):
-            def __init__(self, parent=None):
-                super().__init__(parent)
-                self.setWindowTitle('🔍 Procurar utente')
-                self.setModal(True)
-                self.resize(1000, 700)  # Tamanho adequado para a tabela
-                self.db = DBManager()
-                self.resultados = []
-                
-                # Estilo geral do diálogo (moderno da iridologia)
-                self.setStyleSheet("""
-                    QDialog {
-                        background-color: #ffffff;
-                        border-radius: 16px;
-                    }
-                    QLabel {
-                        font-size: 16px;
-                        font-weight: 600;
-                        color: #2c3e50;
-                        margin-bottom: 8px;
-                    }
-                    QLineEdit {
-                        background-color: #f8f9fa;
-                        color: #2c3e50;
-                        border: 1px solid #e0e0e0;
-                        border-radius: 8px;
-                        font-size: 14px;
-                        font-weight: bold;
-                        padding: 12px 16px;
-                        margin: 4px;
-                    }
-                    QLineEdit:focus {
-                        border-color: #007bff;
-                        background-color: #ffffff;
-                    }
-                    QLineEdit::placeholder {
-                        color: #6c757d;
-                        font-style: italic;
-                        font-weight: normal;
-                    }
-                """)
-                
-                layout = QVBoxLayout(self)
-                layout.setContentsMargins(24, 24, 24, 24)
-                layout.setSpacing(20)
-                
-                # Título elegante
-                title_label = QLabel("👥 Selecionar Paciente")
-                title_label.setStyleSheet("""
-                    QLabel {
-                        font-size: 20px;
-                        font-weight: 700;
-                        color: #2c3e50;
-                        padding: 0 0 16px 0;
-                        border-bottom: 2px solid #e3f2fd;
-                        margin-bottom: 16px;
-                    }
-                """)
-                layout.addWidget(title_label)
-                
-                # Filtros organizados em grid
-                filtros_label = QLabel("🔍 Filtros de Pesquisa")
-                layout.addWidget(filtros_label)
-                
-                filtros_grid = QHBoxLayout()
-                filtros_grid.setSpacing(12)
-                
-                self.nome_edit = QLineEdit()
-                self.nome_edit.setPlaceholderText('Nome do paciente')
-                
-                self.nasc_edit = QLineEdit()
-                self.nasc_edit.setPlaceholderText('Data nascimento (dd/mm/aaaa)')
-                
-                self.contacto_edit = QLineEdit()
-                self.contacto_edit.setPlaceholderText('Contacto telefónico')
-                
-                self.email_edit = QLineEdit()
-                self.email_edit.setPlaceholderText('Email')
-                
-                for w in [self.nome_edit, self.nasc_edit, self.contacto_edit, self.email_edit]:
-                    filtros_grid.addWidget(w)
-                layout.addLayout(filtros_grid)
-                
-                # Botões com estilo moderno da iridologia
-                btns = QHBoxLayout()
-                btns.setSpacing(12)
-                
-                self.btn_abrir = QPushButton('✅  Abrir Paciente')
-                self.btn_abrir.setStyleSheet("""
-                    QPushButton {
-                        background-color: #f8f9fa;
-                        color: #28a745;
-                        border: 1px solid #e0e0e0;
-                        border-radius: 8px;
-                        font-size: 14px;
-                        font-weight: bold;
-                        padding: 12px 20px;
-                        min-height: 20px;
-                    }
-                    QPushButton:hover {
-                        background-color: #28a745;
-                        color: white;
-                        border-color: #28a745;                    }
-                    QPushButton:pressed {
-                        background-color: #1e7e34;
-                        border-color: #1e7e34;
-                    }
-                """)
-                self.btn_abrir.clicked.connect(self.abrir)
-                
-                self.btn_eliminar = QPushButton('🗑️  Eliminar')
-                self.btn_eliminar.setStyleSheet("""
-                    QPushButton {
-                        background-color: #f8f9fa;
-                        color: #dc3545;
-                        border: 1px solid #e0e0e0;
-                        border-radius: 8px;
-                        font-size: 14px;
-                        font-weight: bold;
-                        padding: 12px 20px;
-                        min-height: 20px;
-                    }
-                    QPushButton:hover {
-                        background-color: #dc3545;
-                        color: white;
-                        border-color: #dc3545;                    }
-                    QPushButton:pressed {
-                        background-color: #c82333;
-                        border-color: #c82333;
-                    }
-                """)
-                self.btn_eliminar.clicked.connect(self.eliminar)
-                
-                btns.addStretch()
-                btns.addWidget(self.btn_abrir)
-                btns.addWidget(self.btn_eliminar)
-                layout.addLayout(btns)
-                
-                # Lista de resultados modernizada com colunas
-                resultados_label = QLabel("📋 Resultados da Pesquisa")
-                layout.addWidget(resultados_label)
-                
-                self.tabela = QTableWidget()
-                self.tabela.setColumnCount(4)
-                self.tabela.setHorizontalHeaderLabels(["Nome", "Data Nascimento", "Contacto", "Email"])
-                
-                # Configurar larguras das colunas
-                header = self.tabela.horizontalHeader()
-                header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)  # Nome expandir
-                header.setSectionResizeMode(1, QHeaderView.ResizeMode.Fixed)    # Data fixa
-                header.setSectionResizeMode(2, QHeaderView.ResizeMode.Fixed)    # Contacto fixo
-                header.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)  # Email expandir
-                self.tabela.setColumnWidth(1, 160)  # Data nascimento (aumentada)
-                self.tabela.setColumnWidth(2, 120)  # Contacto
-                
-                # Estilo moderno da tabela
-                self.tabela.setStyleSheet("""
-                    QTableWidget {
-                        background-color: #f8f9fa;
-                        border: 1px solid #e0e0e0;
-                        border-radius: 8px;
-                        font-size: 14px;
-                        gridline-color: #e9ecef;
-                    }
-                    QTableWidget::item {
-                        background-color: white;
-                        color: #2c3e50;
-                        padding: 12px 8px;
-                        border-bottom: 1px solid #e9ecef;
-                        font-weight: 500;
-                    }
-                    QTableWidget::item:hover {
-                        background-color: #007bff;
-                        color: white;
-                    }
-                    QTableWidget::item:selected {
-                        background-color: #0056b3;
-                        color: white;
-                        font-weight: bold;
-                    }
-                    QHeaderView::section {
-                        background-color: #e9ecef;
-                        color: #495057;
-                        border: 1px solid #dee2e6;
-                        padding: 8px;
-                        font-weight: bold;
-                        font-size: 13px;
-                    }
-                    QHeaderView::section:hover {
-                        background-color: #007bff;
-                        color: white;
-                    }
-                """)
-                
-                # Configurações da tabela
-                self.tabela.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
-                self.tabela.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
-                self.tabela.setAlternatingRowColors(False)
-                self.tabela.verticalHeader().setVisible(False)
-                self.tabela.setSortingEnabled(True)
-                
-                # Eventos
-                self.tabela.itemDoubleClicked.connect(self.abrir)
-                self.tabela.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-                self.tabela.customContextMenuRequested.connect(self.menu_contexto)
-                layout.addWidget(self.tabela, 1)
-                
-                # Pesquisa ao escrever
-                self.nome_edit.textChanged.connect(self.pesquisar)
-                self.nasc_edit.textChanged.connect(self.pesquisar)
-                self.contacto_edit.textChanged.connect(self.pesquisar)
-                self.email_edit.textChanged.connect(self.pesquisar)
-                self.pesquisar()
-            def normalizar(self, s):
-                if not s: return ''
-                return unicodedata.normalize('NFKD', s).encode('ASCII', 'ignore').decode('ASCII').lower()
-            def pesquisar(self):
-                todos = self.db.get_all_pacientes()
-                nome = self.normalizar(self.nome_edit.text())
-                nasc = self.nasc_edit.text().strip()
-                contacto = self.contacto_edit.text().replace(' ', '')
-                email = self.normalizar(self.email_edit.text())
-                
-                # Limpar tabela
-                self.tabela.setRowCount(0)
-                self.resultados = []
-                
-                for p in todos:
-                    if nome and nome not in self.normalizar(p.get('nome', '')):
-                        continue
-                    if nasc and nasc not in (p.get('data_nascimento') or ''):
-                        continue
-                    if contacto and contacto not in (p.get('contacto') or '').replace(' ', ''):
-                        continue
-                    if email and email not in self.normalizar(p.get('email', '')):
-                        continue
-                    
-                    # Adicionar à tabela
-                    self.resultados.append(p)
-                    row = self.tabela.rowCount()
-                    self.tabela.insertRow(row)
-                    
-                    # Preencher colunas
-                    self.tabela.setItem(row, 0, QTableWidgetItem(p.get('nome', '')))
-                    self.tabela.setItem(row, 1, QTableWidgetItem(p.get('data_nascimento', '')))
-                    self.tabela.setItem(row, 2, QTableWidgetItem(p.get('contacto', '')))
-                    self.tabela.setItem(row, 3, QTableWidgetItem(p.get('email', '')))
-            def abrir(self):
-                row = self.tabela.currentRow()
-                if row >= 0 and row < len(self.resultados):
-                    paciente = self.resultados[row]
-                    self.accept()
-                    callback(paciente)
-            def eliminar(self):
-                row = self.tabela.currentRow()
-                if row >= 0 and row < len(self.resultados):
-                    paciente = self.resultados[row]
-                    from biodesk_dialogs import mostrar_confirmacao
-                    if mostrar_confirmacao(
-                        self, 
-                        "Eliminar utente",
-                        f"Tem a certeza que deseja eliminar o utente '{paciente.get('nome','')}'?"
-                    ):
-                        self.db.execute_query(f"DELETE FROM pacientes WHERE id = ?", (paciente['id'],))
-                        self.pesquisar()
-            def menu_contexto(self, pos: QPoint):
-                item = self.tabela.itemAt(pos)
-                if not item:
-                    return
-                row = item.row()
-                if row < 0 or row >= len(self.resultados):
-                    return
-                menu = QMenu(self)
-                menu.addAction('Abrir utente', self.abrir)
-                menu.addAction('🗑️ Eliminar', self.eliminar)
-                menu.exec(self.tabela.mapToGlobal(pos))
-        dlg = SeletorDialog(parent)
-        dlg.exec()
-
     # ========================================================================
-    # SISTEMA DE FOLLOW-UP AUTOMÁTICO
+    # SISTEMA DE FOLLOW-UP AUTOMÁTICO - REMOVIDO
+    # Código movido para comunicacao_manager.py para melhor performance de startup
     # ========================================================================
-    
-    def _init_scheduler_safe(self):
-        """Inicializa APScheduler de forma segura, evitando múltiplas instâncias."""
-        try:
-            # Verificar se já existe uma instância global do scheduler
-            if not hasattr(FichaPaciente, '_global_scheduler') or FichaPaciente._global_scheduler is None:
-                jobstores = {'default': SQLAlchemyJobStore(url='sqlite:///followup_jobs.db')}
-                executors = {'default': ThreadPoolExecutor(10)}  # Reduzido de 20 para 10
-                job_defaults = {'coalesce': False, 'max_instances': 2}  # Reduzido de 3 para 2
-                
-                FichaPaciente._global_scheduler = BackgroundScheduler(
-                    jobstores=jobstores,
-                    executors=executors,
-                    job_defaults=job_defaults
-                )
-                FichaPaciente._global_scheduler.start()
-                # Scheduler de follow-up iniciado
-            
-            # Usar a instância global
-            self.scheduler = FichaPaciente._global_scheduler
-            
-        except Exception as e:
-            print(f"⚠️ Erro ao iniciar scheduler de follow-up: {e}")
-            self.scheduler = None
-    
-    def _init_scheduler(self):
-        """Inicializa APScheduler com jobstore SQLite (persistente)."""
-        try:
-            jobstores = {'default': SQLAlchemyJobStore(url='sqlite:///followup_jobs.db')}
-            executors = {'default': ThreadPoolExecutor(20)}
-            job_defaults = {'coalesce': False, 'max_instances': 3}
-            
-            self.scheduler = BackgroundScheduler(
-                jobstores=jobstores,
-                executors=executors,
-                job_defaults=job_defaults
-            )
-            self.scheduler.start()
-            # Scheduler de follow-up iniciado
-        except Exception as e:
-            print(f"⚠️ Erro ao iniciar scheduler de follow-up: {e}")
-            self.scheduler = None
     
     def abrir_pdf_atual_externo(self):
         """Abre o PDF atual no visualizador externo padrão"""
@@ -9484,59 +2684,12 @@ Naturopata | Osteopata | Medicina Quântica
             return False
 
     def schedule_followup_consulta(self):
-        """Abre dialog para agendar follow-up após consulta."""
-        if not self.paciente_data or not self.paciente_data.get('nome'):
-            QMessageBox.warning(self, "Aviso", "Por favor, carregue um paciente primeiro.")
-            return
-            
-        dialog = FollowUpDialog(self.paciente_data, self)
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            # Dialog retorna os dados do agendamento
-            followup_data = dialog.get_followup_data()
-            self._agendar_followup(followup_data)
-
-    def _agendar_followup(self, followup_data):
-        """Agenda um follow-up com os dados fornecidos."""
-        try:
-            when_dt = followup_data['quando']
-            tipo = followup_data['tipo']
-            is_custom = followup_data.get('is_custom', False)
-            
-            # Ajustar para horário comercial (11h-17h) APENAS se NÃO for personalizado
-            if not is_custom:
-                when_dt = self._adjust_to_business_hours(when_dt)
-            
-            if when_dt <= datetime.now():
-                QMessageBox.warning(self, "Erro", "A data/hora deve ser no futuro.")
-                return
-                
-            paciente_id = self.paciente_data.get('id')
-            job_id = f"followup_{paciente_id}_{tipo}_{int(when_dt.timestamp())}"
-            
-            if hasattr(self, 'scheduler') and self.scheduler:
-                self.scheduler.add_job(
-                    func=send_followup_job_static,
-                    trigger='date',
-                    run_date=when_dt,
-                    args=[paciente_id, tipo, followup_data.get('dias_apos', 3)],
-                    id=job_id,
-                    replace_existing=True
-                )
-                
-                # Registar no histórico
-                historico_txt = f"[{datetime.now().strftime('%d/%m/%Y %H:%M')}] Follow-up agendado: {tipo} para {when_dt.strftime('%d/%m/%Y %H:%M')}"
-                self.db.adicionar_historico(paciente_id, historico_txt)
-                
-                # Criar dialog personalizado de confirmação
-                self._show_followup_confirmation(tipo, when_dt)
-                
-                print(f"📅 Follow-up agendado: {when_dt} (job_id={job_id})")
-            else:
-                QMessageBox.warning(self, "Erro", "Sistema de agendamento não disponível.")
-                
-        except Exception as e:
-            QMessageBox.critical(self, "Erro", f"Erro ao agendar follow-up: {e}")
-            print(f"❌ Erro ao agendar follow-up: {e}")
+        """REMOVIDO: Agendamento de follow-up movido para comunicacao_manager.py"""
+        from PyQt6.QtWidgets import QMessageBox
+        QMessageBox.information(self, "Follow-up", 
+                              "O sistema de follow-up foi integrado no Centro de Comunicação.\n"
+                              "Use a aba 'Comunicação' para agendar follow-ups.")
+        return
 
     def _show_followup_confirmation(self, tipo, when_dt):
         """Mostra uma caixa de confirmação estilizada para follow-up agendado."""
@@ -9953,8 +3106,8 @@ Naturopata | Osteopata | Medicina Quântica
             pass
             
         if getattr(self, 'dirty', False):
-            from biodesk_dialogs import mostrar_confirmacao
-            if not mostrar_confirmacao(
+            from biodesk_styled_dialogs import BiodeskMessageBox
+            if not BiodeskMessageBox.question(
                 self,
                 "Alterações por guardar",
                 "Existem alterações não guardadas. Deseja sair sem guardar?"
@@ -10028,31 +3181,7 @@ Naturopata | Osteopata | Medicina Quântica
             from biodesk_dialogs import mostrar_erro
             mostrar_erro(self, 'Erro', f'Erro ao exportar para terapia quântica:\n{str(e)}')
 
-    def abrir_terapia_com_iris(self, tipo_iris, caminho_imagem):
-        """
-        Abre o módulo de terapia quântica enviando os dados da íris.
-        
-        Args:
-            tipo_iris: str - "esq" ou "drt" para indicar qual olho
-            caminho_imagem: str - caminho para a imagem da íris
-        """
-        try:
-            from terapia_quantica import TerapiaQuantica
-            self.terapia_window = TerapiaQuantica(
-                paciente_data=self.paciente_data,
-                iris_data={
-                    'tipo': tipo_iris,
-                    'caminho': caminho_imagem
-                }
-            )
-            self.terapia_window.show_maximized_safe()  # Usar maximização segura
-        except ImportError:
-            from biodesk_dialogs import mostrar_informacao
-            mostrar_informacao(
-                self,
-                "Exportar para terapia quântica",
-                "Módulo de Terapia Quântica em desenvolvimento."
-            )
+
 
 
 
@@ -10114,259 +3243,6 @@ Naturopata | Osteopata | Medicina Quântica
         
         # Inicializar cada sub-aba
         self.init_sub_aba_consentimentos_tratamento()
-        # self.init_sub_aba_declaracao_saude()  # REMOVIDO - evitar duplicação
-
-    def init_sub_aba_declaracao_saude(self):
-        """Inicializa a sub-aba de Declaração de Estado de Saúde"""
-        # Usar exatamente o mesmo layout da função principal
-        layout = QVBoxLayout(self.tab_declaracao_saude)
-        layout.setContentsMargins(15, 15, 15, 15)
-        layout.setSpacing(15)
-        
-        # ====== CABEÇALHO ======
-        header_frame = QFrame()
-        header_frame.setFixedHeight(80)
-        header_frame.setStyleSheet("""
-            QFrame {
-                background-color: #2980b9;
-                border-radius: 8px;
-            }
-        """)
-        header_layout = QHBoxLayout(header_frame)
-        header_layout.setContentsMargins(20, 15, 20, 15)
-        
-        titulo_declaracao = QLabel("🩺 Declaração de Estado de Saúde")
-        titulo_declaracao.setStyleSheet("""
-            font-size: 20px; 
-            font-weight: 700; 
-            color: white; 
-            margin: 0px;
-        """)
-        header_layout.addWidget(titulo_declaracao)
-        
-        header_layout.addStretch()
-        
-        # Status da declaração
-        self.status_declaracao = QLabel("❌ Não preenchida")
-        self.status_declaracao.setStyleSheet("""
-            font-size: 14px; 
-            font-weight: 600;
-            color: #ffffff;
-            padding: 15px;
-            background-color: rgba(255,255,255,0.2);
-            border-radius: 6px;
-        """)
-        header_layout.addWidget(self.status_declaracao)
-        
-        layout.addWidget(header_frame)
-        
-        # ====== ÁREA PRINCIPAL DIVIDIDA ======
-        main_layout = QHBoxLayout()
-        main_layout.setSpacing(20)
-        
-        # ====== ESQUERDA: FORMULÁRIO ======
-        form_frame = QFrame()
-        form_frame.setStyleSheet("""
-            QFrame {
-                background-color: #ffffff;
-                border: 2px solid #e0e0e0;
-                border-radius: 10px;
-                padding: 15px;
-            }
-        """)
-        form_layout = QVBoxLayout(form_frame)
-        form_layout.setSpacing(10)
-        
-        # ====== TEMPLATE HTML DA DECLARAÇÃO ======
-        self.template_declaracao = self._criar_template_declaracao_saude()
-        
-        # WebEngine para a declaração com formulários interativos
-        self.texto_declaracao_editor = QWebEngineView()
-        self.texto_declaracao_editor.setMinimumHeight(400)
-        self.texto_declaracao_editor.setMaximumHeight(600)
-        self.texto_declaracao_editor.setHtml(self.template_declaracao)
-        
-        # Adicionar editor diretamente ao layout principal
-        form_layout.addWidget(self.texto_declaracao_editor)
-        
-        main_layout.addWidget(form_frame, 2)  # 2/3 do espaço
-        
-        # ====== DIREITA: AÇÕES ======
-        acoes_frame = QFrame()
-        acoes_frame.setFixedWidth(250)
-        acoes_frame.setStyleSheet("""
-            QFrame {
-                background-color: #f8f9fa;
-                border: 1px solid #dee2e6;
-                border-radius: 10px;
-            }
-        """)
-        acoes_layout = QVBoxLayout(acoes_frame)
-        acoes_layout.setContentsMargins(15, 15, 15, 15)
-        acoes_layout.setSpacing(15)
-        acoes_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        
-        # Título das ações
-        acoes_titulo = QLabel("⚡ Ações")
-        acoes_titulo.setStyleSheet("""
-            font-size: 16px; 
-            font-weight: 600; 
-            color: #2c3e50; 
-            margin-bottom: 15px;
-            padding: 12px;
-            background-color: #e9ecef;
-            border-radius: 6px;
-        """)
-        acoes_titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        acoes_layout.addWidget(acoes_titulo)
-        
-        # ====== BOTÕES MINI COM CSS DIRETO FORÇADO ======
-        # Primeira linha: Imprimir + PDF
-        linha1_layout = QHBoxLayout()
-        linha1_layout.setSpacing(8)
-        
-        btn_imprimir_declaracao = QPushButton("🖨️")
-        btn_imprimir_declaracao.setFixedSize(65, 28)
-        btn_imprimir_declaracao.setToolTip("Imprimir Declaração")
-        btn_imprimir_declaracao.setStyleSheet("""
-            QPushButton {
-                background-color: #ff9800;
-                color: white;
-                border: none;
-                border-radius: 4px;
-                font-size: 10px;
-                font-weight: bold;
-                padding: 2px;
-            }
-            QPushButton:hover {
-                background-color: #f57c00;
-            }
-        """)
-        btn_imprimir_declaracao.clicked.connect(self.imprimir_declaracao_saude)
-        linha1_layout.addWidget(btn_imprimir_declaracao)
-        
-        btn_pdf_declaracao = QPushButton("📄")
-        btn_pdf_declaracao.setFixedSize(65, 28)
-        btn_pdf_declaracao.setToolTip("Gerar PDF")
-        btn_pdf_declaracao.setStyleSheet("""
-            QPushButton {
-                background-color: #3498db;
-                color: white;
-                border: none;
-                border-radius: 4px;
-                font-size: 10px;
-                font-weight: bold;
-                padding: 2px;
-            }
-            QPushButton:hover {
-                background-color: #2980b9;
-            }
-        """)
-        btn_pdf_declaracao.clicked.connect(self.gerar_pdf_declaracao_saude)
-        linha1_layout.addWidget(btn_pdf_declaracao)
-        
-        acoes_layout.addLayout(linha1_layout)
-        
-        # Segunda linha: Guardar + Limpar
-        linha2_layout = QHBoxLayout()
-        linha2_layout.setSpacing(8)
-        
-        btn_guardar_declaracao = QPushButton("💾")
-        btn_guardar_declaracao.setFixedSize(65, 28)
-        btn_guardar_declaracao.setToolTip("Guardar Declaração")
-        btn_guardar_declaracao.setStyleSheet("""
-            QPushButton {
-                background-color: #27ae60;
-                color: white;
-                border: none;
-                border-radius: 4px;
-                font-size: 10px;
-                font-weight: bold;
-                padding: 2px;
-            }
-            QPushButton:hover {
-                background-color: #229954;
-            }
-        """)
-        btn_guardar_declaracao.clicked.connect(self.guardar_declaracao_saude)
-        linha2_layout.addWidget(btn_guardar_declaracao)
-        
-        btn_limpar_declaracao = QPushButton("🗑️")
-        btn_limpar_declaracao.setFixedSize(65, 28)
-        btn_limpar_declaracao.setToolTip("Limpar Declaração")
-        btn_limpar_declaracao.setStyleSheet("""
-            QPushButton {
-                background-color: #e74c3c;
-                color: white;
-                border: none;
-                border-radius: 4px;
-                font-size: 10px;
-                font-weight: bold;
-                padding: 2px;
-            }
-            QPushButton:hover {
-                background-color: #c0392b;
-            }
-        """)
-        btn_limpar_declaracao.clicked.connect(self.limpar_declaracao_saude)
-        linha2_layout.addWidget(btn_limpar_declaracao)
-        
-        acoes_layout.addLayout(linha2_layout)
-        
-        # Separador visual
-        acoes_layout.addSpacing(8)
-        
-        # Botão de assinatura (texto compacto)
-        btn_assinar_declaracao = QPushButton("✍️ Assinar")
-        btn_assinar_declaracao.setFixedSize(146, 32)
-        btn_assinar_declaracao.setStyleSheet("""
-            QPushButton {
-                background-color: #9b59b6;
-                color: white;
-                border: none;
-                border-radius: 4px;
-                font-size: 11px;
-                font-weight: bold;
-                padding: 4px;
-            }
-            QPushButton:hover {
-                background-color: #8e44ad;
-            }
-        """)
-        btn_assinar_declaracao.clicked.connect(self.assinar_declaracao_saude)
-        acoes_layout.addWidget(btn_assinar_declaracao)
-        
-        # Botão de importação (secundário)
-        btn_importar_manual = QPushButton("📁 Importar")
-        btn_importar_manual.setFixedSize(146, 28)
-        btn_importar_manual.setStyleSheet("""
-            QPushButton {
-                background-color: #6c757d;
-                color: white;
-                border: none;
-                border-radius: 4px;
-                font-size: 10px;
-                font-weight: bold;
-                padding: 2px;
-            }
-            QPushButton:hover {
-                background-color: #5a6268;
-            }
-        """)
-        btn_importar_manual.clicked.connect(self.importar_pdf_manual)
-        acoes_layout.addWidget(btn_importar_manual)
-        
-        acoes_layout.addStretch()
-        main_layout.addWidget(acoes_frame)
-        
-        # Pequena margem direita para não ir até o extremo
-        main_layout.addSpacing(20)
-        
-        # Adicionar layout horizontal ao layout principal
-        layout.addLayout(main_layout, 1)
-        
-        # Atualizar informações do paciente na declaração
-        self.atualizar_info_paciente_declaracao()
 
     def init_sub_aba_consentimentos_tratamento(self):
         """Inicializa a sub-aba de Consentimentos de Tratamento (conteúdo original)"""
@@ -10576,7 +3452,8 @@ Naturopata | Osteopata | Medicina Quântica
         self.editor_consentimento = QTextEdit()
         self.editor_consentimento.setMinimumHeight(300)  # Altura aumentada
         self.editor_consentimento.setMaximumHeight(400)  # Altura máxima aumentada
-        self._style_text_edit(self.editor_consentimento)
+        # Aplicar estilo básico
+        self.editor_consentimento.setStyleSheet("QTextEdit { border: 2px solid #e0e0e0; border-radius: 8px; padding: 12px; font-size: 14px; background-color: white; }")
         self.editor_consentimento.setPlaceholderText("Selecione um tipo de consentimento para editar o texto...")
         self.editor_consentimento.setVisible(False)  # Inicialmente oculto
         centro_layout.addWidget(self.editor_consentimento)
@@ -11451,51 +4328,25 @@ Naturopata | Osteopata | Medicina Quântica
                 mostrar_aviso(self, "Aviso", "O consentimento está vazio.\nAdicione conteúdo antes de guardar.")
                 return
             
-            # Preparar assinaturas (se existirem)
+            # Preparar assinaturas usando sistema modular
             assinatura_paciente = None
             assinatura_terapeuta = None
             
-            if hasattr(self, 'signature_canvas_paciente') and self.signature_canvas_paciente:
+            if hasattr(self, 'assinatura_paciente_data') and self.assinatura_paciente_data:
                 try:
-                    # Verificar se assinatura não está vazia
-                    if not self.signature_canvas_paciente.is_empty():
-                        # Converter assinatura para bytes
-                        pixmap = self.signature_canvas_paciente.get_signature_image()
-                        # Converter QPixmap para QImage e depois para bytes
-                        image = pixmap.toImage()
-                        from PyQt6.QtCore import QByteArray, QBuffer
-                        
-                        byte_array = QByteArray()
-                        buffer = QBuffer(byte_array)
-                        buffer.open(QBuffer.OpenModeFlag.WriteOnly)
-                        image.save(buffer, "PNG")
-                        assinatura_paciente = byte_array.data()
-                        print(f"[DEBUG] Assinatura paciente capturada: {len(assinatura_paciente)} bytes")
-                    else:
-                        print(f"[DEBUG] Assinatura paciente está vazia - ignorada")
+                    assinatura_paciente = self.assinatura_paciente_data
+                    print(f"[DEBUG] Assinatura paciente carregada: {len(assinatura_paciente)} bytes")
                 except Exception as e:
                     print(f"[DEBUG] Erro ao processar assinatura do paciente: {e}")
             
-            if hasattr(self, 'signature_canvas_terapeuta') and self.signature_canvas_terapeuta:
+            if hasattr(self, 'assinatura_terapeuta_data') and self.assinatura_terapeuta_data:
                 try:
-                    # Verificar se assinatura não está vazia
-                    if not self.signature_canvas_terapeuta.is_empty():
-                        # Converter assinatura para bytes
-                        pixmap = self.signature_canvas_terapeuta.get_signature_image()
-                        # Converter QPixmap para QImage e depois para bytes
-                        image = pixmap.toImage()
-                        from PyQt6.QtCore import QByteArray, QBuffer
-                        
-                        byte_array = QByteArray()
-                        buffer = QBuffer(byte_array)
-                        buffer.open(QBuffer.OpenModeFlag.WriteOnly)
-                        image.save(buffer, "PNG")
-                        assinatura_terapeuta = byte_array.data()
-                        print(f"[DEBUG] Assinatura terapeuta capturada: {len(assinatura_terapeuta)} bytes")
-                    else:
-                        print(f"[DEBUG] Assinatura terapeuta está vazia - ignorada")
+                    assinatura_terapeuta = self.assinatura_terapeuta_data
+                    print(f"[DEBUG] Assinatura terapeuta carregada: {len(assinatura_terapeuta)} bytes")
                 except Exception as e:
                     print(f"[DEBUG] Erro ao processar assinatura do terapeuta: {e}")
+            else:
+                print(f"[DEBUG] Assinatura terapeuta não disponível")
             
             # Obter nomes para as assinaturas
             nome_paciente = self.paciente_data.get('nome', 'Nome não disponível')
@@ -11906,18 +4757,26 @@ Naturopata | Osteopata | Medicina Quântica
                 linha_datas = [Paragraph(f"Data: {dados_pdf['data_atual']}", styles['Normal']),
                               Paragraph(f"Data: {dados_pdf['data_atual']}", styles['Normal'])]
                 
-                # Criar tabela
-                dados_tabela = [linha_labels, linha_nomes, linha_assinaturas, linha_datas]
+                # Criar tabela COMPACTA - assinatura e nome próximos
+                dados_tabela = [linha_labels, linha_assinaturas, linha_nomes, linha_datas]
                 tabela_assinaturas = Table(dados_tabela, colWidths=[4*inch, 4*inch])
                 
-                # Estilo da tabela
+                # Estilo da tabela OTIMIZADO
                 estilo_tabela = TableStyle([
                     ('VALIGN', (0, 0), (-1, -1), 'TOP'),
                     ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
                     ('LEFTPADDING', (0, 0), (-1, -1), 10),
                     ('RIGHTPADDING', (0, 0), (-1, -1), 10),
-                    ('TOPPADDING', (0, 0), (-1, -1), 8),
-                    ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+                    # COMPACTAR: Reduzir padding entre assinatura e nome
+                    ('TOPPADDING', (0, 1), (-1, 1), 2),     # Assinaturas: pouco espaço acima
+                    ('BOTTOMPADDING', (0, 1), (-1, 1), 0),  # Assinaturas: zero espaço abaixo
+                    ('TOPPADDING', (0, 2), (-1, 2), 0),     # Nomes: zero espaço acima
+                    ('BOTTOMPADDING', (0, 2), (-1, 2), 8),  # Nomes: espaço normal abaixo
+                    # Manter espaço normal para labels e datas
+                    ('TOPPADDING', (0, 0), (-1, 0), 8),     # Labels
+                    ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+                    ('TOPPADDING', (0, 3), (-1, 3), 8),     # Datas
+                    ('BOTTOMPADDING', (0, 3), (-1, 3), 8),
                     ('GRID', (0, 0), (-1, -1), 0.5, black),
                 ])
                 
@@ -12571,8 +5430,7 @@ Naturopata | Osteopata | Medicina Quântica
         try:
             canvas_limpos = 0
             padroes_canvas = [
-                'signature_canvas_paciente',
-                'signature_canvas_terapeuta', 
+                # Sistema modular substituiu estes canvas individuais
                 'canvas_assinatura_paciente',
                 'canvas_assinatura_terapeuta',
                 'canvas_paciente',
@@ -13348,174 +6206,60 @@ Naturopata | Osteopata | Medicina Quântica
         self.abrir_assinatura_terapeuta(None)
 
     def abrir_assinatura_paciente(self, event):
-        """Abre diálogo para assinatura digital do paciente com canvas interativo"""
+        """Abre diálogo para assinatura digital do paciente usando sistema modular"""
         try:
-            from PyQt6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QLabel
+            # Usar o sistema modular de assinaturas
+            resultado = abrir_dialogo_assinatura(
+                parent=self,
+                titulo="Assinatura Digital - Paciente",
+                nome_pessoa=self.paciente_data.get('nome', 'Paciente'),
+                tipo_assinatura="paciente"
+            )
             
-            # Criar diálogo de assinatura
-            dialog = QDialog(self)
-            dialog.setWindowTitle("Assinatura Digital - Paciente")
-            dialog.setModal(True)
-            dialog.resize(600, 400)
-            
-            layout = QVBoxLayout(dialog)
-            
-            # Título
-            titulo = QLabel(f"✍️ Assinatura do Paciente: {self.paciente_data.get('nome', 'N/A')}")
-            titulo.setStyleSheet("font-size: 16px; font-weight: 600; color: #2c3e50; padding: 10px;")
-            titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            layout.addWidget(titulo)
-            
-            # Instruções
-            instrucoes = QLabel("🖊️ Assine abaixo:")
-            instrucoes.setStyleSheet("font-size: 12px; color: #7f8c8d; padding: 5px;")
-            instrucoes.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            layout.addWidget(instrucoes)
-            
-            # Canvas de assinatura
-            signature_canvas = SignatureCanvas()
-            signature_canvas.setMinimumHeight(200)
-            layout.addWidget(signature_canvas)
-            
-            # Armazenar referência para uso no PDF
-            self.signature_canvas_paciente = signature_canvas
-            
-            # Botões
-            botoes_layout = QHBoxLayout()
-            
-            btn_limpar = QPushButton("🗑️ Limpar")
-            self._style_modern_button(btn_limpar, "#e74c3c")
-            btn_limpar.clicked.connect(signature_canvas.clear_signature)
-            botoes_layout.addWidget(btn_limpar)
-            
-            botoes_layout.addStretch()
-            
-            btn_cancelar = QPushButton("❌ Cancelar")
-            self._style_modern_button(btn_cancelar, "#95a5a6")
-            btn_cancelar.clicked.connect(dialog.reject)
-            botoes_layout.addWidget(btn_cancelar)
-            
-            btn_confirmar = QPushButton("✅ Confirmar Assinatura")
-            self._style_modern_button(btn_confirmar, "#27ae60")
-            
-            def confirmar_assinatura_paciente():
-                """Captura assinatura antes de fechar o diálogo"""
-                try:
-                    if not signature_canvas.is_empty():
-                        # Capturar assinatura imediatamente
-                        pixmap = signature_canvas.get_signature_image()
-                        image = pixmap.toImage()
-                        from PyQt6.QtCore import QByteArray, QBuffer
-                        byte_array = QByteArray()
-                        buffer = QBuffer(byte_array)
-                        buffer.open(QBuffer.OpenModeFlag.WriteOnly)
-                        image.save(buffer, "PNG")
-                        
-                        # Armazenar por tipo de consentimento atual
-                        tipo_atual = getattr(self, 'tipo_consentimento_atual', 'geral')
-                        if tipo_atual not in self.assinaturas_por_tipo:
-                            self.assinaturas_por_tipo[tipo_atual] = {}
-                        self.assinaturas_por_tipo[tipo_atual]['paciente'] = byte_array.data()
-                        
-                        # Também guardar na variável atual (compatibilidade)
-                        self.assinatura_paciente_data = byte_array.data()
-                        
-                        print(f"✅ [ASSINATURA] Paciente capturada para tipo '{tipo_atual}': {len(self.assinatura_paciente_data)} bytes")
-                        
-                        # Atualizar botão visual - FORÇAR ATUALIZAÇÃO
-                        self.assinatura_paciente.setText("✅ Assinado")
-                        self.assinatura_paciente.setStyleSheet("""
-                            QPushButton {
-                                background-color: #27ae60 !important; color: white !important; border: none !important;
-                                border-radius: 6px; padding: 8px 15px; font-weight: bold;
-                            }
-                            QPushButton:hover { background-color: #229954 !important; }
-                        """)
-                        
-                        # Força refresh visual
-                        self.assinatura_paciente.update()
-                        self.assinatura_paciente.repaint()
-                        
-                        # DEBUG - Verificar estado
-                        print(f"🔍 [DEBUG] Botão paciente texto após atualização: '{self.assinatura_paciente.text()}'")
-                        print(f"🔍 [DEBUG] Assinatura paciente data definida: {self.assinatura_paciente_data is not None}")
-                        print(f"🔍 [DEBUG] Assinaturas por tipo: {list(self.assinaturas_por_tipo.keys())}")
-                        
-                        dialog.accept()
-                    else:
-                        from biodesk_dialogs import mostrar_aviso
-                        mostrar_aviso(dialog, "Assinatura Vazia", "Por favor, assine no campo antes de confirmar.")
-                except Exception as e:
-                    print(f"❌ [ASSINATURA] Erro ao capturar paciente: {e}")
-                    dialog.reject()
-            
-            btn_confirmar.clicked.connect(confirmar_assinatura_paciente)
-            botoes_layout.addWidget(btn_confirmar)
-            
-            layout.addLayout(botoes_layout)
-            
-            # Mostrar diálogo
-            if dialog.exec() == QDialog.DialogCode.Accepted:
-                # Salvar assinatura na base de dados se há um consentimento ativo
+            if resultado["confirmado"]:
+                # Armazenar assinatura por tipo de consentimento
+                tipo_atual = getattr(self, 'tipo_consentimento_atual', 'geral')
+                if tipo_atual not in self.assinaturas_por_tipo:
+                    self.assinaturas_por_tipo[tipo_atual] = {}
+                
+                self.assinaturas_por_tipo[tipo_atual]['paciente'] = resultado["assinatura_bytes"]
+                self.assinatura_paciente_data = resultado["assinatura_bytes"]
+                
+                print(f"✅ [ASSINATURA] Paciente capturada para tipo '{tipo_atual}': {len(self.assinatura_paciente_data)} bytes")
+                
+                # Atualizar botão visual
+                self.assinatura_paciente.setText("✅ Assinado")
+                self.assinatura_paciente.setStyleSheet("""
+                    QPushButton {
+                        background-color: #27ae60 !important; color: white !important; border: none !important;
+                        border-radius: 6px; padding: 8px 15px; font-weight: bold;
+                    }
+                    QPushButton:hover { background-color: #229954 !important; }
+                """)
+                
+                # Salvar na base de dados se há consentimento ativo
                 if hasattr(self, 'consentimento_ativo') and self.consentimento_ativo:
                     try:
-                        # Obter dados da assinatura
-                        if not signature_canvas.is_empty():
-                            signature_pixmap = signature_canvas.toPixmap()
-                            # Converter QPixmap para bytes
-                            from PyQt6.QtCore import QBuffer, QIODevice
-                            buffer = QBuffer()
-                            buffer.open(QIODevice.OpenModeFlag.WriteOnly)
-                            signature_pixmap.save(buffer, 'PNG')
-                            signature_data = buffer.data().data()
+                        from consentimentos_manager import ConsentimentosManager
+                        manager = ConsentimentosManager()
+                        
+                        sucesso = manager.atualizar_assinatura_paciente(
+                            self.consentimento_ativo['id'],
+                            resultado["assinatura_bytes"],
+                            self.paciente_data.get('nome', 'Paciente')
+                        )
+                        
+                        if sucesso:
+                            print(f"[DEBUG] ✅ Assinatura do paciente salva na BD")
                         else:
-                            signature_data = None
-                            
-                        if signature_data:
-                            from consentimentos_manager import ConsentimentosManager
-                            manager = ConsentimentosManager()
-                            
-                            # Atualizar consentimento com assinatura do paciente
-                            sucesso = manager.atualizar_assinatura_paciente(
-                                self.consentimento_ativo['id'],
-                                signature_data,
-                                self.paciente_data.get('nome', 'Paciente')
-                            )
-                            
-                            if sucesso:
-                                print(f"[DEBUG] ✅ Assinatura do paciente salva na BD")
-                                # Atualizar visual do botão
-                                self.assinatura_paciente.setText("✅ Assinado")
-                                self.assinatura_paciente.setStyleSheet("""
-                                    QPushButton {
-                                        border: 2px solid #27ae60;
-                                        border-radius: 8px;
-                                        background-color: #d4edda;
-                                        font-size: 12px;
-                                        color: #155724;
-                                        font-weight: bold;
-                                        padding: 8px;
-                                    }
-                                    QPushButton:hover {
-                                        background-color: #c3e6cb;
-                                    }
-                                """)
-                            else:
-                                print(f"[ERRO] Falha ao salvar assinatura do paciente")
-                        else:
-                            print(f"[AVISO] Assinatura vazia - não foi salva")
+                            print(f"[ERRO] Falha ao salvar assinatura do paciente")
                     except Exception as e:
                         print(f"[ERRO] Erro ao salvar assinatura do paciente: {e}")
                 
-                # Sempre atualizar visual (mesmo sem BD)
-                nome_paciente = self.paciente_data.get('nome', 'Paciente')
-                print(f"[DEBUG] Assinatura do paciente confirmada: {nome_paciente}")
+                print(f"[DEBUG] Assinatura do paciente confirmada: {self.paciente_data.get('nome', 'Paciente')}")
             
         except Exception as e:
             print(f"[ERRO] Erro na assinatura do paciente: {e}")
-            # Fallback simples
-            nome_paciente = self.paciente_data.get('nome', 'Paciente')
-            self.assinatura_paciente.setText(f"✅ {nome_paciente}")
             self.assinatura_paciente.setStyleSheet("""
                 QPushButton {
                     border: 2px solid #27ae60;
@@ -13529,195 +6273,60 @@ Naturopata | Osteopata | Medicina Quântica
             """)
 
     def abrir_assinatura_terapeuta(self, event):
-        """Abre diálogo para assinatura digital do terapeuta com canvas interativo"""
+        """Abre diálogo para assinatura digital do terapeuta usando sistema modular"""
         try:
-            from PyQt6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QLabel
+            # Usar o sistema modular de assinaturas
+            resultado = abrir_dialogo_assinatura(
+                parent=self,
+                titulo="Assinatura Digital - Terapeuta",
+                nome_pessoa="Dr. Nuno Correia",
+                tipo_assinatura="terapeuta"
+            )
             
-            # Criar diálogo de assinatura
-            dialog = QDialog(self)
-            dialog.setWindowTitle("Assinatura Digital - Terapeuta")
-            dialog.setModal(True)
-            dialog.resize(600, 400)
-            
-            layout = QVBoxLayout(dialog)
-            
-            # Título
-            titulo = QLabel("✍️ Assinatura do Terapeuta: Dr. Nuno Correia")
-            titulo.setStyleSheet("font-size: 16px; font-weight: 600; color: #2c3e50; padding: 10px;")
-            titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            layout.addWidget(titulo)
-            
-            # Instruções
-            instrucoes = QLabel("🖊️ Assine abaixo:")
-            instrucoes.setStyleSheet("font-size: 12px; color: #7f8c8d; padding: 5px;")
-            instrucoes.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            layout.addWidget(instrucoes)
-            
-            # Canvas de assinatura
-            signature_canvas = SignatureCanvas()
-            signature_canvas.setMinimumHeight(200)
-            layout.addWidget(signature_canvas)
-            
-            # Armazenar referência para uso no PDF
-            self.signature_canvas_terapeuta = signature_canvas
-            
-            # Botões
-            botoes_layout = QHBoxLayout()
-            
-            btn_limpar = QPushButton("🗑️ Limpar")
-            self._style_modern_button(btn_limpar, "#e74c3c")
-            btn_limpar.clicked.connect(signature_canvas.clear_signature)
-            botoes_layout.addWidget(btn_limpar)
-            
-            botoes_layout.addStretch()
-            
-            btn_cancelar = QPushButton("❌ Cancelar")
-            self._style_modern_button(btn_cancelar, "#95a5a6")
-            btn_cancelar.clicked.connect(dialog.reject)
-            botoes_layout.addWidget(btn_cancelar)
-            
-            btn_confirmar = QPushButton("✅ Confirmar Assinatura")
-            self._style_modern_button(btn_confirmar, "#27ae60")
-            
-            def confirmar_assinatura_terapeuta():
-                """Captura assinatura antes de fechar o diálogo"""
-                try:
-                    if not signature_canvas.is_empty():
-                        # Capturar assinatura imediatamente
-                        pixmap = signature_canvas.get_signature_image()
-                        image = pixmap.toImage()
-                        from PyQt6.QtCore import QByteArray, QBuffer
-                        byte_array = QByteArray()
-                        buffer = QBuffer(byte_array)
-                        buffer.open(QBuffer.OpenModeFlag.WriteOnly)
-                        image.save(buffer, "PNG")
-                        
-                        # Armazenar por tipo de consentimento atual
-                        tipo_atual = getattr(self, 'tipo_consentimento_atual', 'geral')
-                        if tipo_atual not in self.assinaturas_por_tipo:
-                            self.assinaturas_por_tipo[tipo_atual] = {}
-                        self.assinaturas_por_tipo[tipo_atual]['terapeuta'] = byte_array.data()
-                        
-                        # Também guardar na variável atual (compatibilidade)
-                        self.assinatura_terapeuta_data = byte_array.data()
-                        
-                        print(f"✅ [ASSINATURA] Terapeuta capturada para tipo '{tipo_atual}': {len(self.assinatura_terapeuta_data)} bytes")
-                        
-                        # Atualizar botão visual - FORÇAR ATUALIZAÇÃO
-                        self.assinatura_terapeuta.setText("✅ Assinado")
-                        self.assinatura_terapeuta.setStyleSheet("""
-                            QPushButton {
-                                background-color: #27ae60 !important; color: white !important; border: none !important;
-                                border-radius: 6px; padding: 8px 15px; font-weight: bold;
-                            }
-                            QPushButton:hover { background-color: #229954 !important; }
-                        """)
-                        
-                        # Força refresh visual
-                        self.assinatura_terapeuta.update()
-                        self.assinatura_terapeuta.repaint()
-                        
-                        # DEBUG - Verificar estado
-                        print(f"🔍 [DEBUG] Botão terapeuta texto após atualização: '{self.assinatura_terapeuta.text()}'")
-                        print(f"🔍 [DEBUG] Assinatura terapeuta data definida: {self.assinatura_terapeuta_data is not None}")
-                        print(f"🔍 [DEBUG] Assinaturas por tipo: {list(self.assinaturas_por_tipo.keys())}")
-                        
-                        dialog.accept()
-                    else:
-                        from biodesk_dialogs import mostrar_aviso
-                        mostrar_aviso(dialog, "Assinatura Vazia", "Por favor, assine no campo antes de confirmar.")
-                except Exception as e:
-                    print(f"❌ [ASSINATURA] Erro ao capturar terapeuta: {e}")
-                    dialog.reject()
-            
-            btn_confirmar.clicked.connect(confirmar_assinatura_terapeuta)
-            botoes_layout.addWidget(btn_confirmar)
-            
-            layout.addLayout(botoes_layout)
-            
-            # Mostrar diálogo
-            if dialog.exec() == QDialog.DialogCode.Accepted:
-                # Salvar assinatura na base de dados se há um consentimento ativo
+            if resultado["confirmado"]:
+                # Armazenar assinatura por tipo de consentimento
+                tipo_atual = getattr(self, 'tipo_consentimento_atual', 'geral')
+                if tipo_atual not in self.assinaturas_por_tipo:
+                    self.assinaturas_por_tipo[tipo_atual] = {}
+                
+                self.assinaturas_por_tipo[tipo_atual]['terapeuta'] = resultado["assinatura_bytes"]
+                self.assinatura_terapeuta_data = resultado["assinatura_bytes"]
+                
+                print(f"✅ [ASSINATURA] Terapeuta capturada para tipo '{tipo_atual}': {len(self.assinatura_terapeuta_data)} bytes")
+                
+                # Atualizar botão visual
+                self.assinatura_terapeuta.setText("✅ Assinado")
+                self.assinatura_terapeuta.setStyleSheet("""
+                    QPushButton {
+                        background-color: #27ae60 !important; color: white !important; border: none !important;
+                        border-radius: 6px; padding: 8px 15px; font-weight: bold;
+                    }
+                    QPushButton:hover { background-color: #229954 !important; }
+                """)
+                
+                # Salvar na base de dados se há consentimento ativo
                 if hasattr(self, 'consentimento_ativo') and self.consentimento_ativo:
                     try:
-                        # Obter dados da assinatura
-                        if not signature_canvas.is_empty():
-                            signature_pixmap = signature_canvas.toPixmap()
-                            # Converter QPixmap para bytes
-                            from PyQt6.QtCore import QBuffer, QIODevice
-                            buffer = QBuffer()
-                            buffer.open(QIODevice.OpenModeFlag.WriteOnly)
-                            signature_pixmap.save(buffer, 'PNG')
-                            signature_data = buffer.data().data()
+                        from consentimentos_manager import ConsentimentosManager
+                        manager = ConsentimentosManager()
+                        
+                        sucesso = manager.atualizar_assinatura_terapeuta(
+                            self.consentimento_ativo['id'],
+                            resultado["assinatura_bytes"],
+                            "Dr. Nuno Correia"
+                        )
+                        
+                        if sucesso:
+                            print(f"[DEBUG] ✅ Assinatura do terapeuta salva na BD")
                         else:
-                            signature_data = None
-                            
-                        if signature_data:
-                            from consentimentos_manager import ConsentimentosManager
-                            manager = ConsentimentosManager()
-                            
-                            # Atualizar consentimento com assinatura do terapeuta
-                            sucesso = manager.atualizar_assinatura_terapeuta(
-                                self.consentimento_ativo['id'],
-                                signature_data,
-                                "Dr. Nuno Correia"
-                            )
-                            
-                            if sucesso:
-                                print(f"[DEBUG] ✅ Assinatura do terapeuta salva na BD")
-                                # Atualizar visual do botão
-                                self.assinatura_terapeuta.setText("✅ Assinado")
-                                self.assinatura_terapeuta.setStyleSheet("""
-                                    QPushButton {
-                                        border: 2px solid #27ae60;
-                                        border-radius: 8px;
-                                        background-color: #d4edda;
-                                        font-size: 12px;
-                                        color: #155724;
-                                        font-weight: bold;
-                                        padding: 8px;
-                                    }
-                                    QPushButton:hover {
-                                        background-color: #c3e6cb;
-                                    }
-                                """)
-                            else:
-                                print(f"[ERRO] Falha ao salvar assinatura do terapeuta")
-                        else:
-                            print(f"[AVISO] Assinatura vazia - não foi salva")
+                            print(f"[ERRO] Falha ao salvar assinatura do terapeuta")
                     except Exception as e:
                         print(f"[ERRO] Erro ao salvar assinatura do terapeuta: {e}")
                 
-                # Sempre atualizar visual (mesmo sem BD)
                 print("[DEBUG] Assinatura do terapeuta confirmada: Dr. Nuno Correia")
             
         except Exception as e:
             print(f"[ERRO] Erro na assinatura do terapeuta: {e}")
-            # Fallback simples
-            self.assinatura_terapeuta.setText("✅ Dr. Nuno Correia")
-            self.assinatura_terapeuta.setStyleSheet("""
-                QPushButton {
-                    border: 2px solid #27ae60;
-                    border-radius: 8px;
-                    background-color: #d4edda;
-                    font-size: 12px;
-                    color: #155724;
-                    font-weight: bold;
-                    padding: 8px;
-                }
-            """)
-            self.assinatura_terapeuta.setStyleSheet("""
-                QLabel {
-                    border: 2px solid #27ae60;
-                    border-radius: 8px;
-                    background-color: #e8f5e8;
-                    font-size: 11px;
-                    color: #2e7d32;
-                    text-align: center;
-                    padding: 10px;
-                    font-weight: 600;
-                }
-            """)
 
     def _processar_texto_pdf(self, texto):
         """
@@ -13823,40 +6432,36 @@ Naturopata | Osteopata | Medicina Quântica
             assinatura_paciente_html = ""
             assinatura_terapeuta_html = ""
             
-            # Salvar assinaturas como arquivos temporários
-            if hasattr(self, 'signature_canvas_paciente') and self.signature_canvas_paciente:
+            # Salvar assinaturas como arquivos temporários usando sistema modular
+            if hasattr(self, 'assinatura_paciente_data') and self.assinatura_paciente_data:
                 try:
-                    # Verificar se assinatura não está vazia antes de salvar
-                    if not self.signature_canvas_paciente.is_empty():
-                        os.makedirs('temp', exist_ok=True)
-                        sig_path = os.path.abspath('temp/sig_paciente.png')
-                        # Converter QPixmap para QImage antes de salvar
-                        pixmap = self.signature_canvas_paciente.get_signature_image()
-                        image = pixmap.toImage()
-                        image.save(sig_path)
-                        sig_url = QUrl.fromLocalFile(sig_path).toString()
-                        assinatura_paciente_html = f'<img src="{sig_url}" width="150" height="50">'
-                        print(f"[DEBUG] Assinatura paciente salva: {sig_path}")
-                    else:
-                        print(f"[DEBUG] Assinatura paciente vazia - não incluída no PDF")
+                    os.makedirs('temp', exist_ok=True)
+                    sig_path = os.path.abspath('temp/sig_paciente.png')
+                    
+                    # Salvar bytes da assinatura diretamente
+                    with open(sig_path, 'wb') as f:
+                        f.write(self.assinatura_paciente_data)
+                    
+                    sig_url = QUrl.fromLocalFile(sig_path).toString()
+                    assinatura_paciente_html = f'<img src="{sig_url}" width="150" height="50">'
+                    print(f"[DEBUG] Assinatura paciente salva: {sig_path}")
                 except Exception as e:
                     print(f"[DEBUG] Erro assinatura paciente: {e}")
+            else:
+                print(f"[DEBUG] Assinatura paciente não disponível")
             
-            if hasattr(self, 'signature_canvas_terapeuta') and self.signature_canvas_terapeuta:
+            if hasattr(self, 'assinatura_terapeuta_data') and self.assinatura_terapeuta_data:
                 try:
-                    # Verificar se assinatura não está vazia antes de salvar
-                    if not self.signature_canvas_terapeuta.is_empty():
-                        os.makedirs('temp', exist_ok=True)
-                        sig_path = os.path.abspath('temp/sig_terapeuta.png')
-                        # Converter QPixmap para QImage antes de salvar
-                        pixmap = self.signature_canvas_terapeuta.get_signature_image()
-                        image = pixmap.toImage()
-                        image.save(sig_path)
-                        sig_url = QUrl.fromLocalFile(sig_path).toString()
-                        assinatura_terapeuta_html = f'<img src="{sig_url}" width="150" height="50">'
-                        print(f"[DEBUG] Assinatura terapeuta salva: {sig_path}")
-                    else:
-                        print(f"[DEBUG] Assinatura terapeuta vazia - não incluída no PDF")
+                    os.makedirs('temp', exist_ok=True)
+                    sig_path = os.path.abspath('temp/sig_terapeuta.png')
+                    
+                    # Salvar bytes da assinatura diretamente
+                    with open(sig_path, 'wb') as f:
+                        f.write(self.assinatura_terapeuta_data)
+                    
+                    sig_url = QUrl.fromLocalFile(sig_path).toString()
+                    assinatura_terapeuta_html = f'<img src="{sig_url}" width="150" height="50">'
+                    print(f"[DEBUG] Assinatura terapeuta salva: {sig_path}")
                 except Exception as e:
                     print(f"[DEBUG] Erro assinatura terapeuta: {e}")
             
@@ -16003,7 +8608,7 @@ Naturopata | Osteopata | Medicina Quântica
                                     <div style="min-height: 80px; display: flex; align-items: center; justify-content: center;">
                                         {assinatura_paciente_html if assinatura_paciente_html else '<span style="color: #999; font-style: italic;">Sem assinatura</span>'}
                                     </div>
-                                    <p style="margin: 15px 0 0 0; line-height: 1.6;">
+                                    <p style="margin: -15px 0 0 0; line-height: 0.8;">
                                         <strong style="color: #333; font-size: 14pt;">{nome_paciente}</strong><br>
                                         <span style="font-size: 12pt; color: #666;">{data_atual_por_extenso}</span><br>
                                         <span style="font-size: 10pt; color: #007bff; font-style: italic;">Assinado digitalmente</span>
@@ -16018,7 +8623,7 @@ Naturopata | Osteopata | Medicina Quântica
                                     <div style="min-height: 80px; display: flex; align-items: center; justify-content: center;">
                                         {assinatura_terapeuta_html if assinatura_terapeuta_html else '<span style="color: #999; font-style: italic;">Sem assinatura</span>'}
                                     </div>
-                                    <p style="margin: 15px 0 0 0; line-height: 1.6;">
+                                    <p style="margin: -15px 0 0 0; line-height: 0.8;">
                                         <strong style="color: #333; font-size: 14pt;">Nuno Correia</strong><br>
                                         <span style="font-size: 12pt; color: #666;">{data_atual_por_extenso}</span><br>
                                         <span style="font-size: 10pt; color: #28a745; font-style: italic;">Naturopata Certificado</span>
@@ -16690,134 +9295,6 @@ Naturopata | Osteopata | Medicina Quântica
             from biodesk_dialogs import mostrar_erro
             mostrar_erro(self, "Erro", f"❌ Erro ao assinar declaração:\n\n{str(e)}")
             print(f"❌ [DECLARAÇÃO] Erro: {e}")
-            
-            dialog = QDialog(self)
-            dialog.setWindowTitle("Assinatura - Declaração de Saúde")
-            dialog.setModal(True)
-            dialog.resize(600, 450)
-            
-            layout = QVBoxLayout(dialog)
-            
-            # Título
-            titulo = QLabel("✍️ Assinatura da Declaração de Saúde")
-            titulo.setStyleSheet("""
-                font-size: 16px;
-                font-weight: bold;
-                color: #2980b9;
-                padding: 15px;
-                text-align: center;
-            """)
-            titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            layout.addWidget(titulo)
-            
-            # Info do paciente
-            nome_paciente = self.paciente_data.get('nome', 'N/A')
-            info_label = QLabel(f"👤 Paciente: {nome_paciente}")
-            info_label.setStyleSheet("padding: 10px; background-color: #f8f9fa; border-radius: 5px;")
-            layout.addWidget(info_label)
-            
-            # Canvas de assinatura
-            signature_canvas = SignatureCanvas()
-            signature_canvas.setMinimumHeight(200)
-            layout.addWidget(signature_canvas)
-            
-            # Instruções
-            instrucoes = QLabel("✍️ Assine no campo acima usando o mouse ou toque")
-            instrucoes.setStyleSheet("color: #6c757d; text-align: center; padding: 5px;")
-            instrucoes.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            layout.addWidget(instrucoes)
-            
-            # Botões
-            botoes_layout = QHBoxLayout()
-            
-            btn_limpar = QPushButton("🗑️ Limpar")
-            btn_limpar.clicked.connect(signature_canvas.clear)
-            
-            btn_cancelar = QPushButton("❌ Cancelar")
-            btn_cancelar.clicked.connect(dialog.reject)
-            
-            btn_confirmar = QPushButton("✅ Confirmar e Guardar")
-            btn_confirmar.setStyleSheet("""
-                QPushButton {
-                    background-color: #28a745;
-                    color: white;
-                    border: none;
-                    padding: 10px 20px;
-                    border-radius: 5px;
-                    font-weight: bold;
-                }
-                QPushButton:hover {
-                    background-color: #218838;
-                }
-            """)
-            
-            def confirmar_assinatura():
-                try:
-                    if signature_canvas.is_empty():
-                        from biodesk_dialogs import mostrar_aviso
-                        mostrar_aviso(dialog, "Assinatura Vazia", "Por favor, assine no campo antes de confirmar.")
-                        return
-                    
-                    # Converter assinatura para bytes
-                    signature_pixmap = signature_canvas.toPixmap()
-                    from PyQt6.QtCore import QBuffer, QIODevice
-                    buffer = QBuffer()
-                    buffer.open(QIODevice.OpenModeFlag.WriteOnly)
-                    signature_pixmap.save(buffer, 'PNG')
-                    signature_data = buffer.data().data()
-                    
-                    # Guardar diretamente na base de dados
-                    from consentimentos_manager import ConsentimentosManager
-                    manager = ConsentimentosManager()
-                    
-                    sucesso = manager.guardar_assinatura_declaracao(
-                        paciente_id, 'declaracao_saude', 'paciente', 
-                        signature_data, nome_paciente
-                    )
-                    
-                    if sucesso:
-                        # Atualizar status visual
-                        self.status_declaracao.setText("✅ Assinada")
-                        self.status_declaracao.setStyleSheet("""
-                            QLabel {
-                                color: #27ae60;
-                                font-weight: bold;
-                                font-size: 12px;
-                                padding: 5px;
-                                background-color: #d4edda;
-                                border: 1px solid #c3e6cb;
-                                border-radius: 4px;
-                            }
-                        """)
-                        
-                        from biodesk_dialogs import mostrar_sucesso
-                        mostrar_sucesso(dialog, "Sucesso", "✅ Declaração assinada com sucesso!")
-                        dialog.accept()
-                    else:
-                        from biodesk_dialogs import mostrar_erro
-                        mostrar_erro(dialog, "Erro", "❌ Erro ao guardar assinatura.")
-                        
-                except Exception as e:
-                    from biodesk_dialogs import mostrar_erro
-                    mostrar_erro(dialog, "Erro", f"❌ Erro ao processar assinatura:\n\n{str(e)}")
-                    print(f"❌ [DECLARAÇÃO] Erro ao confirmar: {e}")
-            
-            btn_confirmar.clicked.connect(confirmar_assinatura)
-            
-            botoes_layout.addWidget(btn_limpar)
-            botoes_layout.addStretch()
-            botoes_layout.addWidget(btn_cancelar)
-            botoes_layout.addWidget(btn_confirmar)
-            
-            layout.addLayout(botoes_layout)
-            
-            # Mostrar diálogo
-            dialog.exec()
-            
-        except Exception as e:
-            from biodesk_dialogs import mostrar_erro
-            mostrar_erro(self, "Erro", f"❌ Erro ao iniciar assinatura:\n\n{str(e)}")
-            print(f"❌ [DECLARAÇÃO] Erro: {e}")
 
     def gerar_pdf_declaracao_com_assinaturas(self):
         """Gera PDF da declaração usando o sistema dos consentimentos com assinaturas do paciente E terapeuta"""
@@ -16962,17 +9439,14 @@ Naturopata | Osteopata | Medicina Quântica
             """)
             layout_paciente = QVBoxLayout(grupo_paciente)
             
-            # Canvas de assinatura paciente usando o mesmo sistema
-            from centro_comunicacao_widget import SignatureCanvas
-            self.canvas_paciente_declaracao = SignatureCanvas()
-            self.canvas_paciente_declaracao.setMinimumSize(700, 150)
-            layout_paciente.addWidget(self.canvas_paciente_declaracao)
+            # Usar sistema modular de assinaturas - removido canvas manual
+
             
             # Botões para assinatura paciente
             botoes_paciente = QHBoxLayout()
             
             btn_limpar_paciente = QPushButton("🗑️ Limpar")
-            btn_limpar_paciente.clicked.connect(self.canvas_paciente_declaracao.clear)
+            # Sistema modular substituirá funcionalidade do canvas
             btn_limpar_paciente.setStyleSheet("""
                 QPushButton {
                     padding: 8px 15px;
@@ -17026,11 +9500,7 @@ Naturopata | Osteopata | Medicina Quântica
             """)
             
             def confirmar_assinatura_declaracao():
-                if not self.canvas_paciente_declaracao.has_signature():
-                    from biodesk_dialogs import mostrar_aviso
-                    mostrar_aviso(dialog, "Aviso", "Por favor, desenhe a sua assinatura antes de confirmar.")
-                    return
-                
+                # Usar sistema modular - esta validação será feita pelo novo sistema
                 # Finalizar declaração com assinatura
                 self.finalizar_declaracao_com_assinatura_moderna()
                 dialog.accept()
@@ -17107,27 +9577,13 @@ Naturopata | Osteopata | Medicina Quântica
     def finalizar_declaracao_com_assinatura_moderna(self):
         """Finaliza a declaração com assinatura capturada usando sistema moderno"""
         try:
-            # Obter assinatura do canvas
-            if hasattr(self, 'canvas_paciente_declaracao') and self.canvas_paciente_declaracao.has_signature():
-                # Capturar assinatura como bytes PNG
-                from PyQt6.QtCore import QBuffer, QByteArray
-                from PyQt6.QtGui import QPixmap
-                
-                signature_image = self.canvas_paciente_declaracao.get_signature_image()
-                if signature_image:
-                    byte_array = QByteArray()
-                    buffer = QBuffer(byte_array)
-                    buffer.open(QBuffer.OpenModeFlag.WriteOnly)
-                    signature_image.save(buffer, "PNG")
-                    assinatura_paciente_bytes = byte_array.data()
-                    
-                    print(f"✅ [DECLARAÇÃO] Assinatura capturada: {len(assinatura_paciente_bytes)} bytes")
-                else:
-                    assinatura_paciente_bytes = None
-                    print(f"⚠️ [DECLARAÇÃO] Falha ao capturar imagem da assinatura")
+            # Usar dados de assinatura do sistema modular
+            if hasattr(self, 'assinatura_paciente_data') and self.assinatura_paciente_data:
+                assinatura_paciente_bytes = self.assinatura_paciente_data
+                print(f"✅ [DECLARAÇÃO] Assinatura capturada: {len(assinatura_paciente_bytes)} bytes")
             else:
                 assinatura_paciente_bytes = None
-                print(f"❌ [DECLARAÇÃO] Canvas não disponível ou sem assinatura")
+                print(f"❌ [DECLARAÇÃO] Assinatura não disponível")
             
             # Obter conteúdo atual e aplicar substituições
             conteudo_html = self.texto_declaracao_editor.toHtml()
@@ -17313,10 +9769,8 @@ Naturopata | Osteopata | Medicina Quântica
             if '☐' in linha or '☑' in linha:
                 tooltip = "Clique para marcar/desmarcar esta opção"
                 self.texto_declaracao_editor.setToolTip(tooltip)
-                # REMOVIDO: Deixar CSS controlar os cursores
             else:
                 self.texto_declaracao_editor.setToolTip("")
-                # REMOVIDO: Deixar CSS controlar os cursores
                 
         except Exception as e:
             print(f"[DEBUG] Erro ao tratar movimento: {e}")
@@ -17341,6 +9795,30 @@ Naturopata | Osteopata | Medicina Quântica
                 background-color: #fafafa;
             }}
             QLineEdit:hover {{
+                border-color: #bdbdbd;
+                background-color: #f9f9f9;
+            }}
+        """)
+
+    def _style_text_edit(self, text_edit, color="#3498db"):
+        """Aplica estilo moderno a um QTextEdit"""
+        text_edit.setStyleSheet(f"""
+            QTextEdit {{
+                border: 2px solid #e0e0e0;
+                border-radius: 8px;
+                padding: 12px;
+                font-size: 14px;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background-color: white;
+                color: #333;
+                selection-background-color: {color};
+                line-height: 1.4;
+            }}
+            QTextEdit:focus {{
+                border-color: {color};
+                background-color: #fafafa;
+            }}
+            QTextEdit:hover {{
                 border-color: #bdbdbd;
                 background-color: #f9f9f9;
             }}
@@ -17402,17 +9880,6 @@ Naturopata | Osteopata | Medicina Quântica
         """)
         button.setMinimumHeight(50)
         button.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-
-    def _aplicar_estilos_modernos_assinatura(self):
-        """Força a aplicação de estilos modernos nos botões de assinatura após inicialização"""
-        try:
-            # Aplicar estilo moderno aos botões de assinatura se existirem
-            if hasattr(self, 'assinatura_paciente'):
-                self._style_modern_button(self.assinatura_paciente, "#2196F3")
-            if hasattr(self, 'assinatura_terapeuta'):
-                self._style_modern_button(self.assinatura_terapeuta, "#4CAF50")
-        except Exception as e:
-            print(f"[AVISO] Erro ao aplicar estilos modernos: {e}")
 
     def _style_compact_button(self, button, color="#3498db"):
         """Aplica estilo compacto para botões pequenos com fonte menor"""
@@ -17477,29 +9944,6 @@ Naturopata | Osteopata | Medicina Quântica
                 border-right: 6px solid transparent;
                 border-top: 8px solid #666;
                 margin-right: 8px;
-            }
-        """)
-
-    def _style_text_edit(self, text_edit):
-        """Aplica estilo moderno a um QTextEdit"""
-        text_edit.setStyleSheet("""
-            QTextEdit {
-                border: 2px solid #e0e0e0;
-                border-radius: 8px;
-                padding: 12px;
-                font-size: 14px;
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                background-color: white;
-                color: #333;
-                line-height: 1.4;
-            }
-            QTextEdit:focus {
-                border-color: #3498db;
-                background-color: #fafafa;
-            }
-            QTextEdit:hover {
-                border-color: #bdbdbd;
-                background-color: #f9f9f9;
             }
         """)
 
@@ -17581,102 +10025,7 @@ Naturopata | Osteopata | Medicina Quântica
             }}
         """)
 
-    def _create_iris_label(self, text):
-        """Cria label com design iris - typography moderna"""
-        label = QLabel(text)
-        label.setStyleSheet("""
-            QLabel {
-                font-size: 14px;
-                font-weight: 600;
-                color: #6c757d;
-                padding: 2px 0px;
-                margin-bottom: 3px;
-            }
-        """)
-        return label
 
-    def _style_iris_input(self, input_widget):
-        """Aplica estilo iris aos campos de input - bordas suaves"""
-        input_widget.setStyleSheet("""
-            QLineEdit {
-                border: 1px solid #e0e0e0;
-                border-radius: 6px;
-                padding: 8px 10px;
-                font-size: 14px;
-                background-color: #ffffff;
-                color: #495057;
-            }
-            QLineEdit:focus {
-                border: 2px solid #007bff;
-                outline: none;
-            }
-            QLineEdit:hover {
-                border: 1px solid #6c757d;
-            }
-        """)
-
-    def _style_iris_combo(self, combo_widget):
-        """Aplica estilo iris aos comboboxes - bordas suaves"""
-        combo_widget.setStyleSheet("""
-            QComboBox {
-                border: 1px solid #e0e0e0;
-                border-radius: 6px;
-                padding: 8px 10px;
-                font-size: 14px;
-                background-color: #ffffff;
-                color: #495057;
-                min-height: 18px;
-            }
-            QComboBox:focus {
-                border: 2px solid #007bff;
-                outline: none;
-            }
-            QComboBox:hover {
-                border: 1px solid #6c757d;
-            }
-            QComboBox::drop-down {
-                border: none;
-                width: 20px;
-            }
-            QComboBox::down-arrow {
-                image: none;
-                border-left: 5px solid transparent;
-                border-right: 5px solid transparent;
-                border-top: 6px solid #6c757d;
-                margin-right: 5px;
-            }
-            QComboBox QAbstractItemView {
-                border: 1px solid #e0e0e0;
-                border-radius: 6px;
-                background-color: #ffffff;
-                selection-background-color: #007bff;
-                selection-color: white;
-                padding: 4px;
-            }
-        """)
-
-    def _style_iris_button(self, button, hover_color):
-        """Design de botões iris - base neutra + hover colorido (sem transform)"""
-        button.setStyleSheet(f"""
-            QPushButton {{
-                background-color: #f8f9fa;
-                color: #6c757d;
-                border: 1px solid #e0e0e0;
-                border-radius: 6px;
-                padding: 8px 12px;
-                font-size: 14px;
-                font-weight: bold;
-                text-align: center;
-            }}
-            QPushButton:hover {{
-                background-color: {hover_color};
-                color: white;
-                border: 1px solid {hover_color};
-            }}
-            QPushButton:pressed {{
-                background-color: {self._darken_color(hover_color, 0.1)};
-            }}
-        """)
         
     def _darken_color(self, hex_color, factor=0.1):
         """Escurece uma cor hexadecimal"""

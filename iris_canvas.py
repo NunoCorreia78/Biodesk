@@ -1,13 +1,34 @@
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QPushButton, QGraphicsView, QGraphicsScene,
-                            QFileDialog, QMessageBox, QGraphicsPolygonItem, QHBoxLayout,
-                            QLabel, QTextEdit, QSizePolicy, QFrame, QScrollArea, QGraphicsItem,
-                            QDialog, QDialogButtonBox, QGraphicsEllipseItem, QComboBox, QGroupBox)
 from PyQt6.QtGui import QPixmap, QPolygonF, QBrush, QPen, QColor
 from PyQt6.QtCore import Qt, QPointF, QEvent, pyqtSignal
 import json
 import math
 import os
 from iris_overlay_manager import IrisOverlayManager
+from biodesk_dialogs import BiodeskMessageBox
+    from PyQt6.QtGui import QPolygonF
+    from PyQt6.QtCore import QPointF
+    import math
+        from PyQt6.QtWidgets import QComboBox, QGroupBox
+        from PyQt6.QtWidgets import QToolTip
+        from PyQt6.QtWidgets import QToolTip
+        import json
+        import os
+        from PyQt6.QtWidgets import QHBoxLayout, QGraphicsScene, QVBoxLayout, QPushButton, QLabel
+            from iris_analysis_config import IrisAnalysisConfig
+        from PyQt6.QtGui import QPixmap
+        from PyQt6.QtCore import Qt
+        from PyQt6.QtCore import QRectF
+                import traceback
+            import os
+            import traceback
+from PyQt6.QtWidgets import QGraphicsView
+from PyQt6.QtCore import Qt, QPointF, QEvent
+from PyQt6.QtGui import QWheelEvent, QMouseEvent
+from biodesk_ui_kit import BiodeskUIKit
+                            QFileDialog, QGraphicsPolygonItem, QHBoxLayout,
+                            QLabel, QTextEdit, QSizePolicy, QFrame, QScrollArea, QGraphicsItem,
+                            QDialog, QDialogButtonBox, QGraphicsEllipseItem, QComboBox, QGroupBox)
 
 # --- Função de morphing para converter pontos polares normalizados em coordenadas no canvas ---
 def pontos_para_polygon(pontos_polares, cx, cy, raio_pupila, raio_anel):
@@ -20,9 +41,6 @@ def pontos_para_polygon(pontos_polares, cx, cy, raio_pupila, raio_anel):
     - 180° = esquerda (9h no relógio)
     - 270° = cima (12h no relógio)
     """
-    from PyQt6.QtGui import QPolygonF
-    from PyQt6.QtCore import QPointF
-    import math
     
     poly = QPolygonF()
     
@@ -109,7 +127,6 @@ class SinalAnalysisPopup(QDialog):
             layout.addWidget(desc_label)
         
         # Seleção de sinal
-        from PyQt6.QtWidgets import QComboBox, QGroupBox
         signal_group = QGroupBox("🔬 Tipo de Sinal Observado")
         signal_layout = QVBoxLayout()
         
@@ -154,46 +171,7 @@ class SinalAnalysisPopup(QDialog):
         self.setLayout(layout)
         
         # Aplicar estilos
-        self.setStyleSheet("""
-            QGroupBox {
-                font-weight: bold;
-                border: 2px solid #bdc3c7;
-                border-radius: 5px;
-                margin-top: 10px;
-                padding-top: 10px;
-            }
-            QGroupBox::title {
-                subcontrol-origin: margin;
-                left: 10px;
-                padding: 0 5px 0 5px;
-            }
-            QComboBox {
-                padding: 8px;
-                border: 1px solid #bdc3c7;
-                border-radius: 3px;
-                min-height: 20px;
-                font-size: 14px;
-            }
-            QTextEdit {
-                border: 1px solid #bdc3c7;
-                border-radius: 3px;
-                padding: 8px;
-                background-color: #fafafa;
-                font-size: 13px;
-            }
-            QPushButton {
-                padding: 10px 20px;
-                border: none;
-                border-radius: 5px;
-                background-color: #3498db;
-                color: white;
-                font-weight: bold;
-                font-size: 14px;
-            }
-            QPushButton:hover {
-                background-color: #2980b9;
-            }
-        """)
+        BiodeskUIKit.apply_universal_button_style(self)
         
     def setup_signals(self):
         """Configura os sinais e eventos"""
@@ -432,7 +410,6 @@ class ZonaReflexa(QGraphicsPolygonItem):
         self.setToolTip(tooltip_text)
         
         # Força a exibição do tooltip
-        from PyQt6.QtWidgets import QToolTip
         try:
             pos = event.screenPos()
             if hasattr(pos, 'toPoint'):
@@ -457,7 +434,6 @@ class ZonaReflexa(QGraphicsPolygonItem):
         
         # Remove o tooltip e oculta
         self.setToolTip("")
-        from PyQt6.QtWidgets import QToolTip
         QToolTip.hideText()
             
         super().hoverLeaveEvent(event)
@@ -502,8 +478,7 @@ class ZonaReflexa(QGraphicsPolygonItem):
             popup.exec()
         except Exception as e:
             print(f"❌ Erro ao abrir popup de análise: {e}")
-            from PyQt6.QtWidgets import QMessageBox
-            QMessageBox.critical(
+            BiodeskMessageBox.critical(
                 None,
                 "Erro",
                 f"Erro ao abrir análise de sinais:\n\n{str(e)}"
@@ -513,8 +488,6 @@ class ZonaReflexa(QGraphicsPolygonItem):
         """
         Carrega os sinais específicos de uma zona a partir dos ficheiros JSON de sinais.
         """
-        import json
-        import os
         
         # Determinar o tipo de íris (assumindo que está definido no canvas pai)
         tipo_iris = 'drt'  # default
@@ -766,7 +739,6 @@ class IrisCanvas(QWidget):
         return color_map.get(color, color)
 
     def init_ui(self):
-        from PyQt6.QtWidgets import QHBoxLayout, QGraphicsScene, QVBoxLayout, QPushButton, QLabel
 
         # Primeiro configurar tracking e hover
         self.view = IrisGraphicsView(self)
@@ -906,7 +878,6 @@ class IrisCanvas(QWidget):
             return
             
         try:
-            from iris_analysis_config import IrisAnalysisConfig
             
             # Criar resumo para histórico
             resumo = IrisAnalysisConfig.criar_resumo_analise(
@@ -1098,8 +1069,6 @@ class IrisCanvas(QWidget):
         - A calibração do utilizador serve apenas para ajustar visualmente a sobreposição
         - As coordenadas polares são convertidas dinamicamente para cartesianas usando a calibração atual
         """
-        from PyQt6.QtGui import QPixmap
-        from PyQt6.QtCore import Qt
         
         # Se tipo não foi especificado, detectar automaticamente
         if tipo is None:
@@ -1129,7 +1098,6 @@ class IrisCanvas(QWidget):
         # 4. CORREÇÃO: Configurar a scene com o tamanho correto da imagem
         image_rect = self.imagem_pixmap.rect()
         # CORREÇÃO: Converter QRect para QRectF para compatibilidade
-        from PyQt6.QtCore import QRectF
         scene_rect = QRectF(image_rect)
         self.scene.setSceneRect(scene_rect)
         
@@ -1346,7 +1314,6 @@ class IrisCanvas(QWidget):
             
             except Exception as e:
                 print(f"❌ Erro ao carregar zonas: {e}")
-                import traceback
                 traceback.print_exc()
         else:
             print(f"❌ Ficheiro não encontrado: {json_path}")
@@ -1369,7 +1336,6 @@ class IrisCanvas(QWidget):
     def closeEvent(self, event):
         """Limpa os arquivos temporários ao fechar a janela"""
         if hasattr(self, 'temp_files'):
-            import os
             for temp_file in self.temp_files:
                 try:
                     if os.path.exists(temp_file):
@@ -1682,15 +1648,11 @@ class IrisCanvas(QWidget):
             
         except Exception as e:
             print(f"❌ Erro ao preservar ajuste fino: {e}")
-            import traceback
             traceback.print_exc()
         
 
     
 # --- Zoom e Pan fluido ---
-from PyQt6.QtWidgets import QGraphicsView
-from PyQt6.QtCore import Qt, QPointF, QEvent
-from PyQt6.QtGui import QWheelEvent, QMouseEvent
 
 class IrisGraphicsView(QGraphicsView):
     def __init__(self, parent=None):

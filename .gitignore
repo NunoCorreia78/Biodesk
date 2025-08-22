@@ -1,0 +1,109 @@
+# Arquivo .gitignore para o projeto Biodesk
+# Previne acúmulo de arquivos desnecessários
+
+# Cache Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Arquivos de distribuição/packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Traduções
+*.mo
+*.pot
+
+# Arquivos de log
+*.log
+logs/
+
+# Arquivos temporários
+temp/
+tmp/
+*.tmp
+*.temp
+
+# Backups automáticos
+*.backup
+*.bak
+*backup*
+*.backup_*
+
+# Arquivos de teste
+*test*
+*exemplo*
+*investigar*
+
+# Arquivos de configuração local
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Arquivos específicos do Biodesk
+historico_envios.json
+todos.json
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-*
+
+# Arquivos de dados temporários
+*.csv.temp
+*.json.temp
+*.txt.temp

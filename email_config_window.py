@@ -1,18 +1,20 @@
+from PyQt6.QtWidgets import (
+from PyQt6.QtCore import Qt, QThread, pyqtSignal
+from PyQt6.QtGui import QFont
+from email_config import email_config
+from email_sender import email_sender
+from biodesk_dialogs import BiodeskMessageBox
+from biodesk_ui_kit import BiodeskUIKit
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Janela de Configuração de Email para Biodesk
 """
 
-from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, 
     QPushButton, QFormLayout, QGroupBox, QSpinBox, QCheckBox,
-    QTextEdit, QMessageBox, QTabWidget, QWidget
+    QTextEdit, QTabWidget, QWidget
 )
-from PyQt6.QtCore import Qt, QThread, pyqtSignal
-from PyQt6.QtGui import QFont
-from email_config import email_config
-from email_sender import email_sender
 
 class TestEmailThread(QThread):
     """Thread para testar conexão de email"""
@@ -67,35 +69,11 @@ class EmailConfigWindow(QDialog):
         
         btn_testar = QPushButton("🔍 Testar Conexão")
         btn_testar.clicked.connect(self.testar_conexao)
-        btn_testar.setStyleSheet("""
-            QPushButton {
-                background-color: #17a2b8;
-                color: white;
-                border: none;
-                padding: 10px;
-                border-radius: 5px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #138496;
-            }
-        """)
+        BiodeskUIKit.apply_universal_button_style(btn_testar)
         
         btn_guardar = QPushButton("💾 Guardar")
         btn_guardar.clicked.connect(self.guardar_config)
-        btn_guardar.setStyleSheet("""
-            QPushButton {
-                background-color: #28a745;
-                color: white;
-                border: none;
-                padding: 10px;
-                border-radius: 5px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #218838;
-            }
-        """)
+        BiodeskUIKit.apply_universal_button_style(btn_guardar)
         
         btn_cancelar = QPushButton("❌ Cancelar")
         btn_cancelar.clicked.connect(self.reject)
@@ -268,11 +246,11 @@ Equipa {nome_clinica}
         """Guarda configuração"""
         # Validar campos obrigatórios
         if not self.input_email.text().strip():
-            QMessageBox.warning(self, "Campo Obrigatório", "Email é obrigatório!")
+            BiodeskMessageBox.warning(self, "Campo Obrigatório", "Email é obrigatório!")
             return
         
         if not self.input_nome_clinica.text().strip():
-            QMessageBox.warning(self, "Campo Obrigatório", "Nome da clínica é obrigatório!")
+            BiodeskMessageBox.warning(self, "Campo Obrigatório", "Nome da clínica é obrigatório!")
             return
         
         # Guardar configuração
@@ -292,10 +270,10 @@ Equipa {nome_clinica}
         email_config.set("assinatura", self.input_assinatura.toPlainText().strip())
         
         if email_config.save_config():
-            QMessageBox.information(self, "Sucesso", "✅ Configuração guardada com sucesso!")
+            BiodeskMessageBox.information(self, "Sucesso", "✅ Configuração guardada com sucesso!")
             self.accept()
         else:
-            QMessageBox.critical(self, "Erro", "❌ Erro ao guardar configuração!")
+            BiodeskMessageBox.critical(self, "Erro", "❌ Erro ao guardar configuração!")
     
     def testar_conexao(self):
         """Testa conexão com servidor SMTP"""
@@ -314,11 +292,11 @@ Equipa {nome_clinica}
         self.thread_test.start()
         
         # Mostrar progresso
-        QMessageBox.information(self, "Testando", "🔄 Testando conexão... Aguarde.")
+        BiodeskMessageBox.information(self, "Testando", "🔄 Testando conexão... Aguarde.")
     
     def mostrar_resultado_teste(self, sucesso, mensagem):
         """Mostra resultado do teste"""
         if sucesso:
-            QMessageBox.information(self, "Teste de Conexão", f"✅ {mensagem}")
+            BiodeskMessageBox.information(self, "Teste de Conexão", f"✅ {mensagem}")
         else:
-            QMessageBox.warning(self, "Teste de Conexão", f"❌ {mensagem}")
+            BiodeskMessageBox.warning(self, "Teste de Conexão", f"❌ {mensagem}")

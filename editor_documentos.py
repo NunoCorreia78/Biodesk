@@ -18,6 +18,8 @@ from reportlab.lib.units import cm
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
 import tempfile
+from biodesk_dialogs import BiodeskMessageBox
+from PyQt6.QtWidgets import QMessageBox
 import os
 
 
@@ -638,13 +640,13 @@ As variáveis são substituídas automaticamente na geração do documento.<br>
     def salvar_template(self):
         """Salvar template editado"""
         if not self.template_atual:
-            QMessageBox.warning(self, "Aviso", "Nenhum template selecionado.")
+            BiodeskMessageBox.warning(self, "Aviso", "Nenhum template selecionado.")
             return
             
         texto = self.editor_texto.toPlainText()
         
         # Perguntar nome do template
-        nome, ok = QInputDialog.getText(self, "💾 Salvar Template", 
+        nome, ok = BiodeskMessageBox.getText(self, "💾 Salvar Template", 
                                        "Nome do template:")
         if not ok or not nome:
             return
@@ -659,14 +661,14 @@ As variáveis são substituídas automaticamente na geração do documento.<br>
             with open(arquivo, 'w', encoding='utf-8') as f:
                 f.write(texto)
             
-            QMessageBox.information(self, "✅ Sucesso", 
+            BiodeskMessageBox.information(self, "✅ Sucesso", 
                                   f"Template salvo como:\n{arquivo}")
             
             # Recarregar lista
             self.carregar_templates_categoria(self.categoria_atual)
             
         except Exception as e:
-            QMessageBox.critical(self, "❌ Erro", f"Erro ao salvar: {e}")
+            BiodeskMessageBox.critical(self, "❌ Erro", f"Erro ao salvar: {e}")
             
     def gerar_pdf(self):
         """Gerar PDF do documento"""
@@ -685,17 +687,17 @@ As variáveis são substituídas automaticamente na geração do documento.<br>
             
         try:
             self.criar_pdf_profissional(texto_processado, arquivo)
-            QMessageBox.information(self, "✅ Sucesso", 
+            BiodeskMessageBox.information(self, "✅ Sucesso", 
                                   f"PDF gerado com sucesso:\n{arquivo}")
             
             # Abrir PDF
-            resposta = QMessageBox.question(self, "📄 Abrir PDF", 
+            resposta = BiodeskMessageBox.question(self, "📄 Abrir PDF", 
                                           "Deseja abrir o PDF gerado?")
-            if resposta == QMessageBox.StandardButton.Yes:
+            if resposta:  # BiodeskMessageBox.question retorna True/False
                 os.startfile(arquivo)
                 
         except Exception as e:
-            QMessageBox.critical(self, "❌ Erro", f"Erro ao gerar PDF: {e}")
+            BiodeskMessageBox.critical(self, "❌ Erro", f"Erro ao gerar PDF: {e}")
             
     def criar_pdf_profissional(self, texto, arquivo):
         """Criar PDF com layout profissional"""
@@ -824,7 +826,7 @@ As variáveis são substituídas automaticamente na geração do documento.<br>
                 
             elif template.get('tipo') == 'PDF':
                 print("ℹ️ [EDITOR] Templates PDF não são editáveis no editor avançado")
-                QMessageBox.information(
+                BiodeskMessageBox.information(
                     self, 
                     "Informação", 
                     f"O template '{template.get('nome')}' é um PDF e não pode ser editado.\n\n"

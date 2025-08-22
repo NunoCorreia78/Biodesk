@@ -1,14 +1,16 @@
-"""
-Sistema de Templates Editáveis para Prescrições
-Permite criar templates com campos personalizáveis e variáveis automáticas
-"""
-
 from PyQt6.QtWidgets import *
 from PyQt6.QtCore import *
 from PyQt6.QtGui import *
 import json
 import os
+from biodesk_dialogs import BiodeskMessageBox
 from datetime import datetime
+from biodesk_ui_kit import BiodeskUIKit
+"""
+Sistema de Templates Editáveis para Prescrições
+Permite criar templates com campos personalizáveis e variáveis automáticas
+"""
+
 
 class TemplateEditavel(QDialog):
     def __init__(self, parent=None, paciente_data=None):
@@ -22,35 +24,7 @@ class TemplateEditavel(QDialog):
         self.resize(800, 600)
         
         # Aplicar estilo
-        self.setStyleSheet("""
-            QDialog {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            }
-            QWidget {
-                background-color: white;
-                border-radius: 8px;
-            }
-            QLineEdit, QTextEdit {
-                border: 2px solid #e1e5e9;
-                border-radius: 6px;
-                padding: 8px;
-                font-size: 12px;
-            }
-            QLineEdit:focus, QTextEdit:focus {
-                border-color: #4CAF50;
-            }
-            QPushButton {
-                background: linear-gradient(45deg, #4CAF50, #45a049);
-                color: white;
-                border: none;
-                padding: 10px 20px;
-                border-radius: 6px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background: linear-gradient(45deg, #45a049, #4CAF50);
-            }
-        """)
+        BiodeskUIKit.apply_universal_button_style(self)
         
         self.init_ui()
         self.carregar_variaveis_automaticas()
@@ -186,7 +160,7 @@ Medicina Integrativa
         conteudo = self.editor_conteudo.toPlainText().strip()
         
         if not nome or not conteudo:
-            QMessageBox.warning(self, "⚠️ Aviso", "Por favor, preencha o nome e conteúdo do template.")
+            BiodeskMessageBox.warning(self, "⚠️ Aviso", "Por favor, preencha o nome e conteúdo do template.")
             return
         
         # Salvar no diretório de templates
@@ -204,7 +178,7 @@ Medicina Integrativa
             # Atualizar também o JSON para compatibilidade
             self.atualizar_json_templates(nome, conteudo)
             
-            QMessageBox.information(self, "✅ Sucesso", 
+            BiodeskMessageBox.information(self, "✅ Sucesso", 
                                   f"Template '{nome}' salvo com sucesso!\n\n"
                                   f"Arquivo: {caminho_arquivo}")
             
@@ -215,7 +189,7 @@ Medicina Integrativa
             self.accept()
             
         except Exception as e:
-            QMessageBox.critical(self, "❌ Erro", f"Erro ao salvar template:\n{e}")
+            BiodeskMessageBox.critical(self, "❌ Erro", f"Erro ao salvar template:\n{e}")
     
     def atualizar_json_templates(self, nome, conteudo):
         """Atualiza o arquivo JSON para compatibilidade"""
@@ -256,7 +230,7 @@ Medicina Integrativa
     def gerar_pdf(self):
         """Gera PDF do template com dados do paciente"""
         if not self.editor_conteudo.toPlainText().strip():
-            QMessageBox.warning(self, "⚠️ Aviso", "Por favor, adicione conteúdo ao template.")
+            BiodeskMessageBox.warning(self, "⚠️ Aviso", "Por favor, adicione conteúdo ao template.")
             return
         
         try:
@@ -270,14 +244,14 @@ Medicina Integrativa
                     conteudo=conteudo
                 )
                 
-                QMessageBox.information(self, "✅ PDF Gerado", 
+                BiodeskMessageBox.information(self, "✅ PDF Gerado", 
                                       f"PDF criado com sucesso!\n\n{pdf_path}")
             else:
-                QMessageBox.information(self, "ℹ️ Info", 
+                BiodeskMessageBox.information(self, "ℹ️ Info", 
                                       "Funcionalidade de PDF será implementada na próxima versão.")
                 
         except Exception as e:
-            QMessageBox.critical(self, "❌ Erro", f"Erro ao gerar PDF:\n{e}")
+            BiodeskMessageBox.critical(self, "❌ Erro", f"Erro ao gerar PDF:\n{e}")
 
 
 def abrir_editor_template(parent=None, paciente_data=None):

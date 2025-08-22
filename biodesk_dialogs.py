@@ -1,20 +1,106 @@
-"""
-Diálogos personalizados para a aplicação Biodesk
-Mantém consistência visual em toda a aplicação
-"""
-
 from PyQt6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTextEdit, QLineEdit
-)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QPixmap, QIcon
+    from biodesk_styles import aplicar_estilo_biodesk, BIODESK_DIALOG_STYLE
+from biodesk_ui_kit import BiodeskUIKit
+"""
+🎨 BIODESK DIALOGS - Sistema unificado de caixas de diálogo estilizadas
+=====================================================================
+Centraliza TODAS as caixas de diálogo do Biodesk com estilo consistente
+"""
+
+    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTextEdit, QLineEdit,
+    QMessageBox, QFileDialog, QInputDialog
+)
 
 # Importar estilos centralizados
 try:
-    from biodesk_styles import aplicar_estilo_biodesk, BIODESK_DIALOG_STYLE
 except ImportError:
     aplicar_estilo_biodesk = None
     BIODESK_DIALOG_STYLE = ""
+
+class BiodeskMessageBox:
+    """Classe estática para caixas de mensagem estilizadas"""
+    
+    @staticmethod
+    def apply_style(msgbox):
+        """Aplica estilo Biodesk a qualquer QMessageBox"""
+        msgbox.setStyleSheet(BIODESK_DIALOG_STYLE)
+        return msgbox
+    
+    @staticmethod
+    def information(parent, title, text, buttons=None):
+        """Caixa de informação estilizada com botão em português"""
+        msgbox = QMessageBox(QMessageBox.Icon.Information, title, text, QMessageBox.StandardButton.NoButton, parent)
+        btn_ok = msgbox.addButton("OK", QMessageBox.ButtonRole.AcceptRole)
+        msgbox.setDefaultButton(btn_ok)
+        BiodeskMessageBox.apply_style(msgbox)
+        return msgbox.exec()
+    
+    @staticmethod
+    def warning(parent, title, text, buttons=None):
+        """Caixa de aviso estilizada com botão em português"""
+        msgbox = QMessageBox(QMessageBox.Icon.Warning, title, text, QMessageBox.StandardButton.NoButton, parent)
+        btn_ok = msgbox.addButton("OK", QMessageBox.ButtonRole.AcceptRole)
+        msgbox.setDefaultButton(btn_ok)
+        BiodeskMessageBox.apply_style(msgbox)
+        return msgbox.exec()
+    
+    @staticmethod
+    def critical(parent, title, text, buttons=None):
+        """Caixa de erro estilizada com botão em português"""
+        msgbox = QMessageBox(QMessageBox.Icon.Critical, title, text, QMessageBox.StandardButton.NoButton, parent)
+        btn_ok = msgbox.addButton("OK", QMessageBox.ButtonRole.AcceptRole)
+        msgbox.setDefaultButton(btn_ok)
+        BiodeskMessageBox.apply_style(msgbox)
+        return msgbox.exec()
+    
+    @staticmethod
+    def question(parent, title, text, buttons=None):
+        """Caixa de pergunta estilizada com botões em português"""
+        msgbox = QMessageBox(QMessageBox.Icon.Question, title, text, QMessageBox.StandardButton.NoButton, parent)
+        
+        # Adicionar botões personalizados em português
+        btn_sim = msgbox.addButton("Sim", QMessageBox.ButtonRole.YesRole)
+        btn_nao = msgbox.addButton("Não", QMessageBox.ButtonRole.NoRole)
+        
+        # Definir botão padrão
+        msgbox.setDefaultButton(btn_sim)
+        
+        BiodeskMessageBox.apply_style(msgbox)
+        result = msgbox.exec()
+        
+        # Retornar True se clicou em "Sim"
+        return msgbox.clickedButton() == btn_sim
+
+    @staticmethod  
+    def getText(parent, title, label, text=""):
+        """Input de texto estilizado"""
+        result, ok = QInputDialog.getText(parent, title, label, text=text)
+        return result, ok
+        
+    @staticmethod
+    def getItem(parent, title, label, items, current=0, editable=False):
+        """Seleção de item estilizada"""
+        item, ok = QInputDialog.getItem(parent, title, label, items, current, editable)
+        return item, ok
+
+class BiodeskFileDialog:
+    """Classe para diálogos de arquivo estilizados"""
+    
+    @staticmethod
+    def getOpenFileName(parent=None, caption="", directory="", filter="", selectedFilter=""):
+        """Diálogo para abrir arquivo estilizado"""
+        dialog = QFileDialog()
+        dialog.setStyleSheet(BIODESK_DIALOG_STYLE)
+        return dialog.getOpenFileName(parent, caption, directory, filter, selectedFilter)
+    
+    @staticmethod
+    def getSaveFileName(parent=None, caption="", directory="", filter="", selectedFilter=""):
+        """Diálogo para salvar arquivo estilizado"""
+        dialog = QFileDialog()
+        dialog.setStyleSheet(BIODESK_DIALOG_STYLE)
+        return dialog.getSaveFileName(parent, caption, directory, filter, selectedFilter)
 
 
 class BiodeskDialog(QDialog):
@@ -32,78 +118,7 @@ class BiodeskDialog(QDialog):
             aplicar_estilo_biodesk(self)
         else:
             # Fallback para estilo antigo se não conseguir importar
-            self.setStyleSheet("""
-                QDialog {
-                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                        stop:0 #f8f9fa, stop:1 #e9ecef);
-                    border-radius: 15px;
-                }
-                QLabel {
-                color: #2c3e50;
-                background: transparent;
-            }
-            QPushButton {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #6c757d, stop:1 #495057);
-                color: white;
-                border: none;
-                border-radius: 12px;
-                padding: 15px 25px;
-                font-size: 16px;
-                font-weight: bold;
-                min-width: 120px;
-                min-height: 45px;
-            }
-            QPushButton:hover {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #5a6268, stop:1 #3d4348);
-            }
-            QPushButton:pressed {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #3d4348, stop:1 #2c3034);
-            }
-            QPushButton#btn_primary {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #007bff, stop:1 #0056b3);
-            }
-            QPushButton#btn_primary:hover {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #0069d9, stop:1 #004085);
-            }
-            QPushButton#btn_success {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #28a745, stop:1 #1e7e34);
-            }
-            QPushButton#btn_success:hover {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #239a3f, stop:1 #1c7430);
-            }
-            QPushButton#btn_danger {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #dc3545, stop:1 #bd2130);
-            }
-            QPushButton#btn_danger:hover {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #c82333, stop:1 #a02622);
-            }
-            QPushButton#btn_info {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #17a2b8, stop:1 #138496);
-            }
-            QPushButton#btn_info:hover {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #1694a8, stop:1 #117a8b);
-            }
-            QPushButton#btn_warning {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #ffc107, stop:1 #d39e00);
-                color: #212529;
-            }
-            QPushButton#btn_warning:hover {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #e0a800, stop:1 #b08800);
-            }
-        """)
+            BiodeskUIKit.apply_universal_button_style(self)
         
         self.layout = QVBoxLayout(self)
         self.layout.setSpacing(25)
@@ -409,39 +424,40 @@ def mostrar_confirmacao(parent, titulo, mensagem, btn_sim="Sim", btn_nao="Não")
 
 
 def mostrar_informacao(parent, titulo, mensagem, tipo="info"):
-    """Mostra diálogo de informação modernizado"""
-    dialog = InformacaoDialog(parent, titulo, mensagem, tipo)
-    dialog.exec()
+    """Mostra diálogo de informação modernizado - FUNÇÃO ATUALIZADA"""
+    return BiodeskMessageBox.information(parent, titulo, mensagem)
 
 
 def mostrar_informacao_com_callback(parent, titulo, mensagem, callback_ok=None, tipo="info"):
     """Mostra diálogo de informação modernizado com callback"""
-    dialog = InformacaoDialog(parent, titulo, mensagem, tipo)
-    if dialog.exec() == QDialog.DialogCode.Accepted and callback_ok:
+    result = BiodeskMessageBox.information(parent, titulo, mensagem)
+    if result == QMessageBox.StandardButton.Ok and callback_ok:
         callback_ok()
 
 
 def mostrar_aviso(parent, titulo, mensagem):
-    """Mostra diálogo de aviso modernizado"""
-    dialog = AvisoDialog(parent, titulo, mensagem)
-    dialog.exec()
+    """Mostra diálogo de aviso modernizado - FUNÇÃO ATUALIZADA"""
+    return BiodeskMessageBox.warning(parent, titulo, mensagem)
 
 
 def mostrar_erro(parent, titulo, mensagem):
-    """Mostra diálogo de erro modernizado"""
-    dialog = ErroDialog(parent, titulo, mensagem)
-    dialog.exec()
+    """Mostra diálogo de erro modernizado - FUNÇÃO ATUALIZADA"""
+    return BiodeskMessageBox.critical(parent, titulo, mensagem)
 
 
 def mostrar_sucesso(parent, titulo, mensagem):
     """Mostra diálogo de sucesso modernizado"""
-    dialog = InformacaoDialog(parent, titulo, mensagem, tipo="sucesso")
-    dialog.exec()
+    return BiodeskMessageBox.information(parent, titulo, mensagem)
 
 
 def perguntar_confirmacao(parent, titulo, mensagem):
-    """Pergunta confirmação ao utilizador"""
-    return mostrar_confirmacao(parent, titulo, mensagem)
+    """Pergunta confirmação ao utilizador - FUNÇÃO ATUALIZADA"""
+    return BiodeskMessageBox.question(parent, titulo, mensagem)  # Já retorna True/False
+
+
+def fazer_pergunta(parent, titulo, mensagem):
+    """Função de compatibilidade para perguntas"""
+    return BiodeskMessageBox.question(parent, titulo, mensagem)
 
 
 def escolher_lateralidade(parent):

@@ -199,7 +199,7 @@ def gerar_pdf_declaracao(nome_paciente, data_nascimento, data_atual, template_ht
                                 <div style="min-height: 80px; display: flex; align-items: center; justify-content: center;">
                                     {assinatura_paciente_html if assinatura_paciente_html else '<span style="color: #999; font-style: italic;">Sem assinatura</span>'}
                                 </div>
-                                <p style="margin: 15px 0 0 0; line-height: 1.6;">
+                                <p style="margin: -15px 0 0 0; line-height: 0.8;">
                                     <strong style="color: #333; font-size: 14pt;">{nome_paciente}</strong><br>
                                     <span style="font-size: 12pt; color: #666;">{data_atual}</span><br>
                                     <span style="font-size: 10pt; color: #007bff; font-style: italic;">Assinado digitalmente</span>
@@ -214,7 +214,7 @@ def gerar_pdf_declaracao(nome_paciente, data_nascimento, data_atual, template_ht
                                 <div style="min-height: 80px; display: flex; align-items: center; justify-content: center;">
                                     {assinatura_terapeuta_html if assinatura_terapeuta_html else '<span style="color: #999; font-style: italic;">Sem assinatura</span>'}
                                 </div>
-                                <p style="margin: 15px 0 0 0; line-height: 1.6;">
+                                <p style="margin: -15px 0 0 0; line-height: 0.8;">
                                     <strong style="color: #333; font-size: 14pt;">Nuno Correia</strong><br>
                                     <span style="font-size: 12pt; color: #666;">{data_atual}</span><br>
                                     <span style="font-size: 10pt; color: #28a745; font-style: italic;">Naturopata Certificado</span>

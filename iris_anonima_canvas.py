@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QPushButton, QHBoxLayout, 
-                            QFileDialog, QMessageBox, QLabel, QGraphicsView, QGraphicsScene,
+                            QFileDialog, QLabel, QGraphicsView, QGraphicsScene,
                             QDialog, QSizePolicy, QFrame, QSlider)
 from PyQt6.QtCore import Qt, QSize, QTimer, QPointF, QRectF, QEvent
 from PyQt6.QtGui import QPixmap, QImage, QPainter, QPen, QColor, QPainterPath, QKeyEvent, QKeySequence
@@ -8,6 +8,7 @@ import os
 import numpy as np
 import datetime
 from iris_canvas import IrisCanvas
+from biodesk_dialogs import BiodeskMessageBox
 
 class IrisAnonimaCanvas(QWidget):
     """
@@ -171,6 +172,6 @@ class IrisAnonimaCanvas(QWidget):
     def capturar_imagem(self):
         """Método simplificado para capturar imagem da câmera"""
         try:
-            QMessageBox.information(self, "Captura de Imagem", "Função de captura em desenvolvimento.\nPor favor, carregue uma imagem usando o menu Arquivo > Abrir.")
+            BiodeskMessageBox.information(self, "Captura de Imagem", "Função de captura em desenvolvimento.\nPor favor, carregue uma imagem usando o menu Arquivo > Abrir.")
         except Exception as e:
             print(f"[ERRO] Captura de imagem: {e}")

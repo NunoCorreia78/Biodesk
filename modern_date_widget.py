@@ -1,17 +1,18 @@
+from PyQt6.QtWidgets import (
+from PyQt6.QtCore import Qt, QDate, pyqtSignal
+from PyQt6.QtGui import QIcon, QFont, QValidator
+import re
+from datetime import datetime
+from biodesk_ui_kit import BiodeskUIKit
 """
 Widget de data moderno para o Biodesk
 Permite digitação manual no formato ddmmaaaa e formatação automática para dd/mm/aaaa
 Inclui calendário popup melhorado com navegação fácil de ano e mês
 """
 
-from PyQt6.QtWidgets import (
     QWidget, QHBoxLayout, QLineEdit, QPushButton, QCalendarWidget, 
     QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QDialog
 )
-from PyQt6.QtCore import Qt, QDate, pyqtSignal
-from PyQt6.QtGui import QIcon, QFont, QValidator
-import re
-from datetime import datetime
 
 
 class DateValidator(QValidator):
@@ -85,6 +86,10 @@ class ModernCalendarDialog(QDialog):
         self.calendar.setFirstDayOfWeek(Qt.DayOfWeek.Monday)
         self.calendar.setSelectedDate(self.current_date)
         self.calendar.clicked.connect(self.date_clicked)
+        
+        # Ocultar barra de navegação nativa do calendário
+        self.calendar.setNavigationBarVisible(False)
+        
         layout.addWidget(self.calendar)
 
         # Botões de ação
@@ -226,6 +231,34 @@ class ModernCalendarDialog(QDialog):
                 border-radius: 8px;
                 font-size: 14px;
                 gridline-color: #f8f9fa;
+            }
+            
+            /* Ocultar barra de navegação do calendário */
+            QCalendarWidget QWidget#qt_calendar_navigationbar {
+                background-color: transparent;
+                border: none;
+                max-height: 0px;
+                min-height: 0px;
+            }
+            
+            QCalendarWidget QToolButton#qt_calendar_prevmonth,
+            QCalendarWidget QToolButton#qt_calendar_nextmonth {
+                max-width: 0px;
+                min-width: 0px;
+                max-height: 0px;
+                min-height: 0px;
+                border: none;
+                background-color: transparent;
+            }
+            
+            QCalendarWidget QToolButton#qt_calendar_monthbutton,
+            QCalendarWidget QToolButton#qt_calendar_yearbutton {
+                max-width: 0px;
+                min-width: 0px;
+                max-height: 0px;
+                min-height: 0px;
+                border: none;
+                background-color: transparent;
             }
             
             QCalendarWidget QToolButton {
@@ -423,49 +456,4 @@ class ModernDateWidget(QWidget):
     
     def apply_styles(self):
         """Aplica estilos modernos iris ao widget"""
-        self.setStyleSheet("""
-            QLineEdit {
-                border: 2px solid #ddd;
-                border-radius: 5px 0px 0px 5px;
-                padding: 6px 8px;
-                font-size: 14px;
-                background-color: #ffffff;
-                color: #495057;
-                font-weight: normal;
-                min-height: 14px;
-                max-height: 32px;
-            }
-            
-            QLineEdit:focus {
-                border: 2px solid #007bff;
-                outline: none;
-            }
-            
-            QLineEdit:hover {
-                border: 2px solid #6c757d;
-            }
-            
-            QPushButton {
-                background-color: #f8f9fa;
-                color: #6c757d;
-                border: 2px solid #ddd;
-                border-left: none;
-                border-radius: 0px 5px 5px 0px;
-                font-size: 16px;
-                font-weight: normal;
-                padding: 6px 6px;
-                min-height: 14px;
-                max-height: 32px;
-            }
-            
-            QPushButton:hover {
-                background-color: #007bff;
-                color: white;
-                border-color: #007bff;
-                border-left: 2px solid #007bff;
-            }
-            
-            QPushButton:pressed {
-                background-color: #0056b3;
-            }
-        """)
+        BiodeskUIKit.apply_universal_button_style(self)

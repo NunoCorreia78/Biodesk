@@ -82,5 +82,11 @@
     "completed": false,
     "created_date": "2025-08-18 22:54",
     "priority": "Alta"
+  },
+  {
+    "text": "relação entre o apagar ficheiros e a informação dada, e o guardar ficheiros e não aparecerem na gestão de documentos não está resolvida",
+    "completed": false,
+    "created_date": "2025-08-20 16:33",
+    "priority": "Alta"
   }
 ]

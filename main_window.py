@@ -20,6 +20,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QIcon, QPixmap, QGuiApplication, QColor, QFont
 from PyQt6.QtCore import Qt, QSize, QPoint, QTimer, QDateTime
 from ficha_paciente import FichaPaciente
+from biodesk_dialogs import BiodeskMessageBox
 
 # Importar módulos de íris com tratamento de erro
 try:
@@ -39,7 +40,18 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle('Biodesk')
+        
+        # 🔒 JANELA SEMPRE MAXIMIZADA - NÃO PODE SER REDIMENSIONADA
+        self.setWindowFlags(
+            Qt.WindowType.Window |
+            Qt.WindowType.WindowMaximizeButtonHint |
+            Qt.WindowType.WindowMinimizeButtonHint |
+            Qt.WindowType.WindowCloseButtonHint
+        )
+        
         self.setGeometry(100, 100, 900, 700)
+        # Definir tamanho mínimo para evitar layout quebrado
+        self.setMinimumSize(1200, 800)
         self.init_ui()
         self.load_styles()
         # Maximizar respeitando a barra de tarefas
@@ -55,6 +67,24 @@ class MainWindow(QMainWindow):
         
         # Configurar cursores apropriados
         self.configurar_cursores()
+    
+    def showEvent(self, event):
+        """Garantir que a janela fica sempre maximizada quando mostrada"""
+        super().showEvent(event)
+        # Usar QTimer para garantir que a maximização ocorre após o evento
+        QTimer.singleShot(50, self._ensure_maximized)
+    
+    def _ensure_maximized(self):
+        """Garante que a janela principal fica maximizada"""
+        if not self.isMaximized():
+            self.showMaximized()
+        # Timer adicional para manter maximizado
+        QTimer.singleShot(100, self._check_maximized)
+    
+    def _check_maximized(self):
+        """Verifica se continua maximizada"""
+        if not self.isMaximized():
+            self.showMaximized()
 
     def configurar_cursores(self):
         """Define cursores adequados para diferentes elementos da interface"""
@@ -79,7 +109,6 @@ class MainWindow(QMainWindow):
             for tool_button in self.findChildren(QToolButton):
                 tool_button.setCursor(Qt.CursorShape.PointingHandCursor)
                 
-            print("✓ Cursores configurados adequadamente")
         except Exception as e:
             print(f"Erro ao configurar cursores: {str(e)}")
 
@@ -118,7 +147,6 @@ class MainWindow(QMainWindow):
             
             # Verificar se existem widgets de abas para aplicar ícones
             # (Este método será chamado mas só aplicará se houver abas definidas)
-            print("✓ Sistema de ícones inicializado com fallbacks seguros")
             
         except Exception as e:
             print(f"Erro ao carregar ícones: {str(e)}")
@@ -201,29 +229,12 @@ class MainWindow(QMainWindow):
         actions.setSpacing(20)
         actions.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        # Botão To-Do List (estilo moderno da iridologia)
+        # Botão To-Do List (estilo universal Biodesk)
         btn_todo = QToolButton()
         btn_todo.setText('📝')
         btn_todo.setFixedSize(50, 50)
-        btn_todo.setStyleSheet("""
-            QToolButton {
-                background-color: #f8f9fa;
-                color: #6c757d;
-                border: 1px solid #e0e0e0;
-                border-radius: 8px;
-                font-size: 18px;
-                font-weight: bold;
-            }
-            QToolButton:hover {
-                background-color: #ffc107;
-                color: white;
-                border-color: #ffc107;
-            }
-            QToolButton:pressed {
-                background-color: #e0a800;
-                border-color: #e0a800;
-            }
-        """)
+        from biodesk_ui_kit import BiodeskUIKit
+        btn_todo.setStyleSheet(BiodeskUIKit.get_universal_button_stylesheet())
         btn_todo.setToolTip('📝 Lista de Tarefas')
         btn_todo.clicked.connect(self.abrir_todo_list)
 
@@ -510,8 +521,7 @@ class MainWindow(QMainWindow):
         try:
             if modo_anonimo:
                 if IrisAnonimaCanvas is None:
-                    from PyQt6.QtWidgets import QMessageBox
-                    QMessageBox.critical(
+                    BiodeskMessageBox.critical(
                         self,
                         "Erro de Importação",
                         "Não foi possível carregar o módulo IrisAnonimaCanvas.\n\n"
@@ -521,8 +531,7 @@ class MainWindow(QMainWindow):
                 self.iris_window = IrisAnonimaCanvas()
             else:
                 if IrisCanvas is None:
-                    from PyQt6.QtWidgets import QMessageBox
-                    QMessageBox.critical(
+                    BiodeskMessageBox.critical(
                         self,
                         "Erro de Importação",
                         "Não foi possível carregar o módulo IrisCanvas.\n\n"
@@ -534,8 +543,7 @@ class MainWindow(QMainWindow):
             # Mostrar/maximizar de forma segura
             self.safe_maximize_window(self.iris_window)
         except Exception as e:
-            from PyQt6.QtWidgets import QMessageBox
-            QMessageBox.critical(
+            BiodeskMessageBox.critical(
                 self,
                 "Erro ao Abrir Módulo de Íris",
                 f"Ocorreu um erro ao tentar abrir o módulo de íris:\n\n{str(e)}\n\n"
@@ -543,17 +551,37 @@ class MainWindow(QMainWindow):
             )
 
     def load_styles(self):
+        # Aplicar estilo UNIVERSAL Biodesk a TODOS os botões
+        from biodesk_ui_kit import BiodeskUIKit
+        universal_style = BiodeskUIKit.get_universal_button_stylesheet()
+        
         # Carregar QSS global se existir, mantendo estilos locais dos botões
         try:
             qss_path = os.path.join(os.path.dirname(__file__), 'assets', 'biodesk.qss')
             if os.path.exists(qss_path):
                 with open(qss_path, 'r', encoding='utf-8') as f:
                     qss = f.read()
+                
+                # Adicionar estilo universal de botões
+                qss += "\n" + universal_style
+                
                 app = QApplication.instance()
                 if app:
                     app.setStyleSheet(qss)
+            else:
+                # Se não existe QSS, aplicar apenas o estilo universal
+                app = QApplication.instance()
+                if app:
+                    app.setStyleSheet(universal_style)
+                    
         except Exception as e:
-            pass  # Ignorar erros de carregamento de estilo
+            # Fallback: aplicar apenas estilo universal
+            try:
+                app = QApplication.instance()
+                if app:
+                    app.setStyleSheet(universal_style)
+            except:
+                pass  # Ignorar erros de carregamento de estilo
 
     def abrir_lista_pacientes(self):
         FichaPaciente.mostrar_seletor(callback=self.abrir_ficha_existente, parent=self)
@@ -591,8 +619,7 @@ class MainWindow(QMainWindow):
             self.terapia_window = TerapiaQuanticaWindow(paciente_data=paciente_data)
             self.safe_maximize_window(self.terapia_window)
         except Exception as e:
-            from PyQt6.QtWidgets import QMessageBox
-            QMessageBox.critical(
+            BiodeskMessageBox.critical(
                 self,
                 "Erro",
                 f"Erro ao abrir terapia para paciente:\n\n{str(e)}\n\n"
@@ -604,10 +631,9 @@ class MainWindow(QMainWindow):
         try:
             from todo_list_window import TodoListWindow
             self.todo_window = TodoListWindow()
-            self.todo_window.show()
+            self.safe_maximize_window(self.todo_window)
         except Exception as e:
-            from PyQt6.QtWidgets import QMessageBox
-            QMessageBox.critical(
+            BiodeskMessageBox.critical(
                 self,
                 "Erro",
                 f"Erro ao abrir lista de tarefas:\n\n{str(e)}"
@@ -660,16 +686,15 @@ class MainWindow(QMainWindow):
             import os
             frequency_file = os.path.join(os.path.dirname(__file__), 'assets', 'FrequencyList.xls')
             if not os.path.exists(frequency_file):
-                from PyQt6.QtWidgets import QMessageBox, QFileDialog
-                reply = QMessageBox.question(
+                from PyQt6.QtWidgets import QFileDialog
+                reply = BiodeskMessageBox.question(
                     self,
                     "FrequencyList.xls não encontrado",
                     f"O arquivo FrequencyList.xls não foi encontrado em:\n{frequency_file}\n\n"
-                    "Deseja localizar o arquivo agora?",
-                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+                    "Deseja localizar o arquivo agora?"
                 )
                 
-                if reply == QMessageBox.StandardButton.Yes:
+                if reply:
                     file_path, _ = QFileDialog.getOpenFileName(
                         self,
                         "Selecionar FrequencyList.xls",
@@ -699,8 +724,7 @@ class MainWindow(QMainWindow):
             self.safe_maximize_window(self.terapia_window)
             
         except ImportError as e:
-            from PyQt6.QtWidgets import QMessageBox
-            QMessageBox.critical(
+            BiodeskMessageBox.critical(
                 self,
                 "Módulo Indisponível",
                 f"Erro ao importar módulo de terapia:\n\n{str(e)}\n\n"
@@ -710,8 +734,7 @@ class MainWindow(QMainWindow):
                 "• pip install numpy scipy"
             )
         except Exception as e:
-            from PyQt6.QtWidgets import QMessageBox
-            QMessageBox.critical(
+            BiodeskMessageBox.critical(
                 self,
                 "Erro",
                 f"Erro ao abrir terapia quântica:\n\n{str(e)}\n\n"
@@ -719,44 +742,94 @@ class MainWindow(QMainWindow):
             )
     
     def show_maximized_safe(self):
-        """Maximiza a janela respeitando a barra de tarefas do Windows"""
+        """Maximiza a janela respeitando a barra de tarefas do Windows - OTIMIZADO"""
         try:
-            # Definir o estado de janela para maximizado antes de mostrar
-            self.setWindowState(Qt.WindowState.WindowMaximized)
-            
-            # Garantir que a flag de maximização esteja ativada
-            self.setWindowFlag(Qt.WindowType.WindowMaximizeButtonHint, True)
-            
-            # Forçar a janela a permanecer maximizada
+            # ⚡ MÉTODO OTIMIZADO: Configuração única e direta
             screen = QGuiApplication.primaryScreen()
             if screen:
-                available_geometry = screen.availableGeometry()
-                self.setGeometry(available_geometry)
-            
-            # Verificação adicional de estado pós-configuração
+                # Usar availableGeometry para respeitar barra de tarefas
+                available_rect = screen.availableGeometry()
+                
+                # Aplicar configurações de maximização em sequência otimizada
+                self.setWindowState(Qt.WindowState.WindowNoState)  # Reset primeiro
+                self.setGeometry(available_rect)
+                self.setWindowState(Qt.WindowState.WindowMaximized)
+                
+                # Mostrar a janela
+                self.show()
+                
+                # ⚡ ÚNICA verificação com delay mínimo
+                QTimer.singleShot(100, self._verificar_maximizacao)
+            else:
+                # Fallback se não conseguir screen
+                self.showMaximized()
+                
+        except Exception as e:
+            print(f"❌ Erro ao maximizar: {str(e)}")
+            self.showMaximized()  # Fallback padrão
+    
+    def resizeEvent(self, event):
+        """Intercepta eventos de resize para manter sempre maximizado"""
+        # Garantir que a janela permanece sempre maximizada
+        if self.windowState() != Qt.WindowState.WindowMaximized and self.windowState() != Qt.WindowState.WindowMinimized:
+            QTimer.singleShot(0, self.showMaximized)
+        super().resizeEvent(event)
+    
+    def changeEvent(self, event):
+        """Intercepta mudanças de estado da janela"""
+        if event.type() == event.Type.WindowStateChange:
+            # Se não está maximizada nem minimizada, forçar maximização
+            if self.windowState() == Qt.WindowState.WindowNoState:
+                QTimer.singleShot(0, self.showMaximized)
+        super().changeEvent(event)
+    
+    def _verificar_maximizacao(self):
+        """Verificação única e final da maximização"""
+        try:
             if not self.isMaximized():
                 self.showMaximized()
-        except Exception as e:
-            print(f"Erro ao maximizar: {str(e)}")
-            self.showMaximized()  # Fallback
+                # Forçar repaint para evitar deformações
+                self.repaint()
+        except Exception:
+            pass
 
     def safe_maximize_window(self, window):
-        """Maximiza qualquer janela respeitando a barra de tarefas"""
+        """Maximiza qualquer janela respeitando a barra de tarefas - OTIMIZADO"""
         try:
-            # Configurar o estado da janela para maximizado
-            window.setWindowState(Qt.WindowState.WindowMaximized)
-            
-            # Garantir que esteja maximizada após exibição
-            window.show()
-            
-            # Verificação adicional com delay para garantir maximização
-            QTimer.singleShot(100, lambda: window.showMaximized() if not window.isMaximized() else None)
+            # ⚡ CONFIGURAÇÃO DIRETA E OTIMIZADA
+            screen = QGuiApplication.primaryScreen()
+            if screen:
+                available_rect = screen.availableGeometry()
+                
+                # Sequência otimizada para janelas filhas
+                window.setWindowState(Qt.WindowState.WindowNoState)
+                window.setGeometry(available_rect)
+                window.setWindowState(Qt.WindowState.WindowMaximized)
+                window.show()
+                
+                # ⚡ ÚNICA verificação necessária
+                QTimer.singleShot(50, lambda: self._force_maximize_once(window))
+            else:
+                window.showMaximized()
+                
         except Exception as e:
-            print(f"Erro ao maximizar janela: {str(e)}")
+            print(f"❌ Erro ao maximizar janela: {str(e)}")
             try:
                 window.showMaximized()
             except:
                 window.show()
+    
+    def _force_maximize_once(self, window):
+        """Força maximização ÚNICA para evitar loops e deformações"""
+        try:
+            if hasattr(window, 'isMaximized') and hasattr(window, 'showMaximized'):
+                if not window.isMaximized():
+                    window.showMaximized()
+                # Forçar repaint para layout correto
+                if hasattr(window, 'repaint'):
+                    window.repaint()
+        except Exception:
+            pass
 
 
 class PatientsPanel(QDialog):

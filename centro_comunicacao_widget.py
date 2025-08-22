@@ -1,10 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Widget do Centro de Comunicação para Biodesk
-Sistema de comunicação via Email
-"""
-
 import os
 import sys
 import sqlite3
@@ -13,20 +6,42 @@ import time
 import random
 from datetime import datetime, date
 from pathlib import Path
-
 from PyQt6.QtWidgets import (
+from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer
+from PyQt6.QtGui import QFont, QIcon, QPixmap`nfrom biodesk_dialogs import BiodeskMessageBox
+    from email_config import email_config
+    from email_sender import email_sender
+import sys
+import sqlite3
+import csv
+import time
+import random
+from datetime import datetime, date
+from pathlib import Path
+from PyQt6.QtWidgets import (
+from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer
+from PyQt6.QtGui import QFont, QIcon, QPixmap`nfrom biodesk_dialogs import BiodeskMessageBox
+    from email_config import email_config
+    from email_sender import email_sender
+            from email_config_window import EmailConfigWindow
+import random
+from biodesk_ui_kit import BiodeskUIKit
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Widget do Centro de Comunicação para Biodesk
+Sistema de comunicação via Email
+"""
+
+
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, 
-    QTextEdit, QLineEdit, QComboBox, QFileDialog, QMessageBox, 
+    QTextEdit, QLineEdit, QComboBox, QFileDialog, 
     QProgressBar, QTableWidget, QTableWidgetItem, QTabWidget, 
     QGroupBox, QFormLayout, QSpinBox, QCheckBox, QListWidget, 
     QListWidgetItem, QSplitter, QFrame, QScrollArea, QDialog
 )
-from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer
-from PyQt6.QtGui import QFont, QIcon, QPixmap
 
 try:
-    from email_config import email_config
-    from email_sender import email_sender
     EMAIL_AVAILABLE = True
 except ImportError:
     EMAIL_AVAILABLE = False
@@ -40,7 +55,7 @@ class CentroComunicacaoWidget(QWidget):
     
     def init_ui(self):
                     if sucesso:
-                        QMessageBox.information(
+                        BiodeskMessageBox.information(
                             self,
                             "Email Enviado",
                             f"✅ Email enviado com sucesso para {nome}!\n\n"
@@ -48,7 +63,7 @@ class CentroComunicacaoWidget(QWidget):
                         )
                         estado = "enviado"
                     else:
-                        QMessageBox.warning(
+                        BiodeskMessageBox.warning(
                             self,
                             "Erro no Envio",
                             f"❌ Erro ao enviar email:\n\n{mensagem_resultado}"
@@ -56,7 +71,7 @@ class CentroComunicacaoWidget(QWidget):
                         estado = "erro"
                         
                 except Exception as e:
-                    QMessageBox.critical(
+                    BiodeskMessageBox.critical(
                         self,
                         "Erro",
                         f"❌ Erro inesperado:\n\n{str(e)}"
@@ -66,7 +81,7 @@ class CentroComunicacaoWidget(QWidget):
                 return
         else:
             # Simulação de envio
-            QMessageBox.information(
+            BiodeskMessageBox.information(
                 self,
                 "Email Simulado",
                 f"✅ Email simulado enviado para {nome}!\n\n"
@@ -79,19 +94,7 @@ class CentroComunicacaoWidget(QWidget):
         
         # Registrar na base de dados
         self.registrar_envio(nome, email, "email", mensagem, estado, None, "Envio rápido")g.clicked.connect(self.abrir_configuracao_email)
-        btn_config.setStyleSheet("""
-            QPushButton {
-                background-color: #6c757d;
-                color: white;
-                border: none;
-                padding: 8px 15px;
-                border-radius: 5px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #545b62;
-            }
-        """)
+        BiodeskUIKit.apply_universal_button_style(btn_config)
         
         # Status do email
         self.label_status_email = QLabel("📧 Email não configurado")
@@ -103,27 +106,15 @@ class CentroComunicacaoWidget(QWidget):
         layout_config.addWidget(self.label_status_email)
         
         layout.addLayout(layout_config)rt os
-import sys
-import sqlite3
-import csv
-import time
-import random
-from datetime import datetime, date
-from pathlib import Path
 
-from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, 
-    QTextEdit, QLineEdit, QComboBox, QFileDialog, QMessageBox, 
+    QTextEdit, QLineEdit, QComboBox, QFileDialog, 
     QProgressBar, QTableWidget, QTableWidgetItem, QTabWidget, 
     QGroupBox, QFormLayout, QSpinBox, QCheckBox, QListWidget, 
     QListWidgetItem, QSplitter, QFrame, QScrollArea, QDialog
 )
-from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer
-from PyQt6.QtGui import QFont, QIcon, QPixmap
 
 try:
-    from email_config import email_config
-    from email_sender import email_sender
     EMAIL_AVAILABLE = True
 except ImportError:
     EMAIL_AVAILABLE = False
@@ -297,12 +288,69 @@ class CentroComunicacaoWidget(QWidget):
         
         btn_template_consulta = QPushButton("📅 Lembrete de Consulta")
         btn_template_consulta.clicked.connect(self.aplicar_template_consulta)
+        btn_template_consulta.setStyleSheet("""
+            QPushButton {
+                background-color: #6c757d;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                padding: 12px 24px;
+                font-size: 14px;
+                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+                font-weight: 600;
+                min-height: 20px;
+            }
+            QPushButton:hover {
+                background-color: #545b62;
+            }
+            QPushButton:pressed {
+                background-color: #495057;
+            }
+        """)
         
         btn_template_resultado = QPushButton("📋 Resultado de Exame")
         btn_template_resultado.clicked.connect(self.aplicar_template_resultado)
+        btn_template_resultado.setStyleSheet("""
+            QPushButton {
+                background-color: #6c757d;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                padding: 12px 24px;
+                font-size: 14px;
+                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+                font-weight: 600;
+                min-height: 20px;
+            }
+            QPushButton:hover {
+                background-color: #545b62;
+            }
+            QPushButton:pressed {
+                background-color: #495057;
+            }
+        """)
         
         btn_template_boas_vindas = QPushButton("👋 Boas-vindas")
         btn_template_boas_vindas.clicked.connect(self.aplicar_template_boas_vindas)
+        btn_template_boas_vindas.setStyleSheet("""
+            QPushButton {
+                background-color: #6c757d;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                padding: 12px 24px;
+                font-size: 14px;
+                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+                font-weight: 600;
+                min-height: 20px;
+            }
+            QPushButton:hover {
+                background-color: #545b62;
+            }
+            QPushButton:pressed {
+                background-color: #495057;
+            }
+        """)
         
         layout_templates.addWidget(btn_template_consulta)
         layout_templates.addWidget(btn_template_resultado)
@@ -314,20 +362,7 @@ class CentroComunicacaoWidget(QWidget):
         
         # Botão de envio
         self.btn_enviar_rapido = QPushButton("🚀 Enviar Mensagem")
-        self.btn_enviar_rapido.setStyleSheet("""
-            QPushButton {
-                background-color: #28a745;
-                color: white;
-                border: none;
-                padding: 15px;
-                border-radius: 8px;
-                font-size: 14px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #218838;
-            }
-        """)
+        self.BiodeskUIKit.apply_universal_button_style(btn_enviar_rapido)
         self.btn_enviar_rapido.clicked.connect(self.enviar_mensagem_rapida)
         layout.addWidget(self.btn_enviar_rapido)
         
@@ -350,6 +385,25 @@ class CentroComunicacaoWidget(QWidget):
         
         btn_selecionar = QPushButton("📂 Selecionar CSV")
         btn_selecionar.clicked.connect(self.selecionar_arquivo_csv)
+        btn_selecionar.setStyleSheet("""
+            QPushButton {
+                background-color: #6c757d;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                padding: 12px 24px;
+                font-size: 14px;
+                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+                font-weight: 600;
+                min-height: 20px;
+            }
+            QPushButton:hover {
+                background-color: #545b62;
+            }
+            QPushButton:pressed {
+                background-color: #495057;
+            }
+        """)
         
         layout_arquivo.addWidget(self.input_arquivo_csv)
         layout_arquivo.addWidget(btn_selecionar)
@@ -412,22 +466,7 @@ class CentroComunicacaoWidget(QWidget):
         self.btn_processar = QPushButton("🚀 Processar Envios")
         self.btn_processar.setEnabled(False)
         self.btn_processar.clicked.connect(self.processar_envios_massa)
-        self.btn_processar.setStyleSheet("""
-            QPushButton {
-                background-color: #007bff;
-                color: white;
-                border: none;
-                padding: 12px;
-                border-radius: 6px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #0056b3;
-            }
-            QPushButton:disabled {
-                background-color: #cccccc;
-            }
-        """)
+        self.BiodeskUIKit.apply_universal_button_style(btn_processar)
         
         self.btn_parar = QPushButton("⏸️ Parar")
         self.btn_parar.setEnabled(False)
@@ -472,6 +511,25 @@ class CentroComunicacaoWidget(QWidget):
         # Botão atualizar
         btn_atualizar = QPushButton("🔄 Atualizar Histórico")
         btn_atualizar.clicked.connect(self.carregar_historico)
+        btn_atualizar.setStyleSheet("""
+            QPushButton {
+                background-color: #6c757d;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                padding: 12px 24px;
+                font-size: 14px;
+                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+                font-weight: 600;
+                min-height: 20px;
+            }
+            QPushButton:hover {
+                background-color: #545b62;
+            }
+            QPushButton:pressed {
+                background-color: #495057;
+            }
+        """)
         layout.addWidget(btn_atualizar)
         
         widget.setLayout(layout)
@@ -617,14 +675,14 @@ Equipa [NOME_CLÍNICA]"""
             # Habilitar botão processar
             self.btn_processar.setEnabled(len(self.pacientes_carregados) > 0)
             
-            QMessageBox.information(
+            BiodeskMessageBox.information(
                 self,
                 "CSV Carregado",
                 f"✅ {len(self.pacientes_carregados)} pacientes carregados com sucesso!"
             )
             
         except Exception as e:
-            QMessageBox.critical(
+            BiodeskMessageBox.critical(
                 self,
                 "Erro",
                 f"Erro ao carregar CSV:\n\n{str(e)}"
@@ -648,11 +706,11 @@ Equipa [NOME_CLÍNICA]"""
         mensagem = self.input_mensagem.toPlainText().strip()
         
         if not nome or not email or not mensagem:
-            QMessageBox.warning(self, "Dados Incompletos", "Preencha pelo menos Nome, Email e Mensagem!")
+            BiodeskMessageBox.warning(self, "Dados Incompletos", "Preencha pelo menos Nome, Email e Mensagem!")
             return
         
         # Simulação de envio
-        QMessageBox.information(
+        BiodeskMessageBox.information(
             self,
             "Email Enviado",
             f"✅ Email simulado enviado para {nome}!\n\n"
@@ -674,14 +732,14 @@ Equipa [NOME_CLÍNICA]"""
     def processar_envios_massa(self):
         """Processa envios em massa"""
         if not self.pacientes_carregados:
-            QMessageBox.warning(self, "Nenhum Paciente", "Carregue um arquivo CSV primeiro!")
+            BiodeskMessageBox.warning(self, "Nenhum Paciente", "Carregue um arquivo CSV primeiro!")
             return
         
         mensagem = self.input_mensagem_massa.toPlainText().strip()
         assunto = self.input_assunto.text().strip()
         
         if not mensagem or not assunto:
-            QMessageBox.warning(self, "Dados Incompletos", "Digite o assunto e a mensagem!")
+            BiodeskMessageBox.warning(self, "Dados Incompletos", "Digite o assunto e a mensagem!")
             return
         
         modo_simulacao = self.check_simulacao.isChecked()
@@ -720,7 +778,7 @@ Equipa [NOME_CLÍNICA]"""
         self.btn_parar.setEnabled(False)
         self.progress_bar.setVisible(False)
         
-        QMessageBox.information(
+        BiodeskMessageBox.information(
             self,
             "Processamento Concluído",
             f"✅ Processamento finalizado!\n\n"
@@ -790,7 +848,7 @@ Equipa [NOME_CLÍNICA]"""
     def abrir_configuracao_email(self):
         """Abre janela de configuração de email"""
         if not EMAIL_AVAILABLE:
-            QMessageBox.warning(
+            BiodeskMessageBox.warning(
                 self,
                 "Sistema Indisponível",
                 "Sistema de email não está disponível.\n"
@@ -799,19 +857,18 @@ Equipa [NOME_CLÍNICA]"""
             return
         
         try:
-            from email_config_window import EmailConfigWindow
             
             config_window = EmailConfigWindow(self)
             if config_window.exec() == QDialog.DialogCode.Accepted:
                 self.atualizar_status_email()
-                QMessageBox.information(
+                BiodeskMessageBox.information(
                     self,
                     "Configuração",
                     "✅ Configuração de email atualizada!\n\n"
                     "Agora pode usar o modo real de envio."
                 )
         except ImportError as e:
-            QMessageBox.critical(
+            BiodeskMessageBox.critical(
                 self,
                 "Erro",
                 f"Erro ao importar janela de configuração:\n{str(e)}"
@@ -832,4 +889,3 @@ Equipa [NOME_CLÍNICA]"""
             self.label_status_email.setStyleSheet("color: #dc3545; font-weight: bold;")
 
 # Importar random para simulação
-import random

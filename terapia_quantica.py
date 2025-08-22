@@ -1,11 +1,13 @@
+from PyQt6.QtWidgets import (
+from PyQt6.QtCore import Qt
+from biodesk_dialogs import BiodeskMessageBox
+from biodesk_ui_kit import BiodeskUIKit
 """
 Terapia Quântica - Versão Zero
 Base mínima para começar do zero
 """
-from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QLabel, QPushButton, QMessageBox
+    QWidget, QVBoxLayout, QLabel, QPushButton
 )
-from PyQt6.QtCore import Qt
 
 class TerapiaQuantica(QWidget):
     """
@@ -90,20 +92,7 @@ class TerapiaQuantica(QWidget):
         # Botão de teste
         btn_teste = QPushButton("🧪 Teste Básico")
         btn_teste.clicked.connect(self.teste_basico)
-        btn_teste.setStyleSheet("""
-            QPushButton {
-                background: #4a148c;
-                color: white;
-                font-size: 16px;
-                font-weight: bold;
-                padding: 15px 30px;
-                border-radius: 8px;
-                border: none;
-            }
-            QPushButton:hover {
-                background: #6a1b9a;
-            }
-        """)
+        BiodeskUIKit.apply_universal_button_style(btn_teste)
         layout.addWidget(btn_teste)
         
         # Espaçador
@@ -132,7 +121,7 @@ class TerapiaQuantica(QWidget):
         
         mensagem += "\n🎯 Sistema pronto para desenvolvimento do zero!"
         
-        QMessageBox.information(
+        BiodeskMessageBox.information(
             self,
             "Sistema Funcionando",
             mensagem

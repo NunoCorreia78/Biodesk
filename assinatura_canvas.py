@@ -1,22 +1,26 @@
+import sys
+import os
+from PyQt6.QtWidgets import (
+from PyQt6.QtCore import Qt, QPointF, QRectF, QTimer
+from PyQt6.QtGui import (
+import base64
+from io import BytesIO
+from biodesk_dialogs import BiodeskMessageBox
+    from PyQt6.QtCore import pyqtSignal
+    from PyQt6.QtWidgets import QApplication
+from biodesk_ui_kit import BiodeskUIKit
 """
 Canvas de Assinatura para Declaração de Saúde
 Permite captura de assinatura digital para documentos
 """
 
-import sys
-import os
-from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QPushButton, 
     QLabel, QFrame, QGraphicsView, QGraphicsScene,
-    QGraphicsPixmapItem, QMessageBox
+    QGraphicsPixmapItem
 )
-from PyQt6.QtCore import Qt, QPointF, QRectF, QTimer
-from PyQt6.QtGui import (
     QPainter, QPen, QPixmap, QColor, QFont,
     QBrush, QPainterPath
 )
-import base64
-from io import BytesIO
 
 
 class AssinaturaCanvas(QDialog):
@@ -133,80 +137,14 @@ class AssinaturaCanvas(QDialog):
         
     def setup_styles(self):
         """Configura estilos"""
-        self.setStyleSheet("""
-            QDialog {
-                background-color: #f8f9fa;
-            }
-            
-            QFrame {
-                background-color: white;
-                border: 1px solid #dee2e6;
-                border-radius: 8px;
-                padding: 10px;
-            }
-            
-            QPushButton {
-                background-color: #f8f9fa;
-                border: 1px solid #dee2e6;
-                border-radius: 6px;
-                color: #495057;
-                font-weight: 500;
-                padding: 8px 16px;
-            }
-            
-            QPushButton:hover {
-                background-color: #e9ecef;
-                border-color: #adb5bd;
-            }
-            
-            QPushButton:pressed {
-                background-color: #dee2e6;
-            }
-            
-            QPushButton:disabled {
-                background-color: #f8f9fa;
-                color: #6c757d;
-                border-color: #dee2e6;
-            }
-        """)
+        BiodeskUIKit.apply_universal_button_style(self)
         
         # Estilos específicos para botões
-        self.btn_limpar.setStyleSheet("""
-            QPushButton {
-                background-color: #ffc107;
-                color: #212529;
-                border: none;
-            }
-            QPushButton:hover {
-                background-color: #e0a800;
-            }
-        """)
+        self.BiodeskUIKit.apply_universal_button_style(btn_limpar)
         
-        self.btn_cancelar.setStyleSheet("""
-            QPushButton {
-                background-color: #dc3545;
-                color: white;
-                border: none;
-            }
-            QPushButton:hover {
-                background-color: #c82333;
-            }
-        """)
+        self.BiodeskUIKit.apply_universal_button_style(btn_cancelar)
         
-        self.btn_aceitar.setStyleSheet("""
-            QPushButton {
-                background-color: #28a745;
-                color: white;
-                border: none;
-            }
-            QPushButton:hover {
-                background-color: #218838;
-            }
-            QPushButton:disabled {
-                background-color: #6c757d;
-                color: #ffffff;
-            }
-        """)
+        self.BiodeskUIKit.apply_universal_button_style(btn_aceitar)
         
     def on_signature_changed(self, has_signature):
         """Callback quando assinatura muda"""
@@ -226,7 +164,6 @@ class SignatureWidget(QFrame):
     Widget personalizado para captura de assinatura
     """
     
-    from PyQt6.QtCore import pyqtSignal
     signature_changed = pyqtSignal(bool)
     
     def __init__(self, width=500, height=200):
@@ -365,7 +302,6 @@ class SignatureWidget(QFrame):
 
 # Exemplo de uso
 if __name__ == "__main__":
-    from PyQt6.QtWidgets import QApplication
     
     app = QApplication(sys.argv)
     
