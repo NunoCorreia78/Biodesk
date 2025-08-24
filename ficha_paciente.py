@@ -1,33 +1,69 @@
 
 # ⚡ IMPORTS OTIMIZADOS - APENAS O ESSENCIAL NO STARTUP
-import sys
-import os
-import json
-import unicodedata
 from pathlib import Path
 
 # PyQt6 - APENAS o básico para definir classes
-from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QTabWidget, QLabel, QLineEdit, QTextEdit, QComboBox, QDateEdit, QPushButton, QScrollArea, QFrame, QSplitter, QFileDialog, QCheckBox, QSpinBox, QToolBar, QApplication, QDialog, QListWidget, QListWidgetItem
-from PyQt6.QtCore import Qt, QDate, QTimer, pyqtSignal, QByteArray, QBuffer, QIODevice
-from PyQt6.QtGui import QFont, QPixmap, QIcon, QAction, QShortcut, QKeySequence, QPainter, QPen, QColor, QPainterPath
+from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QTabWidget, QLabel, QLineEdit, QTextEdit, QComboBox, QDateEdit, QPushButton, QScrollArea, QFrame, QFileDialog, QApplication, QDialog, QListWidget, QListWidgetItem
+from PyQt6.QtCore import Qt, QDate, QTimer
+from PyQt6.QtGui import QFont, QPixmap, QIcon, QAction, QShortcut, QKeySequence
 
 # Imports essenciais para a classe principal
 from db_manager import DBManager
-from modern_date_widget import ModernDateWidget
 from sistema_assinatura import abrir_dialogo_assinatura
 
-# LAZY IMPORTS para módulos especializados
+# LAZY IMPORTS para módulos especializados com CACHE OTIMIZADO
+_modulos_cache = {}
+_import_stats = {'hits': 0, 'misses': 0, 'tempo_total': 0}
+
 def importar_modulos_especializados():
-    """Importa módulos especializados apenas quando necessário"""
-    from ficha_paciente.dados_pessoais import DadosPessoaisWidget
-    from ficha_paciente.historico_clinico import HistoricoClinicoWidget  
-    from ficha_paciente.templates_manager import TemplatesManagerWidget
-    from ficha_paciente.comunicacao_manager import ComunicacaoManagerWidget
-    from ficha_paciente.gestao_documentos import GestaoDocumentosWidget
-    from ficha_paciente.declaracao_saude import DeclaracaoSaudeWidget
-    from ficha_paciente.consentimentos import ConsentimentosWidget
-    from ficha_paciente.pesquisa_pacientes import PesquisaPacientesManager
-    return DadosPessoaisWidget, HistoricoClinicoWidget, TemplatesManagerWidget, ComunicacaoManagerWidget, GestaoDocumentosWidget, DeclaracaoSaudeWidget, ConsentimentosWidget, PesquisaPacientesManager
+    """Importa módulos especializados apenas quando necessário - COM CACHE OTIMIZADO"""
+    import time
+    start_time = time.time()
+    
+    if not _modulos_cache:
+        _import_stats['misses'] += 1
+        try:
+            from ficha_paciente.dados_pessoais import DadosPessoaisWidget
+            from ficha_paciente.historico_clinico import HistoricoClinicoWidget  
+            from ficha_paciente.templates_manager import TemplatesManagerWidget
+            from ficha_paciente.comunicacao_manager import ComunicacaoManagerWidget
+            from ficha_paciente.gestao_documentos import GestaoDocumentosWidget
+            from ficha_paciente.declaracao_saude import DeclaracaoSaudeWidget
+            from ficha_paciente.consentimentos import ConsentimentosWidget
+            from ficha_paciente.pesquisa_pacientes import PesquisaPacientesManager
+            
+            _modulos_cache.update({
+                'dados_pessoais': DadosPessoaisWidget,
+                'historico_clinico': HistoricoClinicoWidget,
+                'templates_manager': TemplatesManagerWidget,
+                'comunicacao_manager': ComunicacaoManagerWidget,
+                'gestao_documentos': GestaoDocumentosWidget,
+                'declaracao_saude': DeclaracaoSaudeWidget,
+                'consentimentos': ConsentimentosWidget,
+                'pesquisa_pacientes': PesquisaPacientesManager
+            })
+            import_time = time.time() - start_time
+            _import_stats['tempo_total'] += import_time
+            print(f"✅ Módulos especializados carregados no cache em {import_time:.3f}s")
+        except ImportError as e:
+            print(f"⚠️ Erro ao carregar módulo: {e}")
+    else:
+        _import_stats['hits'] += 1
+        
+    return (_modulos_cache.get('dados_pessoais'), _modulos_cache.get('historico_clinico'), 
+            _modulos_cache.get('templates_manager'), _modulos_cache.get('comunicacao_manager'),
+            _modulos_cache.get('gestao_documentos'), _modulos_cache.get('declaracao_saude'),
+            _modulos_cache.get('consentimentos'), _modulos_cache.get('pesquisa_pacientes'))
+
+def obter_estatisticas_cache():
+    """Retorna estatísticas do cache de módulos"""
+    return {
+        'modulos_em_cache': len(_modulos_cache),
+        'cache_hits': _import_stats['hits'],
+        'cache_misses': _import_stats['misses'],
+        'tempo_total_imports': _import_stats['tempo_total'],
+        'eficiencia_cache': (_import_stats['hits'] / max(1, _import_stats['hits'] + _import_stats['misses'])) * 100
+    }
 
 class FichaPaciente(QMainWindow):
     def __init__(self, paciente_data=None, parent=None):
@@ -46,6 +82,27 @@ class FichaPaciente(QMainWindow):
         self._pdf_viewer_initialized = False
         self._webengine_available = None
         self._initialized = False
+        
+        # 🚀 LAZY LOADING: Flags para tabs não carregados + LOCKS para threading
+        self._tabs_loaded = {
+            'dados_pessoais': False,
+            'dados_documentos': False,
+            'clinico_comunicacao': False,
+            'historico_clinico': False,
+            'templates_prescricoes': False,
+            'centro_comunicacao': False,
+            'iris_analise': False,
+            'gestao_documentos': False,
+            'declaracao_saude': False,
+            'consentimentos': False,
+            'terapia': False
+        }
+        
+        # Prevenção de carregamentos múltiplos simultâneos
+        self._loading_locks = set()
+        
+        # Flag para indicar que está carregando dados iniciais
+        self._carregando_dados = False
         
         # ANTI-FLICKERING: Remover chamada para _init_delayed
         # A UI será construída diretamente no __init__ de forma otimizada
@@ -72,6 +129,48 @@ class FichaPaciente(QMainWindow):
         # ✨ CONSTRUIR UI DIRETAMENTE - SEM COMPLICAÇÕES
         self.init_ui()
         self.load_data()
+        
+        # 📊 FINALIZAR INICIALIZAÇÃO COM MONITORAMENTO
+        self._finalize_startup()
+        
+    def load_data(self):
+        """Carrega dados do paciente de forma otimizada"""
+        if not self.paciente_data:
+            return
+        
+        # Marcar que está carregando dados para evitar dirty flags
+        self._carregando_dados = True
+        
+        try:
+            # Configurar título da janela
+            nome = self.paciente_data.get('nome', 'Novo Paciente')
+            self.setWindowTitle(f"📋 Ficha do Paciente - {nome}")
+            
+            # Apenas carregar dados essenciais - tabs serão carregados sob demanda
+            print(f"✅ Dados básicos carregados para: {nome}")
+            
+        except Exception as e:
+            print(f"❌ Erro ao carregar dados: {e}")
+        finally:
+            # Limpar flag de carregamento
+            self._carregando_dados = False
+    
+    def _finalize_startup(self):
+        """Finaliza a inicialização com monitoramento de performance"""
+        import time
+        
+        # Marcar inicialização como completa
+        self._initialized = True
+        
+        # Gerar relatório de startup
+        relatorio = self.obter_relatorio_performance()
+        
+        print("🎯 === RELATÓRIO DE STARTUP OTIMIZADO ===")
+        print(f"📊 Lazy Loading: {relatorio['lazy_loading']['tabs_carregados']} tabs carregados")
+        print(f"💾 Cache Eficiência: {relatorio['cache_modulos']['eficiencia_cache']:.1f}%")
+        print(f"🔒 Locks Ativos: {relatorio['lazy_loading']['locks_ativos']}")
+        print(f"🚀 Sistema pronto para uso em alta performance!")
+        print("=" * 45)
     
     # ====== CALLBACKS PARA MÓDULOS ESPECIALIZADOS ======
     def on_template_selecionado(self, template_data):
@@ -182,6 +281,45 @@ class FichaPaciente(QMainWindow):
         except Exception as e:
             print(f"❌ [DATA] Erro ao atualizar interface: {e}")
     
+    def obter_relatorio_performance(self):
+        """Gera relatório detalhado de performance do sistema lazy loading"""
+        try:
+            stats = obter_estatisticas_cache()
+            tabs_carregados = sum(1 for loaded in self._tabs_loaded.values() if loaded)
+            total_tabs = len(self._tabs_loaded)
+            
+            relatorio = {
+                'lazy_loading': {
+                    'tabs_carregados': f"{tabs_carregados}/{total_tabs}",
+                    'percentual_nao_carregado': f"{((total_tabs - tabs_carregados) / total_tabs) * 100:.1f}%",
+                    'locks_ativos': len(self._loading_locks),
+                    'estado_tabs': self._tabs_loaded.copy()
+                },
+                'cache_modulos': stats,
+                'memoria': {
+                    'singleton_db': hasattr(self, 'db') and self.db is not None,
+                    'flags_carregamento': bool(getattr(self, '_carregando_dados', False))
+                }
+            }
+            
+            return relatorio
+            
+        except Exception as e:
+            return {'erro': f"Erro ao gerar relatório: {e}"}
+    
+    def resetar_tabs_para_teste(self):
+        """MÉTODO DE DESENVOLVIMENTO: Reseta flags para testar lazy loading"""
+        if hasattr(self, '_development_mode') and self._development_mode:
+            # Resetar todos os flags (exceto os já carregados)
+            for key in self._tabs_loaded:
+                if key not in ['dados_pessoais', 'dados_documentos']:
+                    self._tabs_loaded[key] = False
+            
+            self._loading_locks.clear()
+            print("🔄 Flags de lazy loading resetados para teste")
+            return True
+        return False
+        
     def aplicar_estilo_global_hover(self):
         """Aplica estilo de hover globalmente em todos os botões"""
         try:
@@ -212,24 +350,144 @@ class FichaPaciente(QMainWindow):
         self.tab_dados_documentos = QWidget()
         self.tab_clinico_comunicacao = QWidget()
         
-        self.tabs.addTab(self.tab_dados_documentos, '📁 DADOS & DOCUMENTOS')
+        self.tabs.addTab(self.tab_dados_documentos, '� DOCUMENTAÇÃO CLÍNICA')
         self.tabs.addTab(self.tab_clinico_comunicacao, '🩺 ÁREA CLÍNICA')
         
         main_layout.addWidget(self.tabs)
+        
+    # ====== LAZY LOADING CALLBACKS OTIMIZADOS ======
+    def _on_main_tab_changed(self, index):
+        """Carrega tabs principais sob demanda com medição de performance"""
+        import time
+        start_time = time.time()
+        
+        # Prevenção de carregamentos múltiplos
+        lock_key = f"main_tab_{index}"
+        if lock_key in self._loading_locks:
+            return
+        
+        try:
+            self._loading_locks.add(lock_key)
+            
+            if index == 0 and not self._tabs_loaded.get('dados_documentos', False):
+                print("🔄 Carregando tab DADOS & DOCUMENTOS...")
+                self.init_tab_dados_documentos()
+                self._tabs_loaded['dados_documentos'] = True
+                
+            elif index == 1 and not self._tabs_loaded.get('clinico_comunicacao', False):
+                print("🔄 Carregando tab CLÍNICO & COMUNICAÇÃO...")
+                self.init_tab_clinico_comunicacao()
+                self._tabs_loaded['clinico_comunicacao'] = True
+                # Nota: Histórico clínico será carregado automaticamente pelo init_tab_clinico_comunicacao
+            
+            load_time = time.time() - start_time
+            if load_time > 0.1:  # Só reportar se demorar mais de 100ms
+                print(f"⏱️ Tab principal carregado em {load_time:.2f}s")
+                
+        finally:
+            self._loading_locks.discard(lock_key)
+
+    def _on_dados_tab_changed(self, index):
+        """Carrega sub-tabs de dados & documentos sob demanda"""
+        import time
+        start_time = time.time()
+        
+        try:
+            if index == 0 and not self._tabs_loaded.get('dados_pessoais', False):
+                print("🔄 Carregando DADOS PESSOAIS...")
+                self.init_sub_dados_pessoais()
+                self._tabs_loaded['dados_pessoais'] = True
+                
+            elif index == 1 and not self._tabs_loaded.get('declaracao_saude', False):
+                print("🔄 Carregando DECLARAÇÃO DE SAÚDE...")
+                self.init_sub_declaracao_saude_modular()
+                self._tabs_loaded['declaracao_saude'] = True
+                
+            elif index == 2 and not self._tabs_loaded.get('gestao_documentos', False):
+                print("� Carregando GESTÃO DE DOCUMENTOS...")
+                self.init_sub_gestao_documentos_modular()
+                self._tabs_loaded['gestao_documentos'] = True
+                
+            load_time = time.time() - start_time
+            if load_time > 0.1:
+                print(f"⏱️ Sub-tab dados carregado em {load_time:.2f}s")
+                
+        except Exception as e:
+            print(f"❌ Erro ao carregar sub-tab dados: {e}")
+
+    def _on_tab_clinico_changed(self, index):
+        """Carrega sub-tabs clínicos sob demanda"""
+        import time
+        start_time = time.time()
+        
+        try:
+            if index == 0 and not self._tabs_loaded.get('historico_clinico', False):
+                print("🔄 Carregando HISTÓRICO CLÍNICO...")
+                self.init_sub_historico_clinico()
+                self._tabs_loaded['historico_clinico'] = True
+                
+            elif index == 1 and not self._tabs_loaded.get('iris_analise', False):
+                print("🔄 Carregando ANÁLISE DE ÍRIS...")
+                self.init_sub_iris_analise()
+                self._tabs_loaded['iris_analise'] = True
+                
+            elif index == 2 and not self._tabs_loaded.get('templates_prescricoes', False):
+                print("🔄 Carregando TEMPLATES & PRESCRIÇÕES...")
+                self.init_sub_templates_prescricoes()
+                self._tabs_loaded['templates_prescricoes'] = True
+                
+            elif index == 3 and not self._tabs_loaded.get('centro_comunicacao', False):
+                print("🔄 Carregando CENTRO DE COMUNICAÇÃO...")
+                self.init_sub_centro_comunicacao()
+                self._tabs_loaded['centro_comunicacao'] = True
+                
+            load_time = time.time() - start_time
+            if load_time > 0.1:
+                print(f"⏱️ Sub-tab clínico carregado em {load_time:.2f}s")
+                
+        except Exception as e:
+            print(f"❌ Erro ao carregar sub-tab clínico: {e}")
+
+    def init_ui(self):
+        """Inicialização da interface principal"""
+        # ✅ APLICAR ESTILO GLOBAL DE HOVER
+        self.aplicar_estilo_global_hover()
+        
+        # Widget central
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
+        main_layout = QVBoxLayout(central_widget)
+        main_layout.setContentsMargins(10, 10, 10, 10)
+        main_layout.setSpacing(10)
+        
+        # ====== NOVA ESTRUTURA: APENAS 2 SEPARADORES ======
+        self.tabs = QTabWidget()
+        self.tab_dados_documentos = QWidget()
+        self.tab_clinico_comunicacao = QWidget()
+        
+        self.tabs.addTab(self.tab_dados_documentos, '📋 DOCUMENTAÇÃO CLÍNICA')
+        self.tabs.addTab(self.tab_clinico_comunicacao, '🩺 ÁREA CLÍNICA')
+        
+        main_layout.addWidget(self.tabs)
+        
+        # 🚀 LAZY LOADING: Conectar sinal para carregar tabs principais sob demanda
+        self.tabs.currentChanged.connect(self._on_main_tab_changed)
         
         # Atalho Ctrl+S
         shortcut = QShortcut(QKeySequence('Ctrl+S'), self)
         shortcut.activated.connect(self.guardar)
         
-        self.init_tab_dados_documentos()
-        self.init_tab_clinico_comunicacao()
+        # 🚀 LAZY LOADING: NÃO inicializar tabs principais - carregar o primeiro sob demanda
+        print("✅ Interface principal criada - lazy loading ativado")
+        
+        # Carregar apenas o primeiro tab por padrão
+        self._on_main_tab_changed(0)
 
     def init_tab_dados_documentos(self):
         """
-        DADOS & DOCUMENTOS
+        📋 DOCUMENTAÇÃO CLÍNICA
         - Dados Pessoais
-        - Declaração de Saúde  
-        - Consentimentos (movido para cá)
+        - Declaração de Saúde (com consentimentos integrados)
         - Gestão de Documentos
         """
         main_layout = QVBoxLayout(self.tab_dados_documentos)
@@ -265,24 +523,26 @@ class FichaPaciente(QMainWindow):
         # Sub-abas
         self.sub_dados_pessoais = QWidget()
         self.sub_declaracao_saude = QWidget()
-        self.sub_consentimentos = QWidget()
+        self.sub_gestao_documentos = QWidget()
         
         self.dados_documentos_tabs.addTab(self.sub_dados_pessoais, '👤 Dados Pessoais')
         self.dados_documentos_tabs.addTab(self.sub_declaracao_saude, '🩺 Declaração de Saúde')
-        self.dados_documentos_tabs.addTab(self.sub_consentimentos, '📋 Consentimentos')
+        self.dados_documentos_tabs.addTab(self.sub_gestao_documentos, '� Gestão de Documentos')
+        
+        # 🚀 LAZY LOADING: Conectar sinal para carregar sub-tabs sob demanda
+        self.dados_documentos_tabs.currentChanged.connect(self._on_dados_tab_changed)
         
         main_layout.addWidget(self.dados_documentos_tabs)
         
-        # Inicializar sub-abas
-        self.init_sub_dados_pessoais()
-        self.init_sub_declaracao_saude_modular()
-        self.init_sub_consentimentos_modular()
+        # 🚀 LAZY LOADING: Carregar apenas o primeiro sub-tab por padrão
+        self._on_dados_tab_changed(0)
 
     def init_tab_clinico_comunicacao(self):
         """
-        📊 CLÍNICO & COMUNICAÇÃO
+        🩺 ÁREA CLÍNICA
         - Histórico Clínico
-        - Templates & Prescrições
+        - Análise de Íris
+        - Modelos de Prescrição
         - Email
         """
         main_layout = QVBoxLayout(self.tab_clinico_comunicacao)
@@ -319,32 +579,30 @@ class FichaPaciente(QMainWindow):
         self.sub_historico_clinico = QWidget()
         self.sub_templates_prescricoes = QWidget()
         self.sub_centro_comunicacao = QWidget()
-        self.sub_gestao_documentos = QWidget()
         self.sub_iris_analise = QWidget()
         
         self.clinico_comunicacao_tabs.addTab(self.sub_historico_clinico, '📝 Histórico Clínico')
         self.clinico_comunicacao_tabs.addTab(self.sub_iris_analise, '👁️ Análise de Íris')
         self.clinico_comunicacao_tabs.addTab(self.sub_templates_prescricoes, '📋 Modelos de Prescrição')
         self.clinico_comunicacao_tabs.addTab(self.sub_centro_comunicacao, '📧 Email')
-        self.clinico_comunicacao_tabs.addTab(self.sub_gestao_documentos, '📂 Gestão de Documentos')
         
         # Conectar sinal de mudança de aba para refresh automático
         self.clinico_comunicacao_tabs.currentChanged.connect(self._on_tab_clinico_changed)
         
         main_layout.addWidget(self.clinico_comunicacao_tabs)
         
-        # Inicializar sub-abas
-        self.init_sub_historico_clinico()
-        self.init_sub_templates_prescricoes()
-        self.init_sub_iris_analise()
-        self.init_sub_centro_comunicacao()
-        self.init_sub_gestao_documentos_modular()
+        # 🚀 CORREÇÃO: Carregar automaticamente o HISTÓRICO CLÍNICO (primeiro tab) 
+        # para evitar tela em branco
+        print("✅ Tabs clínicos criados - carregando histórico automaticamente...")
+        self._on_tab_clinico_changed(0)  # Força carregar o primeiro tab (histórico)
+        
+        print("✅ Área clínica inicializada com histórico visível")
 
     def init_sub_dados_pessoais(self):
         """Sub-aba: Dados Pessoais - MÓDULO OTIMIZADO"""
         try:
-            # ✅ USAR MÓDULO OTIMIZADO DE DADOS PESSOAIS
-            from ficha_paciente.dados_pessoais import DadosPessoaisWidget
+            # ✅ USAR MÓDULO OTIMIZADO DE DADOS PESSOAIS via lazy loading
+            DadosPessoaisWidget, _, _, _, _, _, _, _ = importar_modulos_especializados()
             
             layout = QVBoxLayout(self.sub_dados_pessoais)
             layout.setContentsMargins(0, 0, 0, 0)
@@ -393,8 +651,8 @@ class FichaPaciente(QMainWindow):
         layout.setContentsMargins(0, 0, 0, 0)  # Zero margins para o widget ocupar tudo
         
         try:
-            # 🚀 USAR MÓDULO OTIMIZADO
-            from ficha_paciente.historico_clinico import HistoricoClinicoWidget
+            # 🚀 USAR MÓDULO OTIMIZADO via lazy loading
+            _, HistoricoClinicoWidget, _, _, _, _, _, _ = importar_modulos_especializados()
             
             # Obter histórico atual se existe
             historico_atual = ""
@@ -434,7 +692,8 @@ class FichaPaciente(QMainWindow):
     def init_sub_templates_prescricoes(self):
         """Sub-aba: Templates & Prescrições - Usando módulo especializado"""
         try:
-            from ficha_paciente.templates_manager import TemplatesManagerWidget
+            # Usar lazy loading para Templates Manager
+            _, _, TemplatesManagerWidget, _, _, _, _, _ = importar_modulos_especializados()
             
             # Criar widget especializado
             self.templates_widget = TemplatesManagerWidget(self.paciente_data, self)
@@ -461,7 +720,8 @@ class FichaPaciente(QMainWindow):
     def init_sub_centro_comunicacao(self):
         """Sub-aba: Email - Usando módulo especializado"""
         try:
-            from ficha_paciente.comunicacao_manager import ComunicacaoManagerWidget
+            # Usar lazy loading para Comunicação Manager
+            _, _, _, ComunicacaoManagerWidget, _, _, _, _ = importar_modulos_especializados()
             
             # Criar widget especializado
             self.comunicacao_widget = ComunicacaoManagerWidget(self.paciente_data, self)
@@ -493,6 +753,53 @@ class FichaPaciente(QMainWindow):
     def on_template_aplicado(self, nome_template):
         """Callback quando template é aplicado"""
         print(f"📄 Template aplicado: {nome_template}")
+
+    def init_sub_iris_analise(self):
+        """Sub-aba: Análise de Íris - Carregamento otimizado"""
+        try:
+            # Lazy import para módulos de íris
+            print("🔄 Carregando módulo de análise de íris...")
+            from iris_canvas import IrisCanvas
+            from iris_overlay_manager import IrisOverlayManager
+            
+            layout = QVBoxLayout(self.sub_iris_analise)
+            layout.setContentsMargins(10, 10, 10, 10)
+            layout.setSpacing(10)
+            
+            # Título da seção
+            titulo_iris = QLabel("👁️ Análise Iridológica")
+            titulo_iris.setStyleSheet("""
+                QLabel {
+                    font-size: 18px;
+                    font-weight: bold;
+                    color: #2c3e50;
+                    padding: 10px;
+                    background-color: #ecf0f1;
+                    border-radius: 8px;
+                    margin-bottom: 10px;
+                }
+            """)
+            layout.addWidget(titulo_iris)
+            
+            # Canvas de íris otimizado
+            self.iris_canvas = IrisCanvas(self)
+            layout.addWidget(self.iris_canvas)
+            
+            # Manager de overlays
+            self.iris_overlay_manager = IrisOverlayManager(self.iris_canvas)
+            
+            print("✅ Módulo de análise de íris carregado")
+            
+        except ImportError as e:
+            print(f"⚠️ Módulo de íris não encontrado: {e}")
+            # Fallback simples
+            layout = QVBoxLayout(self.sub_iris_analise)
+            placeholder = QLabel("👁️ Módulo de Íris será carregado em breve...")
+            placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            placeholder.setStyleSheet("color: #6c757d; font-size: 14px; padding: 50px;")
+            layout.addWidget(placeholder)
+        except Exception as e:
+            print(f"❌ Erro ao carregar análise de íris: {e}")
 
     def init_sub_centro_comunicacao_fallback(self):
         """Sub-aba: Email - Interface limpa sem barras"""
@@ -2027,54 +2334,6 @@ Naturopata | Osteopata | Medicina Quântica
     def on_declaracao_dados_atualizados(self, dados):
         """Callback quando dados da declaração são atualizados"""
         print(f"📄 Dados da declaração atualizados: {dados}")
-    
-    def init_sub_consentimentos_modular(self):
-        """Sub-aba: Consentimentos - MÓDULO OTIMIZADO"""
-        try:
-            # ✅ USAR MÓDULO OTIMIZADO DE CONSENTIMENTOS
-            _, _, _, _, _, _, ConsentimentosWidget, _ = importar_modulos_especializados()
-            
-            # Criar layout principal
-            layout = QVBoxLayout(self.sub_consentimentos)
-            
-            # Criar widget especializado
-            self.consentimentos_widget = ConsentimentosWidget(self.paciente_data, self)
-            
-            # Conectar sinais para comunicação
-            self.consentimentos_widget.consentimento_guardado.connect(self.on_consentimento_guardado)
-            self.consentimentos_widget.consentimento_assinado.connect(self.on_consentimento_assinado)
-            self.consentimentos_widget.template_carregado.connect(self.on_template_consentimento_carregado)
-            
-            # Adicionar ao layout
-            layout.addWidget(self.consentimentos_widget)
-            
-            print("✅ Consentimentos carregado com sucesso")
-            
-        except Exception as e:
-            print(f"❌ ERRO no Consentimentos: {e}")
-            # Fallback para interface antiga
-            self.init_sub_consentimentos_fallback()
-    
-    def init_sub_consentimentos_fallback(self):
-        """Fallback para consentimentos"""
-        layout = QVBoxLayout(self.sub_consentimentos)
-        
-        fallback_label = QLabel("⚠️ Módulo de Consentimentos indisponível")
-        fallback_label.setStyleSheet("color: orange; font-size: 14px; padding: 20px;")
-        layout.addWidget(fallback_label)
-    
-    # Callbacks para integração com o módulo especializado
-    def on_consentimento_guardado(self, tipo, caminho_pdf):
-        """Callback quando consentimento é guardado"""
-        print(f"💾 Consentimento guardado: {tipo} -> {caminho_pdf}")
-    
-    def on_consentimento_assinado(self, tipo, tipo_assinatura):
-        """Callback quando consentimento é assinado"""
-        print(f"✍️ Consentimento assinado: {tipo} por {tipo_assinatura}")
-    
-    def on_template_consentimento_carregado(self, tipo):
-        """Callback quando template é carregado"""
-        print(f"📋 Template de consentimento carregado: {tipo}")
 
     def init_sub_gestao_documentos_modular(self):
         """Sub-aba: Gestão de Documentos - MÓDULO OTIMIZADO"""
@@ -2099,7 +2358,6 @@ Naturopata | Osteopata | Medicina Quântica
         self.gestao_documentos_widget.documento_adicionado.connect(self.on_documento_adicionado)
         self.gestao_documentos_widget.documento_removido.connect(self.on_documento_removido)
         self.gestao_documentos_widget.documento_visualizado.connect(self.on_documento_visualizado)
-        self.gestao_documentos_widget.documento_assinado.connect(self.on_documento_assinado)
         
         # Adicionar ao layout
         layout.addWidget(self.gestao_documentos_widget)
@@ -2136,21 +2394,37 @@ Naturopata | Osteopata | Medicina Quântica
         except Exception as e:
             print(f"❌ [DOCUMENTOS] Erro no refresh delegado: {e}")
     
-    def _on_tab_clinico_changed(self, idx):
-        """Callback quando muda de aba na área clínica - refresh automático do gestor"""
+    # Método duplicado removido - usar apenas a versão otimizada na linha ~359
+
+    def _on_dados_tab_changed(self, idx):
+        """🚀 LAZY LOADING: Carrega sub-tab de dados/documentos sob demanda"""
         try:
-            if hasattr(self, 'clinico_comunicacao_tabs') and hasattr(self, 'sub_gestao_documentos'):
-                if self.clinico_comunicacao_tabs.widget(idx) is self.sub_gestao_documentos:
-                    self.atualizar_lista_documentos()
-                    # (Opcional) arrancar auto-refresh enquanto esta aba está ativa
-                    if hasattr(self, "gestao_documentos_widget") and hasattr(self.gestao_documentos_widget, 'refresh_timer'):
-                        self.gestao_documentos_widget.refresh_timer.start(3000)  # de 3 em 3s
+            tab_names = ['dados_pessoais', 'declaracao_saude', 'gestao_documentos']
+            
+            if 0 <= idx < len(tab_names):
+                tab_name = tab_names[idx]
+                
+                # Carregar tab apenas se ainda não foi carregado
+                if not self._tabs_loaded.get(tab_name, False):
+                    print(f"🚀 [LAZY] Carregando sub-tab '{tab_name}' sob demanda...")
+                    
+                    # Carregar tab específico
+                    if tab_name == 'dados_pessoais':
+                        self.init_sub_dados_pessoais()
+                    elif tab_name == 'declaracao_saude':
+                        self.init_sub_declaracao_saude_modular()
+                    elif tab_name == 'gestao_documentos':
+                        self.init_sub_gestao_documentos_modular()
+                    
+                    # Marcar como carregado
+                    self._tabs_loaded[tab_name] = True
+                    print(f"✅ [LAZY] Sub-tab '{tab_name}' carregado com sucesso")
                 else:
-                    if hasattr(self, "gestao_documentos_widget") and hasattr(self.gestao_documentos_widget, 'refresh_timer'):
-                        self.gestao_documentos_widget.refresh_timer.stop()
+                    print(f"♻️ [LAZY] Sub-tab '{tab_name}' já carregado - reutilizando")
+                    
         except Exception as e:
-            print(f"⚠️ [DOCUMENTOS] Erro no on_tab_changed: {e}")
-    
+            print(f"❌ [LAZY] Erro ao carregar sub-tab: {e}")
+
     def init_sub_iris_analise(self):
         """Análise de Íris - Módulo Otimizado"""
         try:
@@ -2307,29 +2581,7 @@ Naturopata | Osteopata | Medicina Quântica
         
         # Botões de ação - mesmo estilo
         botoes_layout = QHBoxLayout()
-        
-        # Botão de teste - mesmo do botão principal
-        btn_teste = QPushButton("🧪 Teste do Sistema Zero")
-        btn_teste.clicked.connect(self.teste_zero_separador)
-        btn_teste.setStyleSheet("""
-            QPushButton {
-                background: #4a148c;
-                color: white;
-                font-size: 16px;
-                font-weight: bold;
-                padding: 15px 25px;
-                border-radius: 8px;
-                border: none;
-                min-width: 200px;
-            }
-            QPushButton:hover {
-                background: #4a148caa;
-            }
-            QPushButton:pressed {
-                background: #4a148c77;
-            }
-        """)
-        botoes_layout.addWidget(btn_teste)
+        # Botão de teste removido - funcionalidade obsoleta
         
         # Botão abrir módulo
         self.btn_abrir_terapia = QPushButton("⚡ Abrir Módulo de Terapia")
@@ -2360,33 +2612,7 @@ Naturopata | Osteopata | Medicina Quântica
         # Espaçador
         layout.addStretch()
     
-    def teste_zero_separador(self):
-        """Teste do sistema zero no separador - mesma mensagem do botão principal"""
-        from PyQt6.QtWidgets import QMessageBox
-        
-        # Construir mensagem igual à da classe TerapiaQuantica
-        mensagem = "✅ TERAPIA QUÂNTICA - VERSÃO ZERO FUNCIONANDO!\n\n"
-        
-        if self.paciente_data:
-            mensagem += f"👤 Paciente: {self.paciente_data.get('nome', 'N/A')}\n"
-            if 'idade' in self.paciente_data:
-                mensagem += f"🎂 Idade: {self.paciente_data.get('idade', 'N/A')} anos\n"
-        else:
-            mensagem += "👤 Modo sem paciente selecionado\n"
-        
-        mensagem += """
-🎯 Base mínima carregada com sucesso
-🔧 Pronto para desenvolvimento do zero
-🌟 Interface limpa e funcional
-
-💡 Agora você pode começar a implementar
-   suas funcionalidades de medicina quântica!"""
-        
-        QMessageBox.information(
-            self,
-            "Sistema Zero Funcionando",
-            mensagem
-        )
+    # Método de teste removido - funcionalidade obsoleta
 
 
 
@@ -4757,9 +4983,9 @@ Naturopata | Osteopata | Medicina Quântica
                 linha_datas = [Paragraph(f"Data: {dados_pdf['data_atual']}", styles['Normal']),
                               Paragraph(f"Data: {dados_pdf['data_atual']}", styles['Normal'])]
                 
-                # Criar tabela COMPACTA - assinatura e nome próximos
+                # Criar tabela COMPACTA - assinatura e nome próximos com melhor centralização
                 dados_tabela = [linha_labels, linha_assinaturas, linha_nomes, linha_datas]
-                tabela_assinaturas = Table(dados_tabela, colWidths=[4*inch, 4*inch])
+                tabela_assinaturas = Table(dados_tabela, colWidths=[3.2*inch, 3.2*inch])
                 
                 # Estilo da tabela OTIMIZADO
                 estilo_tabela = TableStyle([
@@ -5796,8 +6022,8 @@ Naturopata | Osteopata | Medicina Quântica
                     
                     .signature-container {{
                         display: table;
-                        width: 100%;
-                        margin-top: 10pt;
+                        width: 80%;
+                        margin: 10pt auto 0 auto;
                     }}
                     
                     .signature-box {{
@@ -6533,8 +6759,8 @@ Naturopata | Osteopata | Medicina Quântica
                     
                     .signature-container {{
                         display: table;
-                        width: 100%;
-                        margin-top: 10pt;
+                        width: 80%;
+                        margin: 10pt auto 0 auto;
                     }}
                     
                     .signature-box {{
@@ -7366,7 +7592,7 @@ Naturopata | Osteopata | Medicina Quântica
                         border-bottom: 2pt solid #333;
                         margin: 15pt 0 8pt 0;
                         height: 40pt;
-                        width: 250pt;
+                        width: 200pt;
                         display: inline-block;
                     }}
                     .rodape {{
@@ -7405,7 +7631,7 @@ Naturopata | Osteopata | Medicina Quântica
                 <div class="assinatura-area">
                     <h3 style="color: #2980b9; margin-bottom: 20pt;">✍️ ASSINATURAS</h3>
                     
-                    <table width="100%">
+                    <table width="80%" style="margin: 0 auto;">
                         <tr>
                             <td width="50%" style="text-align: center; padding: 10pt;">
                                 <p><strong>PACIENTE</strong></p>
@@ -10512,5 +10738,4 @@ class FollowUpDialog(QDialog):
 if __name__ == '__main__':
     print("⚠️  Este módulo deve ser executado através do main_window.py")
     print("🚀 Execute: python main_window.py")
-    import sys
-    sys.exit(1)
+    exit(1)

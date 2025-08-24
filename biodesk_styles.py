@@ -166,3 +166,126 @@ def aplicar_hover_global():
     if app:
         # Aplicar estilo limpo e simples
         app.setStyleSheet(GLOBAL_HOVER_STYLE)
+
+
+# ========================================
+# SISTEMA CENTRALIZADO DE BOTÕES BIODESK
+# ========================================
+
+class BiodeskButtonThemes:
+    """Temas de cores para botões Biodesk"""
+    PRIMARY = "#007bff"      # Azul principal
+    SUCCESS = "#28a745"      # Verde sucesso  
+    WARNING = "#ffc107"      # Amarelo aviso
+    DANGER = "#dc3545"       # Vermelho perigo
+    SECONDARY = "#6c757d"    # Cinza secundário
+    INFO = "#17a2b8"         # Azul informação
+    LIGHT = "#f8f9fa"        # Cinza claro
+    DARK = "#343a40"         # Cinza escuro
+    PURPLE = "#6f42c1"       # Roxo medicina quântica
+
+def apply_biodesk_button_style(button, theme=BiodeskButtonThemes.SECONDARY, size="normal"):
+    """
+    Aplica estilo Biodesk centralizado a qualquer botão com CSS ultra-específico
+    
+    Args:
+        button: QPushButton para estilizar
+        theme: Cor do tema (usar BiodeskButtonThemes)
+        size: "small", "normal", "large"
+    """
+    # Definir tamanhos
+    sizes = {
+        "tiny": {"padding": "4px 8px", "font_size": "10px", "min_height": "24px"},
+        "small": {"padding": "6px 12px", "font_size": "11px", "min_height": "28px"},
+        "normal": {"padding": "8px 16px", "font_size": "12px", "min_height": "32px"},
+        "large": {"padding": "10px 20px", "font_size": "12px", "min_height": "32px"}  # Fonte menor, altura uniforme
+    }
+    
+    size_config = sizes.get(size, sizes["normal"])
+    pressed_color = darken_color(theme, 0.2)
+    
+    # CSS ULTRA-ESPECÍFICO para sobrepor qualquer outro estilo
+    style = f"""
+        QPushButton[objectName="{button.objectName()}"] {{
+            background-color: #f8f9fa !important;
+            color: #6c757d !important;
+            border: 1px solid #e0e0e0 !important;
+            border-radius: 6px !important;
+            padding: {size_config['padding']} !important;
+            font-size: {size_config['font_size']} !important;
+            font-weight: bold !important;
+            min-height: {size_config['min_height']} !important;
+            max-height: {size_config['min_height']} !important;
+            height: {size_config['min_height']} !important;
+            margin: 2px !important;
+        }}
+        QPushButton[objectName="{button.objectName()}"]:hover {{
+            background-color: {theme} !important;
+            color: white !important;
+            border-color: {theme} !important;
+        }}
+        QPushButton[objectName="{button.objectName()}"]:pressed {{
+            background-color: {pressed_color} !important;
+        }}
+        QPushButton[objectName="{button.objectName()}"]:disabled {{
+            background-color: #e0e0e0 !important;
+            color: #6c757d !important;
+            border-color: #e0e0e0 !important;
+        }}
+    """
+    
+    # Garantir que o botão tem um objectName único
+    if not button.objectName():
+        import uuid
+        button.setObjectName(f"btn_{uuid.uuid4().hex[:8]}")
+    
+    button.setStyleSheet(style)
+
+# Funções de conveniência para compatibilidade
+def apply_primary_button_style(button, size="normal"):
+    """Botão primário azul"""
+    apply_biodesk_button_style(button, BiodeskButtonThemes.PRIMARY, size)
+
+def apply_success_button_style(button, size="normal"):
+    """Botão verde de sucesso"""
+    apply_biodesk_button_style(button, BiodeskButtonThemes.SUCCESS, size)
+
+def apply_danger_button_style(button, size="normal"):
+    """Botão vermelho de perigo"""
+    apply_biodesk_button_style(button, BiodeskButtonThemes.DANGER, size)
+
+def apply_secondary_button_style(button, size="normal"):
+    """Botão cinza secundário"""
+    apply_biodesk_button_style(button, BiodeskButtonThemes.SECONDARY, size)
+
+def apply_warning_button_style(button, size="normal"):
+    """Botão amarelo de aviso"""
+    apply_biodesk_button_style(button, BiodeskButtonThemes.WARNING, size)
+
+def apply_info_button_style(button, size="normal"):
+    """Botão azul de informação"""
+    apply_biodesk_button_style(button, BiodeskButtonThemes.INFO, size)
+
+def apply_purple_button_style(button, size="normal"):
+    """Botão roxo para medicina quântica"""
+    apply_biodesk_button_style(button, BiodeskButtonThemes.PURPLE, size)
+
+def force_button_reset_and_style(button, theme=BiodeskButtonThemes.SECONDARY, size="normal"):
+    """
+    FUNÇÃO DE FORÇA BRUTA: Remove qualquer estilo existente e aplica o nosso
+    Use esta função se os botões não estão respondendo ao estilo normal
+    """
+    # Reset total - limpar qualquer estilo existente
+    button.setStyleSheet("")
+    
+    # Garantir objectName único
+    if not button.objectName():
+        import uuid
+        button.setObjectName(f"btn_force_{uuid.uuid4().hex[:8]}")
+    
+    # Aplicar nosso estilo
+    apply_biodesk_button_style(button, theme, size)
+    
+    # Forçar atualização visual
+    button.update()
+    button.repaint()

@@ -1,34 +1,29 @@
-from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QPushButton, QGraphicsView, QGraphicsScene,
-from PyQt6.QtGui import QPixmap, QPolygonF, QBrush, QPen, QColor
+from PyQt6.QtWidgets import (
+    QWidget, QVBoxLayout, QPushButton, QGraphicsView, QGraphicsScene,
+    QGraphicsEllipseItem, QGraphicsPolygonItem, QGraphicsTextItem,
+    QApplication, QFileDialog, QMessageBox, QDialog, QHBoxLayout,
+    QLabel, QTextEdit, QComboBox, QGroupBox, QFrame, QScrollArea,
+    QDialogButtonBox, QSizePolicy, QGraphicsItem
+)
+from PyQt6.QtGui import QPixmap, QPolygonF, QBrush, QPen, QColor, QWheelEvent, QMouseEvent
 from PyQt6.QtCore import Qt, QPointF, QEvent, pyqtSignal
 import json
 import math
 import os
 from iris_overlay_manager import IrisOverlayManager
 from biodesk_dialogs import BiodeskMessageBox
-    from PyQt6.QtGui import QPolygonF
-    from PyQt6.QtCore import QPointF
-    import math
-        from PyQt6.QtWidgets import QComboBox, QGroupBox
-        from PyQt6.QtWidgets import QToolTip
-        from PyQt6.QtWidgets import QToolTip
-        import json
-        import os
-        from PyQt6.QtWidgets import QHBoxLayout, QGraphicsScene, QVBoxLayout, QPushButton, QLabel
-            from iris_analysis_config import IrisAnalysisConfig
-        from PyQt6.QtGui import QPixmap
-        from PyQt6.QtCore import Qt
-        from PyQt6.QtCore import QRectF
-                import traceback
-            import os
-            import traceback
-from PyQt6.QtWidgets import QGraphicsView
-from PyQt6.QtCore import Qt, QPointF, QEvent
-from PyQt6.QtGui import QWheelEvent, QMouseEvent
+
+try:
+    from iris_analysis_config import IrisAnalysisConfig
+except ImportError:
+    IrisAnalysisConfig = None
+
+from biodesk_styles import (
+    apply_primary_button_style, apply_secondary_button_style,
+    apply_warning_button_style, apply_info_button_style, apply_purple_button_style,
+    BiodeskButtonThemes, apply_biodesk_button_style, force_button_reset_and_style
+)
 from biodesk_ui_kit import BiodeskUIKit
-                            QFileDialog, QGraphicsPolygonItem, QHBoxLayout,
-                            QLabel, QTextEdit, QSizePolicy, QFrame, QScrollArea, QGraphicsItem,
-                            QDialog, QDialogButtonBox, QGraphicsEllipseItem, QComboBox, QGroupBox)
 
 # --- Função de morphing para converter pontos polares normalizados em coordenadas no canvas ---
 def pontos_para_polygon(pontos_polares, cx, cy, raio_pupila, raio_anel):
@@ -164,14 +159,14 @@ class SinalAnalysisPopup(QDialog):
         button_layout = QHBoxLayout()
         
         self.close_button = QPushButton("Fechar")
+        apply_secondary_button_style(self.close_button)  # Cinza Biodesk
         self.close_button.clicked.connect(self.close)
         button_layout.addWidget(self.close_button)
         
         layout.addLayout(button_layout)
         self.setLayout(layout)
         
-        # Aplicar estilos
-        BiodeskUIKit.apply_universal_button_style(self)
+        # Estilos aplicados individualmente via sistema centralizado
         
     def setup_signals(self):
         """Configura os sinais e eventos"""
@@ -677,67 +672,6 @@ class IrisCanvas(QWidget):
         # Atualiza a visibilidade dos botões
         self.controlar_visibilidade_botoes(tem_imagens=True)
     
-    def _style_modern_toolbar_button(self, button, pastel_color="#a8e6cf", size_type="standard"):
-        """Aplica o design NOVO: cores pastéis → cinza no hover (igual ao IrisAnonimaCanvas)."""
-        
-        # Definir tamanhos baseado no tipo
-        if size_type == "compact":
-            width, height = "32px", "32px"
-            padding = "4px"
-            font_size = "12px"
-        else:
-            width, height = "120px", "45px"  # Altura igual ao anônimo
-            padding = "10px 15px"  # Padding igual ao anônimo
-            font_size = "13px"
-        
-        # NOVO design: pastéis normais → cinza no hover (igual IrisAnonimaCanvas)
-        uniform_style = f"""
-            QPushButton {{
-                background-color: {pastel_color} !important;
-                color: #2c3e50 !important;
-                border: none !important;
-                border-radius: 8px !important;
-                padding: {padding} !important;
-                font-size: {font_size} !important;
-                font-weight: 600 !important;
-                min-width: {width} !important;
-                max-width: {width} !important;
-                min-height: {height} !important;
-                max-height: {height} !important;
-                text-align: center !important;
-            }}
-            QPushButton:hover {{
-                background-color: #95a5a6 !important;
-                color: white !important;
-                border: none !important;
-            }}
-            QPushButton:checked {{
-                background-color: #95a5a6 !important;
-                color: white !important;
-                border: none !important;
-            }}
-            QPushButton:pressed {{
-                background-color: #7f8c8d !important;
-                color: white !important;
-                border: none !important;
-            }}
-        """
-        
-        button.setStyleSheet(uniform_style)
-
-    def _darken_color(self, color):
-        """Escurece uma cor hexadecimal para efeito pressed"""
-        color_map = {
-            "#4CAF50": "#388E3C",  # Verde
-            "#2196F3": "#1976D2",  # Azul
-            "#FF9800": "#F57C00",  # Laranja
-            "#9C27B0": "#7B1FA2",  # Roxo
-            "#607D8B": "#455A64",  # Cinza azulado
-            "#dc3545": "#c82333",  # Vermelho
-            "#6f42c1": "#5a2d91",  # Roxo escuro
-        }
-        return color_map.get(color, color)
-
     def init_ui(self):
 
         # Primeiro configurar tracking e hover
@@ -769,52 +703,53 @@ class IrisCanvas(QWidget):
         # Rótulo do olho (esquerdo/direito)
         self.side_label = QLabel("")
         self.side_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.side_label.setStyleSheet("font-weight: bold; font-size: 17px; margin-bottom: 6px;")
+        self.side_label.setStyleSheet("font-weight: bold; font-size: 14px; margin: 2px;")  # Margem reduzida
+        self.side_label.hide()  # Ocultar por padrão até ter conteúdo
         main_layout.addWidget(self.side_label)
 
         # ═══════════════ TOOLBAR DE CALIBRAÇÃO E MORPHING ═══════════════
         # Só criar toolbar se criar_toolbar=True
         if self.criar_toolbar:
             toolbar_layout = QHBoxLayout()
-            toolbar_layout.setContentsMargins(20, 10, 20, 10)
-            toolbar_layout.setSpacing(12)
+            toolbar_layout.setContentsMargins(5, 2, 5, 2)  # Margens reduzidas
+            toolbar_layout.setSpacing(8)  # Espaçamento reduzido
 
-            # Botão para calibração
+            # Botão para calibração - AZUL BIODESK (FORÇA BRUTA)
             self.btn_calibracao = QPushButton("Calibração: OFF")
             self.btn_calibracao.setCheckable(True)
             self.btn_calibracao.setChecked(False)
-            self._style_modern_toolbar_button(self.btn_calibracao, "#dceefb")  # Azul pastel suave
+            force_button_reset_and_style(self.btn_calibracao, BiodeskButtonThemes.INFO, "normal")
             self.btn_calibracao.setToolTip("Ativar/desativar modo de calibração para ajustar centro e raios da íris")
             toolbar_layout.addWidget(self.btn_calibracao)
 
-            # Botão para ajuste fino (morphing)
+            # Botão para ajuste fino (morphing) - ROSA/MAGENTA BIODESK (FORÇA BRUTA)
             self.btn_ajuste_fino = QPushButton("Ajuste Fino: OFF")
             self.btn_ajuste_fino.setCheckable(True)
             self.btn_ajuste_fino.setChecked(False)
-            self._style_modern_toolbar_button(self.btn_ajuste_fino, "#ffd3e1")  # Rosa pastel suave
+            force_button_reset_and_style(self.btn_ajuste_fino, "#e91e63", "normal")
             self.btn_ajuste_fino.setToolTip("Ativar/desativar ajuste fino (morphing) para deformar íris e pupila")
             toolbar_layout.addWidget(self.btn_ajuste_fino)
 
-            # Botões de zoom
+            # Botões de zoom - AMARELO BIODESK (FORÇA BRUTA)
             self.btn_zoom_in = QPushButton("🔍+")
             self.btn_zoom_in.setToolTip("Ampliar imagem")
-            self._style_modern_toolbar_button(self.btn_zoom_in, "#ffeaa7", size_type="compact")  # Amarelo pastel
+            force_button_reset_and_style(self.btn_zoom_in, BiodeskButtonThemes.WARNING, "normal")
             toolbar_layout.addWidget(self.btn_zoom_in)
 
             self.btn_zoom_out = QPushButton("🔍-")
             self.btn_zoom_out.setToolTip("Reduzir imagem")
-            self._style_modern_toolbar_button(self.btn_zoom_out, "#ffeaa7", size_type="compact")  # Amarelo pastel
+            force_button_reset_and_style(self.btn_zoom_out, BiodeskButtonThemes.WARNING, "normal")
             toolbar_layout.addWidget(self.btn_zoom_out)
 
             self.btn_zoom_fit = QPushButton("📐")
             self.btn_zoom_fit.setToolTip("Ajustar imagem à janela")
-            self._style_modern_toolbar_button(self.btn_zoom_fit, "#e6d7ff", size_type="compact")  # Roxo pastel
+            force_button_reset_and_style(self.btn_zoom_fit, BiodeskButtonThemes.PURPLE, "normal")
             toolbar_layout.addWidget(self.btn_zoom_fit)
 
-            # Botão para ocultar/mostrar mapa
+            # Botão para ocultar/mostrar mapa - CINZA BIODESK (FORÇA BRUTA)
             self.btn_ocultar_mapa = QPushButton("👁️ Ocultar Mapa")
             self.btn_ocultar_mapa.setToolTip("Ocultar/mostrar o mapa da íris e todos os overlays")
-            self._style_modern_toolbar_button(self.btn_ocultar_mapa, "#f8f9fa")  # Cinza muito claro
+            force_button_reset_and_style(self.btn_ocultar_mapa, BiodeskButtonThemes.SECONDARY, "normal")
             toolbar_layout.addWidget(self.btn_ocultar_mapa)
 
             # Espaço flexível à direita
@@ -916,12 +851,16 @@ class IrisCanvas(QWidget):
     def set_side_label(self, tipo):
         if tipo is None:
             self.side_label.setText("")
+            self.side_label.hide()  # Ocultar quando vazio
         elif str(tipo).lower() == "esq":
             self.side_label.setText("Olho Esquerdo")
+            self.side_label.show()  # Mostrar quando tem conteúdo
         elif str(tipo).lower() == "drt":
             self.side_label.setText("Olho Direito")
+            self.side_label.show()  # Mostrar quando tem conteúdo
         else:
             self.side_label.setText(str(tipo))
+            self.side_label.show()  # Mostrar quando tem conteúdo
         
     def controlar_visibilidade_botoes(self, tem_imagens=False):
         """

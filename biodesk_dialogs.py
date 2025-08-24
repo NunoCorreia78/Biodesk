@@ -1,23 +1,25 @@
 from PyQt6.QtWidgets import (
+    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, 
+    QMessageBox, QApplication, QWidget, QFrame
+)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QPixmap, QIcon
+
+try:
     from biodesk_styles import aplicar_estilo_biodesk, BIODESK_DIALOG_STYLE
+except ImportError:
+    # Fallback se biodesk_styles não estiver disponível
+    def aplicar_estilo_biodesk():
+        pass
+    BIODESK_DIALOG_STYLE = ""
+
 from biodesk_ui_kit import BiodeskUIKit
+
 """
 🎨 BIODESK DIALOGS - Sistema unificado de caixas de diálogo estilizadas
 =====================================================================
 Centraliza TODAS as caixas de diálogo do Biodesk com estilo consistente
 """
-
-    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTextEdit, QLineEdit,
-    QMessageBox, QFileDialog, QInputDialog
-)
-
-# Importar estilos centralizados
-try:
-except ImportError:
-    aplicar_estilo_biodesk = None
-    BIODESK_DIALOG_STYLE = ""
 
 class BiodeskMessageBox:
     """Classe estática para caixas de mensagem estilizadas"""

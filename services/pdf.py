@@ -152,6 +152,22 @@ def gerar_pdf_declaracao(nome_paciente, data_nascimento, data_atual, template_ht
                     border-radius: 12px;
                     border: 2px solid #dee2e6;
                 }}
+                
+                /* ✅ CONTROLE DE DIMENSÕES DAS ASSINATURAS */
+                .signature-img {{
+                    height: 50px;
+                    border-bottom: 2px solid #34495e;
+                    display: flex;
+                    align-items: flex-end;
+                    justify-content: center;
+                    margin-bottom: 5px;
+                }}
+                
+                .signature-img img {{
+                    max-height: 45px;
+                    max-width: 200px;
+                    object-fit: contain;
+                }}
             </style>
         </head>
         <body>
@@ -187,18 +203,23 @@ def gerar_pdf_declaracao(nome_paciente, data_nascimento, data_atual, template_ht
                 </div>
             </div>
             
-            <!-- Seção de Assinaturas -->
+            <!-- Seção de Assinaturas - CENTRALIZADA E DIMENSIONADA -->
             <div class="signature-section">
                 <h2 style="color: #333; text-align: center; margin-bottom: 30px;">✍️ Assinaturas</h2>
-                <table style="width: 100%;">
+                
+                <!-- ✅ TABELA CENTRALIZADA COM 80% DE LARGURA -->
+                <table style="width: 80%; margin: 0 auto; table-layout: fixed;">
                     <tr>
                         <!-- Assinatura do Paciente -->
-                        <td style="width: 50%; text-align: center; vertical-align: top; padding: 0 20px;">
+                        <td style="width: 45%; text-align: center; vertical-align: top; padding: 10pt;">
                             <div style="border: 2px solid #007bff; padding: 20px; background-color: #f8f9ff; min-height: 120px; border-radius: 8px;">
                                 <h3 style="color: #007bff; margin-top: 0;">👤 Assinatura do Paciente</h3>
-                                <div style="min-height: 80px; display: flex; align-items: center; justify-content: center;">
+                                
+                                <!-- ✅ ÁREA DE ASSINATURA COM DIMENSÕES FIXAS -->
+                                <div class="signature-img" style="height: 50px; border-bottom: 2px solid #34495e; display: flex; align-items: flex-end; justify-content: center; margin-bottom: 5px;">
                                     {assinatura_paciente_html if assinatura_paciente_html else '<span style="color: #999; font-style: italic;">Sem assinatura</span>'}
                                 </div>
+                                
                                 <p style="margin: -15px 0 0 0; line-height: 0.8;">
                                     <strong style="color: #333; font-size: 14pt;">{nome_paciente}</strong><br>
                                     <span style="font-size: 12pt; color: #666;">{data_atual}</span><br>
@@ -208,12 +229,15 @@ def gerar_pdf_declaracao(nome_paciente, data_nascimento, data_atual, template_ht
                         </td>
                         
                         <!-- Assinatura do Naturopata -->
-                        <td style="width: 50%; text-align: center; vertical-align: top; padding: 0 20px;">
+                        <td style="width: 45%; text-align: center; vertical-align: top; padding: 10pt;">
                             <div style="border: 2px solid #28a745; padding: 20px; background-color: #f8fff8; min-height: 120px; border-radius: 8px;">
                                 <h3 style="color: #28a745; margin-top: 0;">🌿 Assinatura do Naturopata</h3>
-                                <div style="min-height: 80px; display: flex; align-items: center; justify-content: center;">
+                                
+                                <!-- ✅ ÁREA DE ASSINATURA COM DIMENSÕES FIXAS -->
+                                <div class="signature-img" style="height: 50px; border-bottom: 2px solid #34495e; display: flex; align-items: flex-end; justify-content: center; margin-bottom: 5px;">
                                     {assinatura_terapeuta_html if assinatura_terapeuta_html else '<span style="color: #999; font-style: italic;">Sem assinatura</span>'}
                                 </div>
+                                
                                 <p style="margin: -15px 0 0 0; line-height: 0.8;">
                                     <strong style="color: #333; font-size: 14pt;">Nuno Correia</strong><br>
                                     <span style="font-size: 12pt; color: #666;">{data_atual}</span><br>

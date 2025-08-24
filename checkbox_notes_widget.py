@@ -1,8 +1,10 @@
-from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QCheckBox, 
+from PyQt6.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, QCheckBox, QTextEdit, 
+    QLabel, QFrame, QPushButton, QApplication, QScrollArea
+)
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont
-    from PyQt6.QtWidgets import QApplication
-    import sys
+import sys
 from biodesk_ui_kit import BiodeskUIKit
 """
 Widget de Notas com Checkboxes Seletivos - Biodesk
@@ -18,9 +20,6 @@ Funcionalidades:
 ✅ Exportação seletiva para terapia
 ✅ Interface moderna e intuitiva
 """
-
-                            QScrollArea, QLabel, QPushButton, QTextEdit,
-                            QFrame, QSizePolicy)
 
 
 class CheckboxNotesWidget(QWidget):
@@ -80,7 +79,7 @@ class CheckboxNotesWidget(QWidget):
         self.btn_limpar_tudo = QPushButton("🧹")
         self.btn_limpar_tudo.setFixedSize(80, 28)
         self.btn_limpar_tudo.setToolTip("Limpar todas as notas")
-        self.BiodeskUIKit.apply_universal_button_style(btn_limpar_tudo)
+        BiodeskUIKit.apply_universal_button_style(self.btn_limpar_tudo)
         self.btn_limpar_tudo.clicked.connect(self.limpar_todas_linhas)
         header_row.addWidget(self.btn_limpar_tudo, 0, Qt.AlignmentFlag.AlignTop)  # Alinhar no topo
         header_row.setContentsMargins(0, 0, 0, 0)
@@ -163,7 +162,7 @@ class CheckboxNotesWidget(QWidget):
         self.btn_adicionar = QPushButton("📝")
         self.btn_adicionar.setFixedSize(60, 60)  # Tamanho TOP que você adorou!
         self.btn_adicionar.setToolTip("Adicionar nota manual")
-        self.BiodeskUIKit.apply_universal_button_style(btn_adicionar)
+        BiodeskUIKit.apply_universal_button_style(self.btn_adicionar)
         self.btn_adicionar.clicked.connect(self.adicionar_nota_manual)
         input_row.addWidget(self.entrada_texto, 1)
         input_row.addWidget(self.btn_adicionar, 0)

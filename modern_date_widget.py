@@ -1,6 +1,9 @@
 from PyQt6.QtWidgets import (
-from PyQt6.QtCore import Qt, QDate, pyqtSignal
-from PyQt6.QtGui import QIcon, QFont, QValidator
+    QWidget, QHBoxLayout, QLineEdit, QPushButton, QCalendarWidget,
+    QDialog, QVBoxLayout, QLabel, QSpinBox, QComboBox, QFrame
+)
+from PyQt6.QtCore import Qt, QDate, pyqtSignal, QSize
+from PyQt6.QtGui import QIcon, QFont, QValidator, QColor
 import re
 from datetime import datetime
 from biodesk_ui_kit import BiodeskUIKit
@@ -9,10 +12,6 @@ Widget de data moderno para o Biodesk
 Permite digitação manual no formato ddmmaaaa e formatação automática para dd/mm/aaaa
 Inclui calendário popup melhorado com navegação fácil de ano e mês
 """
-
-    QWidget, QHBoxLayout, QLineEdit, QPushButton, QCalendarWidget, 
-    QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QDialog
-)
 
 
 class DateValidator(QValidator):
@@ -341,7 +340,10 @@ class ModernDateWidget(QWidget):
         self.date_input.editingFinished.connect(self.validate_and_format)
         
         # Botão do calendário - COLADO ao campo
-        self.calendar_btn = QPushButton("📅")
+        self.calendar_btn = QPushButton()
+        self.calendar_btn.setText("")  # Remover texto
+        # Criar ícone SVG moderno de calendário
+        self._setup_calendar_icon()
         # REMOVER tamanho fixo para ajustar automaticamente à altura do campo
         self.calendar_btn.setFixedWidth(36)  # Só largura fixa
         self.calendar_btn.clicked.connect(self.show_calendar)
@@ -351,6 +353,86 @@ class ModernDateWidget(QWidget):
         layout.addWidget(self.calendar_btn)
         
         self.setLayout(layout)
+    
+    def _setup_calendar_icon(self):
+        """Configura ícone SVG moderno para o botão do calendário"""
+        try:
+            from PyQt6.QtSvg import QSvgRenderer
+            from PyQt6.QtGui import QPixmap, QPainter
+            
+            # SVG de um calendário moderno e elegante estilo Font Awesome
+            svg_content = """
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="#6c757d">
+                <path d="M96 32V64H48C21.5 64 0 85.5 0 112v48H448V112c0-26.5-21.5-48-48-48H352V32c0-17.7-14.3-32-32-32s-32 14.3-32 32V64H160V32c0-17.7-14.3-32-32-32S96 14.3 96 32zM448 192H0V464c0 26.5 21.5 48 48 48H400c26.5 0 48-21.5 48-48V192z"/>
+            </svg>
+            """
+            
+            # Tentar usar QSvgRenderer se disponível
+            renderer = QSvgRenderer()
+            renderer.load(svg_content.encode())
+            
+            # Criar pixmap com o ícone
+            pixmap = QPixmap(18, 18)  # Tamanho um pouco menor para ficar elegante
+            pixmap.fill(Qt.GlobalColor.transparent)
+            
+            painter = QPainter(pixmap)
+            painter.setRenderHint(QPainter.RenderHint.Antialiasing)  # Suavizar bordas
+            renderer.render(painter)
+            painter.end()
+            
+            # Definir o ícone
+            icon = QIcon(pixmap)
+            self.calendar_btn.setIcon(icon)
+            self.calendar_btn.setIconSize(pixmap.size())
+            
+        except ImportError:
+            # Fallback 1: Tentar criar ícone com caracteres Unicode modernos
+            try:
+                self._create_text_icon()
+            except:
+                # Fallback 2: Emoji tradicional
+                self.calendar_btn.setText("📅")
+                print("⚠️ QSvgRenderer não disponível, usando emoji como fallback")
+        except Exception as e:
+            # Fallback para emoji em caso de qualquer erro
+            try:
+                self._create_text_icon()
+            except:
+                self.calendar_btn.setText("📅")
+                print(f"⚠️ Erro ao carregar ícone SVG, usando emoji: {e}")
+    
+    def _create_text_icon(self):
+        """Cria um ícone de texto moderno como alternativa"""
+        from PyQt6.QtGui import QPixmap, QPainter, QFont, QFontMetrics
+        
+        # Usar um caractere Unicode mais moderno
+        icon_text = "🗓"  # Calendário mais moderno
+        
+        # Criar pixmap
+        pixmap = QPixmap(20, 20)
+        pixmap.fill(Qt.GlobalColor.transparent)
+        
+        # Pintar o texto
+        painter = QPainter(pixmap)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        
+        font = QFont("Segoe UI Emoji", 14)  # Fonte que suporta emojis modernos
+        painter.setFont(font)
+        painter.setPen(QColor("#6c757d"))
+        
+        # Centralizar o texto
+        metrics = QFontMetrics(font)
+        text_rect = metrics.boundingRect(icon_text)
+        x = (20 - text_rect.width()) // 2
+        y = (20 + text_rect.height()) // 2 - 2
+        
+        painter.drawText(x, y, icon_text)
+        painter.end()
+        
+        # Definir o ícone
+        icon = QIcon(pixmap)
+        self.calendar_btn.setIcon(icon)
+        self.calendar_btn.setIconSize(QSize(18, 18))
         
     def on_text_changed(self, text):
         """Processa mudanças no texto enquanto o usuário digita"""
@@ -457,3 +539,53 @@ class ModernDateWidget(QWidget):
     def apply_styles(self):
         """Aplica estilos modernos iris ao widget"""
         BiodeskUIKit.apply_universal_button_style(self)
+        
+        # Estilo específico para o botão do calendário
+        self.calendar_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #f8f9fa;
+                border: 2px solid #e0e0e0;
+                border-left: 1px solid #e0e0e0;
+                border-radius: 0px 6px 6px 0px;
+                padding: 4px;
+                min-height: 20px;
+                max-height: 40px;
+            }
+            
+            QPushButton:hover {
+                background-color: #007bff;
+                border-color: #007bff;
+            }
+            
+            QPushButton:pressed {
+                background-color: #0056b3;
+                border-color: #0056b3;
+            }
+            
+            QPushButton:focus {
+                border-color: #007bff;
+            }
+        """)
+        
+        # Estilo para o campo de entrada para que "cole" com o botão
+        self.date_input.setStyleSheet("""
+            QLineEdit {
+                border: 2px solid #e0e0e0;
+                border-right: none;  /* Remove borda direita para "colar" com o botão */
+                border-radius: 6px 0px 0px 6px;  /* Bordas arredondadas só do lado esquerdo */
+                padding: 8px 12px;
+                font-size: 14px;
+                background-color: #ffffff;
+                color: #495057;
+            }
+            
+            QLineEdit:focus {
+                border-color: #007bff;
+                border-right: none;
+            }
+            
+            QLineEdit:hover {
+                border-color: #6c757d;
+                border-right: none;
+            }
+        """)
