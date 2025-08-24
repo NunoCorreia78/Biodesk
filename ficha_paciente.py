@@ -29,7 +29,7 @@ def importar_modulos_especializados():
             from ficha_paciente.comunicacao_manager import ComunicacaoManagerWidget
             from ficha_paciente.gestao_documentos import GestaoDocumentosWidget
             from ficha_paciente.declaracao_saude import DeclaracaoSaudeWidget
-            from ficha_paciente.consentimentos import ConsentimentosWidget
+            # Consentimentos integrados na declaração de saúde - módulo separado não necessário
             from ficha_paciente.pesquisa_pacientes import PesquisaPacientesManager
             
             _modulos_cache.update({
@@ -39,7 +39,7 @@ def importar_modulos_especializados():
                 'comunicacao_manager': ComunicacaoManagerWidget,
                 'gestao_documentos': GestaoDocumentosWidget,
                 'declaracao_saude': DeclaracaoSaudeWidget,
-                'consentimentos': ConsentimentosWidget,
+                # 'consentimentos': ConsentimentosWidget,  # Não necessário - integrado na declaração
                 'pesquisa_pacientes': PesquisaPacientesManager
             })
             import_time = time.time() - start_time
@@ -53,7 +53,7 @@ def importar_modulos_especializados():
     return (_modulos_cache.get('dados_pessoais'), _modulos_cache.get('historico_clinico'), 
             _modulos_cache.get('templates_manager'), _modulos_cache.get('comunicacao_manager'),
             _modulos_cache.get('gestao_documentos'), _modulos_cache.get('declaracao_saude'),
-            _modulos_cache.get('consentimentos'), _modulos_cache.get('pesquisa_pacientes'))
+            None, _modulos_cache.get('pesquisa_pacientes'))  # consentimentos=None (integrado)
 
 def obter_estatisticas_cache():
     """Retorna estatísticas do cache de módulos"""
@@ -83,9 +83,9 @@ class FichaPaciente(QMainWindow):
         self._webengine_available = None
         self._initialized = False
         
-        # 🚀 LAZY LOADING: Flags para tabs não carregados + LOCKS para threading
+        # 🚀 CARREGAMENTO IMEDIATO: Carregar dados pessoais na inicialização
         self._tabs_loaded = {
-            'dados_pessoais': False,
+            'dados_pessoais': False,  # Será carregado imediatamente
             'dados_documentos': False,
             'clinico_comunicacao': False,
             'historico_clinico': False,
@@ -94,7 +94,7 @@ class FichaPaciente(QMainWindow):
             'iris_analise': False,
             'gestao_documentos': False,
             'declaracao_saude': False,
-            'consentimentos': False,
+            # 'consentimentos': False,  # Integrado na declaração de saúde
             'terapia': False
         }
         
@@ -322,16 +322,8 @@ class FichaPaciente(QMainWindow):
         
     def aplicar_estilo_global_hover(self):
         """Aplica estilo de hover globalmente em todos os botões"""
-        try:
-            from biodesk_styles import aplicar_hover_global
-            aplicar_hover_global()
-            # Hover global aplicado a todos os botões
-        except ImportError:
-            # Módulo biodesk_styles não encontrado
-            pass
-        except Exception as e:
-            # Erro ao aplicar hover global
-            pass
+        # ✨ Hover global aplicado automaticamente pelo BiodeskStyleManager
+        pass
         
     def init_ui(self):
         """Inicialização da interface principal"""
@@ -394,26 +386,19 @@ class FichaPaciente(QMainWindow):
         
         try:
             if index == 0 and not self._tabs_loaded.get('dados_pessoais', False):
-                print("🔄 Carregando DADOS PESSOAIS...")
                 self.init_sub_dados_pessoais()
                 self._tabs_loaded['dados_pessoais'] = True
                 
             elif index == 1 and not self._tabs_loaded.get('declaracao_saude', False):
-                print("🔄 Carregando DECLARAÇÃO DE SAÚDE...")
                 self.init_sub_declaracao_saude_modular()
                 self._tabs_loaded['declaracao_saude'] = True
                 
             elif index == 2 and not self._tabs_loaded.get('gestao_documentos', False):
-                print("� Carregando GESTÃO DE DOCUMENTOS...")
                 self.init_sub_gestao_documentos_modular()
                 self._tabs_loaded['gestao_documentos'] = True
                 
-            load_time = time.time() - start_time
-            if load_time > 0.1:
-                print(f"⏱️ Sub-tab dados carregado em {load_time:.2f}s")
-                
         except Exception as e:
-            print(f"❌ Erro ao carregar sub-tab dados: {e}")
+            pass  # Erro não crítico
 
     def _on_tab_clinico_changed(self, index):
         """Carrega sub-tabs clínicos sob demanda"""
@@ -470,6 +455,13 @@ class FichaPaciente(QMainWindow):
         
         main_layout.addWidget(self.tabs)
         
+        # Conectar sinal para lazy loading das outras abas
+        self.tabs.currentChanged.connect(self._on_main_tab_changed)
+        
+        # 🚀 CARREGAMENTO IMEDIATO: Inicializar primeira aba imediatamente
+        self.init_tab_dados_documentos()
+        self._tabs_loaded['dados_documentos'] = True
+        
         # 🚀 LAZY LOADING: Conectar sinal para carregar tabs principais sob demanda
         self.tabs.currentChanged.connect(self._on_main_tab_changed)
         
@@ -497,28 +489,7 @@ class FichaPaciente(QMainWindow):
         # ====== SUB-ABAS DENTRO DE DADOS & DOCUMENTOS ======
         self.dados_documentos_tabs = QTabWidget()
         self.dados_documentos_tabs.setTabPosition(QTabWidget.TabPosition.North)
-        self.dados_documentos_tabs.setStyleSheet("""
-            QTabWidget::pane {
-                border: 1px solid #dee2e6;
-                border-radius: 8px;
-                background-color: white;
-            }
-            QTabBar::tab {
-                padding: 12px 20px;
-                margin: 2px;
-                border-radius: 6px 6px 0px 0px;
-                background-color: #f8f9fa;
-                color: #495057;
-                font-weight: 600;
-            }
-            QTabBar::tab:selected {
-                background-color: #007bff;
-                color: white;
-            }
-            QTabBar::tab:hover {
-                background-color: #e9ecef;
-            }
-        """)
+        self.dados_documentos_tabs.setProperty('cssClass', 'tab-container')  # Usar estilo centralizado
         
         # Sub-abas
         self.sub_dados_pessoais = QWidget()
@@ -529,13 +500,14 @@ class FichaPaciente(QMainWindow):
         self.dados_documentos_tabs.addTab(self.sub_declaracao_saude, '🩺 Declaração de Saúde')
         self.dados_documentos_tabs.addTab(self.sub_gestao_documentos, '� Gestão de Documentos')
         
-        # 🚀 LAZY LOADING: Conectar sinal para carregar sub-tabs sob demanda
+        # 🚀 CARREGAMENTO IMEDIATO: Conectar sinal para carregar sub-tabs sob demanda  
         self.dados_documentos_tabs.currentChanged.connect(self._on_dados_tab_changed)
         
         main_layout.addWidget(self.dados_documentos_tabs)
         
-        # 🚀 LAZY LOADING: Carregar apenas o primeiro sub-tab por padrão
-        self._on_dados_tab_changed(0)
+        # 🚀 CARREGAMENTO IMEDIATO: Carregar dados pessoais na inicialização
+        self.init_sub_dados_pessoais()
+        self._tabs_loaded['dados_pessoais'] = True
 
     def init_tab_clinico_comunicacao(self):
         """
@@ -552,28 +524,7 @@ class FichaPaciente(QMainWindow):
         # ====== SUB-ABAS DENTRO DE CLÍNICO & COMUNICAÇÃO ======
         self.clinico_comunicacao_tabs = QTabWidget()
         self.clinico_comunicacao_tabs.setTabPosition(QTabWidget.TabPosition.North)
-        self.clinico_comunicacao_tabs.setStyleSheet("""
-            QTabWidget::pane {
-                border: 1px solid #dee2e6;
-                border-radius: 8px;
-                background-color: white;
-            }
-            QTabBar::tab {
-                padding: 12px 20px;
-                margin: 2px;
-                border-radius: 6px 6px 0px 0px;
-                background-color: #f8f9fa;
-                color: #495057;
-                font-weight: 600;
-            }
-            QTabBar::tab:selected {
-                background-color: #28a745;
-                color: white;
-            }
-            QTabBar::tab:hover {
-                background-color: #e9ecef;
-            }
-        """)
+        self.clinico_comunicacao_tabs.setProperty('cssClass', 'tab-container')  # Usar estilo neutro
         
         # Sub-abas
         self.sub_historico_clinico = QWidget()
@@ -643,8 +594,6 @@ class FichaPaciente(QMainWindow):
         # Pode ser usado para ativar/desativar botões de guardar
         pass
 
-
-
     def init_sub_historico_clinico(self):
         """Sub-aba: Histórico Clínico - Agora usando módulo otimizado"""
         layout = QVBoxLayout(self.sub_historico_clinico)
@@ -708,6 +657,8 @@ class FichaPaciente(QMainWindow):
             self.templates_widget.protocolo_adicionado.connect(self.on_protocolo_adicionado)
             self.templates_widget.template_gerado.connect(self.on_template_gerado)
             
+            # Aplicação de estilos personalizada será feita pelos próprios widgets
+            
             print("✅ Templates Manager carregado com sucesso")
             
         except ImportError as e:
@@ -735,6 +686,8 @@ class FichaPaciente(QMainWindow):
             self.comunicacao_widget.email_enviado.connect(self.on_email_enviado)
             self.comunicacao_widget.followup_agendado.connect(self.on_followup_agendado)
             self.comunicacao_widget.template_aplicado.connect(self.on_template_aplicado)
+            
+            # Aplicação de estilos personalizada será feita pelos próprios widgets
             
             print("✅ Comunicação Manager carregado com sucesso")
             
@@ -839,74 +792,18 @@ class FichaPaciente(QMainWindow):
         btn_followup = QPushButton("📅 Follow-up")
         btn_followup.setFixedHeight(45)
         btn_followup.setFixedWidth(120)  # TAMANHO UNIFICADO
-        btn_followup.setStyleSheet("""
-            QPushButton {
-                background-color: #f8f9fa;
-                color: #495057;
-                border: 2px solid #dee2e6;
-                border-radius: 8px;
-                font-weight: bold;
-                font-size: 13px;
-                margin-left: 10px;
-            }
-            QPushButton:hover {
-                background-color: #007bff;
-                color: white;
-                border-color: #007bff;
-            }
-            QPushButton:pressed {
-                background-color: #0056b3;
-                border-color: #0056b3;
-            }
-        """)
         btn_followup.clicked.connect(self.schedule_followup_consulta)
         para_layout.addWidget(btn_followup)
         
         btn_template = QPushButton("📄 Templates")
         btn_template.setFixedHeight(45)
         btn_template.setFixedWidth(120)  # TAMANHO UNIFICADO
-        btn_template.setStyleSheet("""
-            QPushButton {
-                background-color: #f8f9fa;
-                color: #495057;
-                border: 2px solid #dee2e6;
-                border-radius: 8px;
-                font-weight: bold;
-                font-size: 13px;
-                margin-left: 5px;
-            }
-            QPushButton:hover {
-                background-color: #6c757d;
-                color: white;
-                border-color: #6c757d;
-            }
-        """)
         btn_template.clicked.connect(self.abrir_templates_mensagem)
         para_layout.addWidget(btn_template)
         
         btn_listar_followups = QPushButton("📋 Lista")
         btn_listar_followups.setFixedHeight(45)
         btn_listar_followups.setFixedWidth(120)  # TAMANHO UNIFICADO
-        btn_listar_followups.setStyleSheet("""
-            QPushButton {
-                background-color: #f8f9fa;
-                color: #495057;
-                border: 2px solid #dee2e6;
-                border-radius: 8px;
-                font-weight: bold;
-                font-size: 13px;
-                margin-left: 5px;
-            }
-            QPushButton:hover {
-                background-color: #6f42c1;
-                color: white;
-                border-color: #6f42c1;
-            }
-            QPushButton:pressed {
-                background-color: #5a34a3;
-                border-color: #5a34a3;
-            }
-        """)
         btn_listar_followups.clicked.connect(self.listar_followups_agendados)
         para_layout.addWidget(btn_listar_followups)
         
@@ -945,26 +842,6 @@ class FichaPaciente(QMainWindow):
         btn_enviar_email = QPushButton("📧 Enviar")
         btn_enviar_email.setFixedHeight(45)
         btn_enviar_email.setFixedWidth(390)  # LARGURA AUMENTADA para 390px
-        btn_enviar_email.setStyleSheet("""
-            QPushButton {
-                background-color: #f8f9fa;
-                color: #495057;
-                border: 2px solid #dee2e6;
-                border-radius: 8px;
-                font-weight: bold;
-                font-size: 13px;
-                margin-left: 10px;
-            }
-            QPushButton:hover {
-                background-color: #28a745;
-                color: white;
-                border-color: #28a745;
-            }
-            QPushButton:pressed {
-                background-color: #1e7e34;
-                border-color: #1e7e34;
-            }
-        """)
         btn_enviar_email.clicked.connect(self.enviar_mensagem)
         assunto_layout.addWidget(btn_enviar_email)
         
@@ -1111,24 +988,6 @@ class FichaPaciente(QMainWindow):
         btn_config_inferior = QPushButton("⚙️ Config")
         btn_config_inferior.setFixedHeight(35)
         btn_config_inferior.setFixedWidth(85)
-        btn_config_inferior.setStyleSheet("""
-            QPushButton {
-                background-color: #f8f9fa;
-                color: #6c757d;
-                border: 1px solid #dee2e6;
-                border-radius: 6px;
-                font-size: 11px;
-                font-weight: bold;
-                margin-top: 10px;
-                margin-right: 20px;
-                margin-bottom: 10px;
-            }
-            QPushButton:hover {
-                background-color: #17a2b8;
-                color: white;
-                border-color: #17a2b8;
-            }
-        """)
         btn_config_inferior.clicked.connect(self.abrir_configuracoes_comunicacao)
         config_inferior_layout.addWidget(btn_config_inferior)
         
@@ -1144,25 +1003,6 @@ class FichaPaciente(QMainWindow):
         btn_enviar = QPushButton("📧 Enviar Email")
         btn_enviar.setFixedHeight(50)  # Ligeiramente maior para destaque
         btn_enviar.setFixedWidth(200)  # Ligeiramente maior
-        btn_enviar.setStyleSheet("""
-            QPushButton {
-                background-color: #4caf50;
-                color: white;
-                border: 2px solid #4caf50;
-                border-radius: 10px;
-                font-weight: bold;
-                font-size: 16px;
-            }
-            QPushButton:hover {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #66bb6a, stop:1 #4caf50);
-                border-color: #45a049;
-            }
-            QPushButton:pressed {
-                background-color: #45a049;
-                border-color: #45a049;
-            }
-        """)
         btn_enviar.clicked.connect(self.enviar_mensagem)
         # REMOVIDO: botoes_layout.addWidget(btn_enviar) - código duplicado
         
@@ -1437,8 +1277,6 @@ Equipe Médica"""
             BiodeskMessageBox.critical(self, "Erro", f"❌ Erro inesperado ao enviar prescrição:\n\n{str(e)}")
             print(f"[ERRO] Erro ao enviar prescrição: {e}")
 
-
-
     # ====== MÉTODOS AUXILIARES PARA CORES ======
     def _lighten_color(self, hex_color, percent):
         """Clarifica uma cor hexadecimal - wrapper para services.styles"""
@@ -1450,7 +1288,6 @@ Equipe Médica"""
         from services.styles import darken_color
         return darken_color(hex_color, percent)
 
-    
     # ====== MÉTODOS PARA CENTRO DE COMUNICAÇÃO ======
     def selecionar_canal(self, canal):
         """Método mantido para compatibilidade - email já está sempre selecionado"""
@@ -1638,39 +1475,12 @@ Equipe Médica"""
             
             btn_cancelar = QPushButton("❌ Cancelar")
             btn_cancelar.setFixedHeight(40)
-            btn_cancelar.setStyleSheet("""
-                QPushButton {
-                    background: linear-gradient(135deg, #6c757d, #495057);
-                    color: white;
-                    border: none;
-                    padding: 10px 20px;
-                    border-radius: 8px;
-                    font-weight: bold;
-                    font-size: 12px;
-                }
-                QPushButton:hover {
-                    background: linear-gradient(135deg, #495057, #343a40);
-                }
-            """)
+            
             btn_cancelar.clicked.connect(dialog.reject)
             
             btn_usar = QPushButton("✨ Usar Template Personalizado")
             btn_usar.setFixedHeight(40)
-            btn_usar.setStyleSheet("""
-                QPushButton {
-                    background: linear-gradient(135deg, #9C27B0, #7B1FA2);
-                    color: white;
-                    border: none;
-                    padding: 10px 20px;
-                    border-radius: 8px;
-                    font-weight: bold;
-                    font-size: 12px;
-                }
-                QPushButton:hover {
-                    background: linear-gradient(135deg, #7B1FA2, #6A1B9A);
-                }
-            """)
-            
+
             # ✅ FUNÇÃO PARA USAR TEMPLATE PERSONALIZADO
             def usar_template():
                 item_atual = self.lista_templates.currentItem()
@@ -2447,12 +2257,6 @@ Naturopata | Osteopata | Medicina Quântica
         except ImportError as e:
             print(f"❌ Erro ao carregar módulo de íris: {e}")
             self.init_sub_iris_analise_fallback()
-    
-
-    
-
-    
-
 
     def on_zona_clicada(self, nome_zona):
         """
@@ -2513,8 +2317,6 @@ Naturopata | Osteopata | Medicina Quântica
                 self.btn_exportar_terapia.setText(f'⚡ Terapia ({selecionadas}/{total})')
         except Exception as e:
             print(f"[DEBUG] Erro ao atualizar textos dos botões: {e}")
-
-
 
     def init_tab_terapia(self):
         """Inicializa a aba de terapia quântica - Interface Zero"""
@@ -2586,24 +2388,6 @@ Naturopata | Osteopata | Medicina Quântica
         # Botão abrir módulo
         self.btn_abrir_terapia = QPushButton("⚡ Abrir Módulo de Terapia")
         self.btn_abrir_terapia.clicked.connect(self.abrir_terapia)
-        self.btn_abrir_terapia.setStyleSheet("""
-            QPushButton {
-                background: #7b1fa2;
-                color: white;
-                font-size: 16px;
-                font-weight: bold;
-                padding: 15px 25px;
-                border-radius: 8px;
-                border: none;
-                min-width: 200px;
-            }
-            QPushButton:hover {
-                background: #7b1fa2aa;
-            }
-            QPushButton:pressed {
-                background: #7b1fa277;
-            }
-        """)
         botoes_layout.addWidget(self.btn_abrir_terapia)
         
         botoes_layout.addStretch()
@@ -2613,22 +2397,6 @@ Naturopata | Osteopata | Medicina Quântica
         layout.addStretch()
     
     # Método de teste removido - funcionalidade obsoleta
-
-
-
-
-
-
-
-
-
-
-
-
-    
-
-    
-
 
     def inserir_data_negrito(self):
         import time
@@ -2993,24 +2761,7 @@ Naturopata | Osteopata | Medicina Quântica
         
         # Botão OK estilizado
         btn_ok = QPushButton("🔙 Entendido")
-        btn_ok.setStyleSheet("""
-            QPushButton {
-                background-color: #28a745;
-                color: white;
-                border: none;
-                padding: 12px 25px;
-                border-radius: 8px;
-                font-weight: 600;
-                font-size: 14px;
-                min-width: 120px;
-            }
-            QPushButton:hover {
-                background-color: #218838;
-            }
-            QPushButton:pressed {
-                background-color: #1e7e34;
-            }
-        """)
+        
         btn_ok.clicked.connect(dialog.accept)
         
         btn_layout = QHBoxLayout()
@@ -3189,20 +2940,7 @@ Naturopata | Osteopata | Medicina Quântica
             
             # Botão para cancelar
             btn_cancelar = QPushButton("❌ Cancelar Selecionado")
-            btn_cancelar.setStyleSheet("""
-                QPushButton {
-                    background-color: #e74c3c;
-                    color: white;
-                    border: none;
-                    padding: 8px 16px;
-                    border-radius: 5px;
-                    font-weight: bold;
-                }
-                QPushButton:hover {
-                    background-color: #c0392b;
-                }
-            """)
-            
+
             def cancelar_job():
                 item = lista_agendados.currentItem()
                 if item:
@@ -3305,19 +3043,7 @@ Naturopata | Osteopata | Medicina Quântica
         
         # Botão fechar
         btn_fechar = QPushButton("🔙 Fechar")
-        btn_fechar.setStyleSheet("""
-            QPushButton {
-                background-color: #3498db;
-                color: white;
-                border: none;
-                padding: 8px 16px;
-                border-radius: 5px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #2980b9;
-            }
-        """)
+        
         btn_fechar.clicked.connect(dialog.accept)
         layout.addWidget(btn_fechar)
         
@@ -3406,10 +3132,6 @@ Naturopata | Osteopata | Medicina Quântica
             print(f"[ERRO] Erro ao exportar para terapia: {e}")
             from biodesk_dialogs import mostrar_erro
             mostrar_erro(self, 'Erro', f'Erro ao exportar para terapia quântica:\n{str(e)}')
-
-
-
-
 
     def atualizar_status_hs3(self, conectado=False):
         """Função mantida para compatibilidade - não faz nada na interface zero"""
@@ -3568,28 +3290,7 @@ Naturopata | Osteopata | Medicina Quântica
             btn = QPushButton(nome)
             btn.setCheckable(True)
             btn.setFixedHeight(45)  # Altura igual aos templates
-            btn.setStyleSheet(f"""
-                QPushButton {{
-                    font-size: 13px !important;
-                    font-weight: 600 !important;
-                    border: none !important;
-                    border-radius: 8px !important;
-                    padding: 10px 15px !important;
-                    background-color: {cor} !important;
-                    color: #2c3e50 !important;
-                    text-align: left !important;
-                    min-width: 220px !important;
-                    max-width: 220px !important;
-                }}
-                QPushButton:hover {{
-                    background-color: {self._lighten_color(cor, 15)} !important;
-                    color: #2c3e50 !important;
-                }}
-                QPushButton:checked {{
-                    background-color: {self._lighten_color(cor, 25)} !important;
-                    color: #2c3e50 !important;
-                }}
-            """)
+            
             btn.clicked.connect(lambda checked, t=tipo: self.selecionar_tipo_consentimento(t))
             self.botoes_consentimento[tipo] = btn
             item_layout.addWidget(btn)
@@ -3823,40 +3524,14 @@ Naturopata | Osteopata | Medicina Quântica
         # Botão moderno para assinatura externa
         btn_assinatura_externa = QPushButton("📝 Assinar PDF Externamente")
         btn_assinatura_externa.setFixedSize(210, 50)
-        btn_assinatura_externa.setStyleSheet("""
-            QPushButton {
-                background-color: #2980b9;
-                color: white;
-                border-radius: 8px;
-                font-size: 15px;
-                font-weight: bold;
-                padding: 10px 18px;
-                margin-top: 8px;
-            }
-            QPushButton:hover {
-                background-color: #3498db;
-            }
-        """)
+        
         btn_assinatura_externa.clicked.connect(self.gerar_pdf_para_assinatura_externa)
         acoes_layout.addWidget(btn_assinatura_externa)
         
         # Botão de importação manual (para casos onde a automação falha)
         btn_importar_manual_consent = QPushButton("📁 Importar Assinado")
         btn_importar_manual_consent.setFixedSize(210, 35)
-        btn_importar_manual_consent.setStyleSheet("""
-            QPushButton {
-                background-color: #6c757d;
-                color: white;
-                border-radius: 6px;
-                font-size: 12px;
-                font-weight: bold;
-                padding: 8px;
-                margin-top: 5px;
-            }
-            QPushButton:hover {
-                background-color: #5a6268;
-            }
-        """)
+        
         btn_importar_manual_consent.clicked.connect(self.importar_pdf_manual)
         acoes_layout.addWidget(btn_importar_manual_consent)
         
@@ -3882,8 +3557,6 @@ Naturopata | Osteopata | Medicina Quântica
         
         # Atualizar informações do paciente
         self.atualizar_info_paciente_consentimento()
-
-
 
     def carregar_status_consentimentos(self):
         """Carrega e atualiza o status visual dos consentimentos"""
@@ -5150,22 +4823,13 @@ Naturopata | Osteopata | Medicina Quântica
             
             btn_cancelar = QPushButton("❌ Cancelar")
             btn_cancelar.setFixedSize(120, 40)
-            btn_cancelar.setStyleSheet("""
-                QPushButton { background-color: #6c757d; color: white; border: none; 
-                              border-radius: 6px; font-weight: bold; font-size: 12px; }
-                QPushButton:hover { background-color: #5a6268; }
-            """)
+            
             btn_cancelar.clicked.connect(dialog.reject)
             botoes_layout.addWidget(btn_cancelar)
             
             btn_anular = QPushButton("🗑️ Anular Completamente")
             btn_anular.setFixedSize(180, 40)
-            btn_anular.setStyleSheet("""
-                QPushButton { background-color: #dc3545; color: white; border: none; 
-                              border-radius: 6px; font-weight: bold; font-size: 12px; }
-                QPushButton:hover { background-color: #c82333; }
-            """)
-            
+
             def confirmar_anulacao():
                 motivo = campo_motivo.toPlainText().strip()
                 if not motivo:
@@ -7375,35 +7039,13 @@ Naturopata | Osteopata | Medicina Quântica
             
             btn_cancelar = QPushButton("❌ Cancelar")
             btn_cancelar.setFixedSize(120, 40)
-            btn_cancelar.setStyleSheet("""
-                QPushButton {
-                    background-color: #95a5a6;
-                    color: white;
-                    border-radius: 8px;
-                    font-weight: bold;
-                    font-size: 14px;
-                }
-                QPushButton:hover {
-                    background-color: #7f8c8d;
-                }
-            """)
+            
             btn_cancelar.clicked.connect(dialog.reject)
             botoes_layout.addWidget(btn_cancelar)
             
             btn_importar = QPushButton("✅ Importar Assinado")
             btn_importar.setFixedSize(160, 40)
-            btn_importar.setStyleSheet("""
-                QPushButton {
-                    background-color: #27ae60;
-                    color: white;
-                    border-radius: 8px;
-                    font-weight: bold;
-                    font-size: 14px;
-                }
-                QPushButton:hover {
-                    background-color: #2ecc71;
-                }
-            """)
+            
             btn_importar.clicked.connect(lambda: self._executar_importacao_assinada(dialog, arquivo_temp, arquivo_final))
             botoes_layout.addWidget(btn_importar)
             
@@ -7864,35 +7506,13 @@ Naturopata | Osteopata | Medicina Quântica
             
             btn_importar = QPushButton("📁 Selecionar PDF Assinado")
             btn_importar.setFixedSize(180, 35)
-            btn_importar.setStyleSheet("""
-                QPushButton {
-                    background-color: #27ae60;
-                    color: white;
-                    border-radius: 6px;
-                    font-weight: bold;
-                    padding: 8px;
-                }
-                QPushButton:hover {
-                    background-color: #2ecc71;
-                }
-            """)
+            
             btn_importar.clicked.connect(lambda: self._selecionar_e_importar_pdf(dialog, arquivo_temp))
             botoes_layout.addWidget(btn_importar)
             
             btn_cancelar = QPushButton("❌ Cancelar")
             btn_cancelar.setFixedSize(100, 35)
-            btn_cancelar.setStyleSheet("""
-                QPushButton {
-                    background-color: #95a5a6;
-                    color: white;
-                    border-radius: 6px;
-                    font-weight: bold;
-                    padding: 8px;
-                }
-                QPushButton:hover {
-                    background-color: #7f8c8d;
-                }
-            """)
+            
             btn_cancelar.clicked.connect(dialog.reject)
             botoes_layout.addWidget(btn_cancelar)
             
@@ -9667,23 +9287,12 @@ Naturopata | Osteopata | Medicina Quântica
             
             # Usar sistema modular de assinaturas - removido canvas manual
 
-            
             # Botões para assinatura paciente
             botoes_paciente = QHBoxLayout()
             
             btn_limpar_paciente = QPushButton("🗑️ Limpar")
             # Sistema modular substituirá funcionalidade do canvas
-            btn_limpar_paciente.setStyleSheet("""
-                QPushButton {
-                    padding: 8px 15px;
-                    background-color: #e74c3c;
-                    color: white;
-                    border: none;
-                    border-radius: 5px;
-                    font-weight: bold;
-                }
-                QPushButton:hover { background-color: #c0392b; }
-            """)
+            
             botoes_paciente.addWidget(btn_limpar_paciente)
             
             botoes_paciente.addStretch()
@@ -9695,36 +9304,13 @@ Naturopata | Osteopata | Medicina Quântica
             
             btn_cancelar = QPushButton("❌ Cancelar")
             btn_cancelar.clicked.connect(dialog.reject)
-            btn_cancelar.setStyleSheet("""
-                QPushButton {
-                    padding: 12px 25px;
-                    background-color: #6c757d;
-                    color: white;
-                    border: none;
-                    border-radius: 6px;
-                    font-weight: bold;
-                    font-size: 14px;
-                }
-                QPushButton:hover { background-color: #5a6268; }
-            """)
+            
             botoes_principais.addWidget(btn_cancelar)
             
             botoes_principais.addStretch()
             
             btn_confirmar = QPushButton("✅ Confirmar e Finalizar")
-            btn_confirmar.setStyleSheet("""
-                QPushButton {
-                    padding: 12px 25px;
-                    background-color: #27ae60;
-                    color: white;
-                    border: none;
-                    border-radius: 6px;
-                    font-weight: bold;
-                    font-size: 14px;
-                }
-                QPushButton:hover { background-color: #219a52; }
-            """)
-            
+
             def confirmar_assinatura_declaracao():
                 # Usar sistema modular - esta validação será feita pelo novo sistema
                 # Finalizar declaração com assinatura
@@ -10251,8 +9837,6 @@ Naturopata | Osteopata | Medicina Quântica
             }}
         """)
 
-
-        
     def _darken_color(self, hex_color, factor=0.1):
         """Escurece uma cor hexadecimal"""
         hex_color = hex_color.lstrip('#')
@@ -10361,7 +9945,6 @@ Naturopata | Osteopata | Medicina Quântica
             }}
         """)
         return label
-
 
 class FollowUpDialog(QDialog):
     """Dialog para configurar follow-ups automáticos."""
@@ -10593,44 +10176,7 @@ class FollowUpDialog(QDialog):
         btn_agendar.clicked.connect(self.accept)
         
         # Estilos dos botões modernos
-        btn_cancelar.setStyleSheet("""
-            QPushButton {
-                background-color: #dc3545;
-                color: white;
-                border: none;
-                padding: 12px 20px;
-                border-radius: 8px;
-                font-weight: 600;
-                font-size: 14px;
-                min-width: 120px;
-            }
-            QPushButton:hover {
-                background-color: #c82333;
-            }
-            QPushButton:pressed {
-                background-color: #bd2130;
-            }
-        """)
-        
-        btn_agendar.setStyleSheet("""
-            QPushButton {
-                background-color: #28a745;
-                color: white;
-                border: none;
-                padding: 12px 20px;
-                border-radius: 8px;
-                font-weight: 600;
-                font-size: 14px;
-                min-width: 120px;
-            }
-            QPushButton:hover {
-                background-color: #218838;
-            }
-            QPushButton:pressed {
-                background-color: #1e7e34;
-            }
-        """)
-        
+
         btn_layout.addStretch()
         btn_layout.addWidget(btn_cancelar)
         btn_layout.addWidget(btn_agendar)

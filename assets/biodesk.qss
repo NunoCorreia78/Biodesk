@@ -1,56 +1,20 @@
-/* Biodesk QSS - estilo moderno profissional */
+/* Biodesk QSS - BASE LIMPA (sem estilos de botão conflitantes) */
 QWidget {
     background: #fafbfc;
     font-family: 'Inter', 'Montserrat', 'Segoe UI', Arial, sans-serif;
     color: #2c3e50;
 }
 
-/* Botões principais - removido para permitir estilos individuais */
+/* 🚫 REMOVIDO: Todos os estilos QPushButton e QToolButton antigos */
+/* Agora o BiodeskStyleManager controla 100% dos botões */
+
 QPushButton::menu-indicator { image: none; }
-
-/* Botões secundários - cinza suave */
-QPushButton[class="secondary"] {
-    background-color: #ecf0f1;
-    color: #2c3e50;
-    border-radius: 12px;
-    padding: 10px 18px;
-    font-size: 14px;
-    font-weight: 500;
-}
-QPushButton[class="secondary"]:hover {
-    background-color: #d5dbdb;
-}
-
-/* Botões de perigo/apagar - vermelho suave */
-QPushButton[class="danger"] {
-    background-color: #d67373;
-    color: white;
-    border-radius: 12px;
-    padding: 10px 18px;
-    font-size: 14px;
-    font-weight: 600;
-}
-QPushButton[class="danger"]:hover {
-    background-color: #c55a5a;
-}
-
-/* Botões de sucesso - verde suave */
-QPushButton[class="success"] {
-    background-color: #6ba36b;
-    color: white;
-    border-radius: 12px;
-    padding: 12px 20px;
-    font-size: 15px;
-    font-weight: 600;
-}
-QPushButton[class="success"]:hover {
-    background-color: #7bb87b;
-}
 
 QLabel {
     color: #2c3e50;
     font-weight: 400;
 }
+
 QMainWindow {
     background: #fafbfc;
 }
@@ -72,6 +36,7 @@ QListWidget {
     border: 1px solid #e9ecef;
     padding: 4px;
 }
+
 QListWidget::item {
     padding: 14px 12px;
     border-bottom: 1px solid #f1f3f4;
@@ -79,20 +44,24 @@ QListWidget::item {
     border-radius: 6px;
     margin: 2px;
 }
+
 QListWidget::item:selected {
     background: #e8f1f5;
     color: #5a9ab8;
     border: 1px solid #5a9ab8;
 }
+
 QListWidget::item:hover {
     background: #f5f5f5;
 }
+
 QTabWidget::pane {
     border: 1px solid #e9ecef;
     border-radius: 10px;
     background: #ffffff;
     padding: 8px;
 }
+
 QTabBar::tab {
     background: #f8f9fa;
     border: 1px solid #e9ecef;
@@ -103,12 +72,14 @@ QTabBar::tab {
     color: #2c3e50;
     margin-right: 4px;
 }
+
 QTabBar::tab:selected {
     background: #ffffff;
     color: #5a9ab8;
     border-bottom: 3px solid #5a9ab8;
     font-weight: 600;
 }
+
 QTabBar::tab:hover:!selected {
     background: #ecf0f1;
-} 
+}

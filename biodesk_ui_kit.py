@@ -45,65 +45,25 @@ class BiodeskUIKit:
     
     @classmethod
     def create_primary_button(cls, text: str, icon: QIcon = None) -> QPushButton:
-        """Cria botão primário padronizado"""
+        """Cria botão primário padronizado - NEUTRO com hover colorido"""
         button = QPushButton(text)
         if icon:
             button.setIcon(icon)
         
-        button.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {cls.COLORS['primary']};
-                color: {cls.COLORS['white']};
-                border: none;
-                border-radius: 8px;
-                padding: 12px 24px;
-                font-size: {cls.FONTS['size_normal']};
-                font-family: {cls.FONTS['family']};
-                font-weight: 600;
-                min-height: 20px;
-            }}
-            QPushButton:hover {{
-                background-color: {cls.COLORS['primary_light']};
-            }}
-            QPushButton:pressed {{
-                background-color: {cls.COLORS['primary_dark']};
-            }}
-            QPushButton:disabled {{
-                background-color: {cls.COLORS['secondary']};
-                color: {cls.COLORS['text_muted']};
-            }}
-        """)
+        # 🎯 ESTILO NEUTRO - BiodeskStyleManager global aplica hover
+        # SEM setStyleSheet - deixar o CSS global do BiodeskStyleManager controlar
         
         return button
     
     @classmethod
     def create_secondary_button(cls, text: str, icon: QIcon = None) -> QPushButton:
-        """Cria botão secundário padronizado"""
+        """Cria botão secundário padronizado - NEUTRO com hover colorido"""
         button = QPushButton(text)
         if icon:
             button.setIcon(icon)
             
-        button.setStyleSheet(f"""
-            QPushButton {{
-                background-color: transparent;
-                color: {cls.COLORS['primary']};
-                border: 2px solid {cls.COLORS['primary']};
-                border-radius: 8px;
-                padding: 12px 24px;
-                font-size: {cls.FONTS['size_normal']};
-                font-family: {cls.FONTS['family']};
-                font-weight: 600;
-                min-height: 20px;
-            }}
-            QPushButton:hover {{
-                background-color: {cls.COLORS['primary']};
-                color: {cls.COLORS['white']};
-            }}
-            QPushButton:pressed {{
-                background-color: {cls.COLORS['primary_dark']};
-                color: {cls.COLORS['white']};
-            }}
-        """)
+        # 🎯 ESTILO NEUTRO - BiodeskStyleManager global aplica hover
+        # SEM setStyleSheet - deixar o CSS global do BiodeskStyleManager controlar
         
         return button
     
@@ -182,9 +142,8 @@ class BiodeskUIKit:
     
     @classmethod
     def get_universal_button_stylesheet(cls):
-        """Retorna o CSS universal para TODOS os botões Biodesk"""
-        return f"""
-            QPushButton {{
+        """Retorna o CSS universal para TODOS os botões Biodesk (QPushButton e QToolButton)"""
+        base_style = f"""
                 background-color: #f8f9fa;
                 color: #495057;
                 border: 1px solid #dee2e6;
@@ -195,79 +154,61 @@ class BiodeskUIKit:
                 font-weight: 500;
                 min-height: 18px;
                 text-align: center;
-            }}
-            QPushButton:hover {{
+        """
+        
+        hover_style = f"""
                 background-color: {cls.COLORS['primary']};
                 color: white;
                 border-color: {cls.COLORS['primary']};
-            }}
-            QPushButton:pressed {{
+        """
+        
+        pressed_style = f"""
                 background-color: {cls.COLORS['primary_dark']};
                 border-color: {cls.COLORS['primary_dark']};
                 color: white;
-            }}
-            QPushButton:disabled {{
+        """
+        
+        disabled_style = """
                 background-color: #e9ecef;
                 color: #6c757d;
                 border-color: #dee2e6;
-            }}
+        """
+        
+        return f"""
+            /* QPushButton Styles */
+            QPushButton {{{base_style}}}
+            QPushButton:hover {{{hover_style}}}
+            QPushButton:pressed {{{pressed_style}}}
+            QPushButton:disabled {{{disabled_style}}}
+            
+            /* QToolButton Styles - Same as QPushButton */
+            QToolButton {{{base_style}}}
+            QToolButton:hover {{{hover_style}}}
+            QToolButton:pressed {{{pressed_style}}}
+            QToolButton:disabled {{{disabled_style}}}
         """
     
     @classmethod
     def create_success_button(cls, text: str, icon: QIcon = None) -> QPushButton:
-        """Cria botão de sucesso padronizado"""
+        """Cria botão de sucesso padronizado - NEUTRO com hover verde"""
         button = QPushButton(text)
         if icon:
             button.setIcon(icon)
             
-        button.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {cls.COLORS['success']};
-                color: {cls.COLORS['white']};
-                border: none;
-                border-radius: 8px;
-                padding: 12px 24px;
-                font-size: {cls.FONTS['size_normal']};
-                font-family: {cls.FONTS['family']};
-                font-weight: 600;
-                min-height: 20px;
-            }}
-            QPushButton:hover {{
-                background-color: #218838;
-            }}
-            QPushButton:pressed {{
-                background-color: #1e7e34;
-            }}
-        """)
+        # 🎯 ESTILO NEUTRO - BiodeskStyleManager global aplica hover verde
+        # SEM setStyleSheet - deixar o CSS global do BiodeskStyleManager controlar
         
         return button
     
     @classmethod
     def create_danger_button(cls, text: str, icon: QIcon = None) -> QPushButton:
-        """Cria botão de perigo padronizado"""
+        """Cria botão de perigo padronizado - NEUTRO com hover vermelho"""
         button = QPushButton(text)
         if icon:
             button.setIcon(icon)
             
-        button.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {cls.COLORS['danger']};
-                color: {cls.COLORS['white']};
-                border: none;
-                border-radius: 8px;
-                padding: 12px 24px;
-                font-size: {cls.FONTS['size_normal']};
-                font-family: {cls.FONTS['family']};
-                font-weight: 600;
-                min-height: 20px;
-            }}
-            QPushButton:hover {{
-                background-color: #c82333;
-            }}
-            QPushButton:pressed {{
-                background-color: #bd2130;
-            }}
-        """)
+        # 🎯 ESTILO NEUTRO - BiodeskStyleManager global aplica hover vermelho
+        # SEM setStyleSheet - deixar o CSS global do BiodeskStyleManager controlar
         
         return button
     

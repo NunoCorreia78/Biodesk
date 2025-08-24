@@ -251,18 +251,6 @@ class GestaoDocumentosWidget(QWidget):
         # Cabeçalho da seção
         header_layout = QHBoxLayout()
         
-        # Título principal
-        title_label = QLabel("📂 Gestão de Documentos")
-        title_label.setStyleSheet("""
-            QLabel {
-                font-size: 22px;
-                font-weight: bold;
-                color: #2c3e50;
-                padding: 10px 0;
-            }
-        """)
-        header_layout.addWidget(title_label)
-        
         header_layout.addStretch()
         
         # Botão de atualizar

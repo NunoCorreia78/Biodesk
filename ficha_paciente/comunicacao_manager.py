@@ -30,7 +30,6 @@ from biodesk_ui_kit import BiodeskUIKit
 from data_cache import DataCache
 from biodesk_dialogs import BiodeskMessageBox
 
-
 class ComunicacaoManagerWidget(QWidget):
     """Widget especializado para gestão de comunicação e emails"""
     
@@ -134,22 +133,7 @@ class ComunicacaoManagerWidget(QWidget):
         btn_listar = QPushButton("📋 Lista")
         btn_listar.setFixedHeight(45)
         btn_listar.setFixedWidth(120)
-        btn_listar.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {BiodeskUIKit.COLORS['background_light']};
-                color: {BiodeskUIKit.COLORS['text']};
-                border: 2px solid {BiodeskUIKit.COLORS['border']};
-                border-radius: 8px;
-                font-weight: bold;
-                font-size: 13px;
-                margin-left: 5px;
-            }}
-            QPushButton:hover {{
-                background-color: #6f42c1;
-                color: white;
-                border-color: #6f42c1;
-            }}
-        """)
+        
         btn_listar.clicked.connect(self.listar_followups_agendados)
         parent_layout.addWidget(btn_listar)
         
@@ -235,28 +219,14 @@ Digite aqui a sua mensagem...
         botoes_layout = QHBoxLayout()
         botoes_layout.setSpacing(15)
         
-        # Botão Guardar Rascunho
+        # Botão Guardar Rascunho - Estilo Biodesk padrão automático
         btn_guardar = BiodeskUIKit.create_secondary_button("💾 Guardar Rascunho")
         btn_guardar.clicked.connect(self.guardar_rascunho)
         botoes_layout.addWidget(btn_guardar)
         
         # Botão Limpar
         btn_limpar = QPushButton("🗑️ Limpar")
-        btn_limpar.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {BiodeskUIKit.COLORS['background_light']};
-                color: {BiodeskUIKit.COLORS['text_muted']};
-                border: 2px solid {BiodeskUIKit.COLORS['border']};
-                border-radius: 8px;
-                padding: 12px 24px;
-                font-weight: 600;
-            }}
-            QPushButton:hover {{
-                background-color: {BiodeskUIKit.COLORS['danger']};
-                color: {BiodeskUIKit.COLORS['white']};
-                border-color: {BiodeskUIKit.COLORS['danger']};
-            }}
-        """)
+        
         btn_limpar.clicked.connect(self.limpar_campos)
         botoes_layout.addWidget(btn_limpar)
         
@@ -428,7 +398,6 @@ Digite aqui a sua mensagem...
         self.paciente_data.update(novos_dados)
         self.carregar_dados_paciente()
 
-
 class FollowUpDialog(QDialog):
     """Diálogo para agendar follow-ups"""
     
@@ -488,7 +457,6 @@ class FollowUpDialog(QDialog):
         
     def get_followup_data(self):
         return self.tipo_combo.currentText(), self.dias_spin.value()
-
 
 class TemplatesEmailDialog(QDialog):
     """Diálogo para selecionar templates de email"""

@@ -30,7 +30,6 @@ from biodesk_ui_kit import BiodeskUIKit
 from data_cache import DataCache
 from biodesk_dialogs import BiodeskMessageBox
 
-
 class TemplatesManagerWidget(QWidget):
     """Widget especializado para gestão de templates e prescrições"""
     
@@ -138,25 +137,7 @@ class TemplatesManagerWidget(QWidget):
             # Botão da categoria
             btn = QPushButton(f"{emoji} {nome}")
             btn.setFixedHeight(35)
-            btn.setStyleSheet(f"""
-                QPushButton {{
-                    font-size: 11px;
-                    font-weight: 600;
-                    border: none;
-                    border-radius: 6px;
-                    padding: 6px 10px;
-                    background-color: {cor};
-                    color: {BiodeskUIKit.COLORS['dark']};
-                    text-align: left;
-                }}
-                QPushButton:hover {{
-                    background-color: {self._lighten_color(cor, 15)};
-                }}
-                QPushButton:pressed {{
-                    background-color: {self._lighten_color(cor, 25)};
-                }}
-            """)
-            
+
             # Área para templates (inicialmente oculta)
             templates_area = QWidget()
             templates_layout = QVBoxLayout(templates_area)
@@ -436,22 +417,7 @@ Selecione um template à esquerda para visualizar:
         for template_nome in templates:
             btn_template = QPushButton(f"📄 {template_nome}")
             btn_template.setFixedHeight(25)
-            btn_template.setStyleSheet(f"""
-                QPushButton {{
-                    background-color: {BiodeskUIKit.COLORS['white']};
-                    color: {BiodeskUIKit.COLORS['dark']};
-                    border: 1px solid {BiodeskUIKit.COLORS['border_light']};
-                    border-radius: 4px;
-                    padding: 4px 8px;
-                    font-size: 10px;
-                    text-align: left;
-                }}
-                QPushButton:hover {{
-                    background-color: {BiodeskUIKit.COLORS['primary']};
-                    color: {BiodeskUIKit.COLORS['white']};
-                }}
-            """)
-            
+
             # Conectar seleção de template
             btn_template.clicked.connect(
                 lambda checked, nome=template_nome, cat=categoria: 

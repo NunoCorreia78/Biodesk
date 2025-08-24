@@ -288,69 +288,12 @@ class CentroComunicacaoWidget(QWidget):
         
         btn_template_consulta = QPushButton("📅 Lembrete de Consulta")
         btn_template_consulta.clicked.connect(self.aplicar_template_consulta)
-        btn_template_consulta.setStyleSheet("""
-            QPushButton {
-                background-color: #6c757d;
-                color: white;
-                border: none;
-                border-radius: 8px;
-                padding: 12px 24px;
-                font-size: 14px;
-                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-                font-weight: 600;
-                min-height: 20px;
-            }
-            QPushButton:hover {
-                background-color: #545b62;
-            }
-            QPushButton:pressed {
-                background-color: #495057;
-            }
-        """)
         
         btn_template_resultado = QPushButton("📋 Resultado de Exame")
         btn_template_resultado.clicked.connect(self.aplicar_template_resultado)
-        btn_template_resultado.setStyleSheet("""
-            QPushButton {
-                background-color: #6c757d;
-                color: white;
-                border: none;
-                border-radius: 8px;
-                padding: 12px 24px;
-                font-size: 14px;
-                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-                font-weight: 600;
-                min-height: 20px;
-            }
-            QPushButton:hover {
-                background-color: #545b62;
-            }
-            QPushButton:pressed {
-                background-color: #495057;
-            }
-        """)
         
         btn_template_boas_vindas = QPushButton("👋 Boas-vindas")
         btn_template_boas_vindas.clicked.connect(self.aplicar_template_boas_vindas)
-        btn_template_boas_vindas.setStyleSheet("""
-            QPushButton {
-                background-color: #6c757d;
-                color: white;
-                border: none;
-                border-radius: 8px;
-                padding: 12px 24px;
-                font-size: 14px;
-                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-                font-weight: 600;
-                min-height: 20px;
-            }
-            QPushButton:hover {
-                background-color: #545b62;
-            }
-            QPushButton:pressed {
-                background-color: #495057;
-            }
-        """)
         
         layout_templates.addWidget(btn_template_consulta)
         layout_templates.addWidget(btn_template_resultado)
@@ -385,25 +328,6 @@ class CentroComunicacaoWidget(QWidget):
         
         btn_selecionar = QPushButton("📂 Selecionar CSV")
         btn_selecionar.clicked.connect(self.selecionar_arquivo_csv)
-        btn_selecionar.setStyleSheet("""
-            QPushButton {
-                background-color: #6c757d;
-                color: white;
-                border: none;
-                border-radius: 8px;
-                padding: 12px 24px;
-                font-size: 14px;
-                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-                font-weight: 600;
-                min-height: 20px;
-            }
-            QPushButton:hover {
-                background-color: #545b62;
-            }
-            QPushButton:pressed {
-                background-color: #495057;
-            }
-        """)
         
         layout_arquivo.addWidget(self.input_arquivo_csv)
         layout_arquivo.addWidget(btn_selecionar)
@@ -511,25 +435,6 @@ class CentroComunicacaoWidget(QWidget):
         # Botão atualizar
         btn_atualizar = QPushButton("🔄 Atualizar Histórico")
         btn_atualizar.clicked.connect(self.carregar_historico)
-        btn_atualizar.setStyleSheet("""
-            QPushButton {
-                background-color: #6c757d;
-                color: white;
-                border: none;
-                border-radius: 8px;
-                padding: 12px 24px;
-                font-size: 14px;
-                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-                font-weight: 600;
-                min-height: 20px;
-            }
-            QPushButton:hover {
-                background-color: #545b62;
-            }
-            QPushButton:pressed {
-                background-color: #495057;
-            }
-        """)
         layout.addWidget(btn_atualizar)
         
         widget.setLayout(layout)

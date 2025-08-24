@@ -26,7 +26,6 @@ def darken_color(hex_color, percent):
     # Converte de volta para hex
     return f"#{rgb_darker[0]:02x}{rgb_darker[1]:02x}{rgb_darker[2]:02x}"
 
-
 # ===== CORES PADRÃO BIODESK =====
 CORES_BIODESK = {
     'primary': '#007bff',
@@ -42,11 +41,9 @@ CORES_BIODESK = {
     'biodesk_hover': '#42b8d8'
 }
 
-
 def get_color(nome_cor):
     """Retorna uma cor padrão do BIODESK"""
     return CORES_BIODESK.get(nome_cor, '#007bff')
-
 
 def style_button(widget, cor='primary', largura=200, altura=36):
     """
@@ -85,7 +82,6 @@ def style_button(widget, cor='primary', largura=200, altura=36):
             color: #666666;
         }}
     """)
-
 
 def style_combo(widget, largura=200):
     """
@@ -129,7 +125,6 @@ def style_combo(widget, largura=200):
         }}
     """)
 
-
 def style_input(widget, largura=200):
     """
     Aplica estilo padrão BIODESK a um QLineEdit
@@ -161,7 +156,6 @@ def style_input(widget, largura=200):
             border-color: #cccccc;
         }}
     """)
-
 
 def style_tab_widget(widget):
     """
@@ -198,7 +192,6 @@ def style_tab_widget(widget):
         }}
     """)
 
-
 def get_card_style(cor_borda='#e0e0e0', cor_fundo='white', border_radius=12):
     """
     Retorna CSS para um card padrão BIODESK
@@ -218,7 +211,6 @@ def get_card_style(cor_borda='#e0e0e0', cor_fundo='white', border_radius=12):
         padding: 20px;
         margin: 10px;
     """
-
 
 def get_header_style(cor_fundo='#4CAF50', cor_texto='white'):
     """
@@ -240,7 +232,6 @@ def get_header_style(cor_fundo='#4CAF50', cor_texto='white'):
         margin-bottom: 20px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     """
-
 
 def apply_biodesk_theme(widget):
     """
@@ -273,19 +264,16 @@ def apply_biodesk_theme(widget):
         }}
     """)
 
-
 # ===== UTILITÁRIOS DE COR =====
 
 def rgb_to_hex(r, g, b):
     """Converte RGB para hexadecimal"""
     return f"#{r:02x}{g:02x}{b:02x}"
 
-
 def hex_to_rgb(hex_color):
     """Converte hexadecimal para RGB"""
     hex_color = hex_color.lstrip('#')
     return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
-
 
 def contrast_text_for(hex_color):
     """Retorna cor de texto ideal (preto ou branco) para uma cor de fundo"""
@@ -293,7 +281,6 @@ def contrast_text_for(hex_color):
     # Calcular luminância
     luminancia = (0.299 * r + 0.587 * g + 0.114 * b) / 255
     return '#000000' if luminancia > 0.5 else '#FFFFFF'
-
 
 def mix_colors(cor1, cor2, peso=0.5):
     """Mistura duas cores hex com um peso específico"""
@@ -306,129 +293,26 @@ def mix_colors(cor1, cor2, peso=0.5):
     
     return rgb_to_hex(r, g, b)
 
-
 # ===== FUNÇÕES MIGRADAS DO UTILS.PY =====
 
 def estilizar_botao_iris(btn, cor="#218fb0", hover="#42b8d8", font_size=17, largura=170):
     """Estiliza botão com o novo design system - cor principal azul-petróleo"""
-    btn.setStyleSheet(f"""
-        QPushButton {{
-            background: {cor};
-            color: #fff;
-            border-radius: 12px;
-            padding: 12px 20px;
-            font-size: {font_size}px;
-            font-weight: 600;
-            border: none;
-            min-width: {largura}px;
-            max-width: {largura}px;
-            min-height: 52px;
-            max-height: 52px;
-        }}
-        QPushButton:hover {{
-            background-color: {hover};
-        }}
-        QPushButton:pressed {{
-            background: #197592;
-        }}
-    """)
-
 
 def estilizar_botao_principal(btn, largura=200):
     """Botão principal - azul suave harmonioso"""
     btn.setProperty("class", "primary")
-    btn.setStyleSheet(f"""
-        QPushButton {{
-            background-color: #5a9ab8;
-            color: white;
-            border-radius: 10px;
-            padding: 8px 16px;
-            font-size: 14px;
-            font-weight: 600;
-            min-height: 36px;
-            min-width: {largura}px;
-            border: none;
-        }}
-        QPushButton:hover {{
-            background-color: #6db4d1;
-        }}
-        QPushButton:pressed {{
-            background-color: #4a8099;
-        }}
-    """)
-
 
 def estilizar_botao_secundario(btn, largura=180):
     """Botão secundário - cinza suave"""
     btn.setProperty("class", "secondary")
-    btn.setStyleSheet(f"""
-        QPushButton {{
-            background-color: #7a8a99;
-            color: white;
-            border-radius: 10px;
-            padding: 8px 16px;
-            font-size: 14px;
-            font-weight: 600;
-            min-height: 36px;
-            min-width: {largura}px;
-            border: none;
-        }}
-        QPushButton:hover {{
-            background-color: #8da0b2;
-        }}
-        QPushButton:pressed {{
-            background-color: #6a7987;
-        }}
-    """)
-
 
 def estilizar_botao_perigo(btn, largura=200):
     """Botão de perigo - vermelho elegante"""
     btn.setProperty("class", "danger")
-    btn.setStyleSheet(f"""
-        QPushButton {{
-            background-color: #e74c3c;
-            color: white;
-            border-radius: 10px;
-            padding: 8px 16px;
-            font-size: 14px;
-            font-weight: 600;
-            min-height: 36px;
-            min-width: {largura}px;
-            border: none;
-        }}
-        QPushButton:hover {{
-            background-color: #f56c5c;
-        }}
-        QPushButton:pressed {{
-            background-color: #d73c2a;
-        }}
-    """)
-
 
 def estilizar_botao_sucesso(btn, largura=200):
     """Botão de sucesso - verde harmonioso"""
     btn.setProperty("class", "success")
-    btn.setStyleSheet(f"""
-        QPushButton {{
-            background-color: #27ae60;
-            color: white;
-            border-radius: 10px;
-            padding: 8px 16px;
-            font-size: 14px;
-            font-weight: 600;
-            min-height: 36px;
-            min-width: {largura}px;
-            border: none;
-        }}
-        QPushButton:hover {{
-            background-color: #2ecc71;
-        }}
-        QPushButton:pressed {{
-            background-color: #1e8f47;
-        }}
-    """)
-
 
 def estilizar_botao_fusao(btn, cor="#5a9ab8", size_type="standard", radius=8, 
                          font_size=None, font_weight=600, linha_central=True, 
@@ -487,32 +371,4 @@ def estilizar_botao_fusao(btn, cor="#5a9ab8", size_type="standard", radius=8,
     """ if usar_checked else ""
     
     # Aplicar estilo
-    btn.setStyleSheet(f"""
-        QPushButton {{
-            background-color: {cor_clara};
-            color: {cor};
-            border: 2px solid {cor};
-            border-radius: {radius}px;
-            padding: 8px 16px;
-            font-size: {font_size}px;
-            font-weight: {font_weight};
-            {'min-width: %dpx; min-height: %dpx;' % (width, height) if fix_width else ''}
-        }}
-        QPushButton:hover {{
-            background-color: {cor_hover};
-            color: {texto_contraste};
-            border-color: {cor_hover};
-        }}
-        QPushButton:pressed {{
-            background-color: {cor_pressed};
-            color: {texto_contraste};
-            border-color: {cor_pressed};
-        }}
-        QPushButton:disabled {{
-            background-color: transparent;
-            color: #9aa3a7;
-            border-color: #cfd9de;
-        }}
-        {checked_rule}
-        {linha_style}
-    """)
+    

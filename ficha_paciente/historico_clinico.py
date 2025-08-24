@@ -27,7 +27,7 @@ from PyQt6.QtCore import *
 from PyQt6.QtGui import *
 from datetime import datetime
 
-from biodesk_ui_kit import BiodeskUIKit
+from biodesk_ui_kit import BiodeskUIKit  # Para cores e fontes
 from data_cache import DataCache
 from biodesk_dialogs import BiodeskMessageBox
 
@@ -68,21 +68,6 @@ class HistoricoClinicoWidget(QWidget):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(15)
-        
-        # Título da seção
-        titulo = QLabel("📝 Histórico Clínico")
-        titulo.setStyleSheet(f"""
-            QLabel {{
-                font-size: {BiodeskUIKit.FONTS['size_xl']};
-                font-weight: bold;
-                color: {BiodeskUIKit.COLORS['primary']};
-                padding: 10px;
-                background: {BiodeskUIKit.COLORS['background_light']};
-                border-radius: 8px;
-                border-left: 4px solid {BiodeskUIKit.COLORS['primary']};
-            }}
-        """)
-        layout.addWidget(titulo)
         
         # Criar toolbar
         self.criar_toolbar(layout)
@@ -163,28 +148,12 @@ class HistoricoClinicoWidget(QWidget):
         """)
         self.toolbar.addWidget(self.status_label)
         
-        # Botão de guardar
+        # Botão de guardar - USANDO SISTEMA CENTRALIZADO BIODESK
         self.btn_guardar = QToolButton()
         self.btn_guardar.setText('💾 Guardar')
         self.btn_guardar.setToolTip('Guardar histórico (Ctrl+S)')
         self.btn_guardar.clicked.connect(self.guardar_historico)
-        self.btn_guardar.setStyleSheet(f"""
-            QToolButton {{
-                background-color: {BiodeskUIKit.COLORS['success']};
-                color: {BiodeskUIKit.COLORS['white']};
-                border: none;
-                border-radius: 6px;
-                padding: 8px 12px;
-                font-weight: bold;
-                min-width: 60px;
-            }}
-            QToolButton:hover {{
-                background-color: #218838;
-            }}
-            QToolButton:pressed {{
-                background-color: #1e7e34;
-            }}
-        """)
+        # ✨ Estilo aplicado automaticamente pelo BiodeskStyleManager
         self.toolbar.addWidget(self.btn_guardar)
         
         parent_layout.addWidget(self.toolbar)

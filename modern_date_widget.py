@@ -13,7 +13,6 @@ Permite digitação manual no formato ddmmaaaa e formatação automática para d
 Inclui calendário popup melhorado com navegação fácil de ano e mês
 """
 
-
 class DateValidator(QValidator):
     """Validador personalizado para entrada de data"""
     
@@ -26,7 +25,6 @@ class DateValidator(QValidator):
             return (QValidator.State.Invalid, input_str, pos)
         
         return (QValidator.State.Acceptable, input_str, pos)
-
 
 class ModernCalendarDialog(QDialog):
     """Diálogo de calendário moderno com navegação fácil"""
@@ -309,7 +307,6 @@ class ModernCalendarDialog(QDialog):
             }
         """)
 
-
 class ModernDateWidget(QWidget):
     """Widget de data moderno com digitação manual e calendário popup"""
     
@@ -545,25 +542,20 @@ class ModernDateWidget(QWidget):
             QPushButton {
                 background-color: #f8f9fa;
                 border: 2px solid #e0e0e0;
-                border-left: 1px solid #e0e0e0;
-                border-radius: 0px 6px 6px 0px;
-                padding: 4px;
-                min-height: 20px;
-                max-height: 40px;
+                border-left: 1px solid #e0e0e0;  /* Borda esquerda mais fina para união perfeita */
+                border-radius: 0 8px 8px 0;
+                padding: 12px 8px;
+                min-height: 16px;
+                max-height: 44px;
             }
-            
             QPushButton:hover {
-                background-color: #007bff;
-                border-color: #007bff;
+                background-color: #e9ecef;
+                border-color: #6c757d;
+                border-left-color: #6c757d;  /* Manter cor unificada no hover */
             }
-            
-            QPushButton:pressed {
-                background-color: #0056b3;
-                border-color: #0056b3;
-            }
-            
             QPushButton:focus {
                 border-color: #007bff;
+                border-left-color: #007bff;  /* Manter cor unificada no foco */
             }
         """)
         
@@ -571,21 +563,23 @@ class ModernDateWidget(QWidget):
         self.date_input.setStyleSheet("""
             QLineEdit {
                 border: 2px solid #e0e0e0;
-                border-right: none;  /* Remove borda direita para "colar" com o botão */
-                border-radius: 6px 0px 0px 6px;  /* Bordas arredondadas só do lado esquerdo */
-                padding: 8px 12px;
+                border-right: 1px solid #e0e0e0;  /* Borda direita mais fina para união perfeita */
+                border-radius: 8px 0px 0px 8px;  /* Bordas arredondadas só do lado esquerdo */
+                padding: 12px 15px;
                 font-size: 14px;
                 background-color: #ffffff;
                 color: #495057;
+                min-height: 16px;
+                max-height: 44px;
             }
             
             QLineEdit:focus {
                 border-color: #007bff;
-                border-right: none;
+                border-right-color: #007bff;  /* Manter cor unificada no foco */
             }
             
             QLineEdit:hover {
                 border-color: #6c757d;
-                border-right: none;
+                border-right-color: #6c757d;  /* Manter cor unificada no hover */
             }
         """)

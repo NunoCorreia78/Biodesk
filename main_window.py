@@ -67,6 +67,41 @@ class MainWindow(QMainWindow):
         
         # Configurar cursores apropriados
         self.configurar_cursores()
+        
+        # 🔥 SISTEMA DE HOTKEYS PARA ESTILIZAÇÃO MANUAL
+        self.setup_biodesk_hotkeys()
+    
+    def setup_biodesk_hotkeys(self):
+        """Configura hotkeys para controle manual do sistema de estilos"""
+        try:
+            from PyQt6.QtGui import QShortcut, QKeySequence
+            
+            # Ctrl+F5 = Força re-estilização
+            self.hotkey_restyle = QShortcut(QKeySequence("Ctrl+F5"), self)
+            self.hotkey_restyle.activated.connect(self.manual_force_restyle)
+            
+            # Ctrl+Shift+F5 = Opção nuclear
+            self.hotkey_nuclear = QShortcut(QKeySequence("Ctrl+Shift+F5"), self)
+            self.hotkey_nuclear.activated.connect(self.manual_nuclear_option)
+            
+        except Exception as e:
+            pass  # Hotkeys não são críticos
+    
+    def manual_force_restyle(self):
+        """Força re-estilização manual via hotkey"""
+        try:
+            from biodesk_style_manager import BiodeskStyleManager
+            BiodeskStyleManager.force_style_all_buttons()
+        except Exception as e:
+            pass
+    
+    def manual_nuclear_option(self):
+        """Executa opção nuclear manual via hotkey"""
+        try:
+            from biodesk_style_manager import BiodeskStyleManager
+            BiodeskStyleManager.nuclear_option()
+        except Exception as e:
+            pass
     
     def showEvent(self, event):
         """Garantir que a janela fica sempre maximizada quando mostrada"""
@@ -108,10 +143,10 @@ class MainWindow(QMainWindow):
             
             for tool_button in self.findChildren(QToolButton):
                 tool_button.setCursor(Qt.CursorShape.PointingHandCursor)
-                
+                    
         except Exception as e:
-            print(f"Erro ao configurar cursores: {str(e)}")
-
+            pass  # Cursores não são críticos
+    
     def carregar_icones_abas(self):
         """Carrega os ícones das abas com tratamento de erros robusto"""
         try:
@@ -148,8 +183,11 @@ class MainWindow(QMainWindow):
             # Verificar se existem widgets de abas para aplicar ícones
             # (Este método será chamado mas só aplicará se houver abas definidas)
             
+        except ImportError:
+                pass  # Ícones não são críticos
+                
         except Exception as e:
-            print(f"Erro ao carregar ícones: {str(e)}")
+            pass  # Ícones não são críticos
 
     def setup_datetime_display(self):
         """Configura e inicia o display de data/hora elegante"""
@@ -229,12 +267,10 @@ class MainWindow(QMainWindow):
         actions.setSpacing(20)
         actions.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        # Botão To-Do List (estilo universal Biodesk)
+        # Botão To-Do List (vai usar BiodeskStyleManager automaticamente)
         btn_todo = QToolButton()
         btn_todo.setText('📝')
         btn_todo.setFixedSize(50, 50)
-        from biodesk_ui_kit import BiodeskUIKit
-        btn_todo.setStyleSheet(BiodeskUIKit.get_universal_button_stylesheet())
         btn_todo.setToolTip('📝 Lista de Tarefas')
         btn_todo.clicked.connect(self.abrir_todo_list)
 
@@ -251,33 +287,6 @@ class MainWindow(QMainWindow):
             btn_pacientes.setIconSize(QSize(72, 72))
         btn_pacientes.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon)
         btn_pacientes.setFixedSize(200, 200)
-        # Estilo verde suave para Fichas de Pacientes
-        btn_pacientes.setStyleSheet("""
-            QToolButton {
-                font-family: 'Segoe UI', 'Inter', 'Open Sans', 'Roboto', sans-serif;
-                font-size: 15px;
-                font-weight: 600;
-                border: none;
-                border-radius: 18px;
-                padding: 22px;
-                background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                          stop: 0 #66BB6A, stop: 1 #4CAF50);
-                margin: 8px;
-                color: white;
-                text-align: center;
-            }
-            QToolButton:hover {
-                background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                          stop: 0 #81C784, stop: 1 #66BB6A);
-            }
-            QToolButton:pressed {
-                background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                          stop: 0 #4CAF50, stop: 1 #388E3C);
-            }
-            QToolButton::menu-indicator {
-                image: none;
-            }
-        """)
         btn_pacientes.setToolTip('Gerir utentes: ver e registar novos utentes')
         # Usar painel custom em vez de QMenu
         btn_pacientes.clicked.connect(lambda: self.show_pacientes_panel(btn_pacientes))
@@ -302,33 +311,6 @@ class MainWindow(QMainWindow):
             btn_iris.setIconSize(QSize(72, 72))
         btn_iris.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon)
         btn_iris.setFixedSize(200, 200)
-        # Estilo verde-água para Íris
-        btn_iris.setStyleSheet("""
-            QToolButton {
-                font-family: 'Segoe UI', 'Inter', 'Open Sans', 'Roboto', sans-serif;
-                font-size: 15px;
-                font-weight: 600;
-                border: none;
-                border-radius: 18px;
-                padding: 22px;
-                background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                          stop: 0 #26A69A, stop: 1 #00796B);
-                margin: 8px;
-                color: white;
-                text-align: center;
-            }
-            QToolButton:hover {
-                background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                          stop: 0 #4DB6AC, stop: 1 #26A69A);
-            }
-            QToolButton:pressed {
-                background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                          stop: 0 #00796B, stop: 1 #00695C);
-            }
-            QToolButton::menu-indicator {
-                image: none;
-            }
-        """)
         btn_iris.setToolTip('Módulo de análise de íris')
         # Conectar diretamente à análise anónima (sem menu)
         btn_iris.clicked.connect(lambda: self.open_iris(modo_anonimo=True))
@@ -346,39 +328,13 @@ class MainWindow(QMainWindow):
         # Botão Terapia
         btn_terapia = QToolButton()
         btn_terapia.setText('Terapia Quântica')
+        btn_terapia.setToolTip('Módulo de terapia quântica e medicina energética')
         icon_path_terapia = os.path.join(os.path.dirname(__file__), 'assets', 'quantum.png')
         if os.path.exists(icon_path_terapia):
             btn_terapia.setIcon(QIcon(icon_path_terapia))
             btn_terapia.setIconSize(QSize(72, 72))
         btn_terapia.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon)
         btn_terapia.setFixedSize(200, 200)
-        # Estilo moderno (roxo) para Terapia
-        btn_terapia.setStyleSheet("""
-            QToolButton {
-                font-family: 'Segoe UI', 'Inter', 'Open Sans', 'Roboto', sans-serif;
-                font-size: 15px;
-                font-weight: 600;
-                border: none;
-                border-radius: 18px;
-                padding: 22px;
-                background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                          stop: 0 #558B2F, stop: 1 #33691E);
-                margin: 8px;
-                color: white;
-                text-align: center;
-            }
-            QToolButton:hover {
-                background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                          stop: 0 #689F38, stop: 1 #558B2F);
-            }
-            QToolButton:pressed {
-                background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                          stop: 0 #33691E, stop: 1 #1B5E20);
-            }
-            QToolButton::menu-indicator {
-                image: none;
-            }
-        """)
         btn_terapia.clicked.connect(self.open_terapia)
         
         # Adicionar sombra verde musgo ao botão Terapia
@@ -551,37 +507,46 @@ class MainWindow(QMainWindow):
             )
 
     def load_styles(self):
-        # Aplicar estilo UNIVERSAL Biodesk a TODOS os botões
-        from biodesk_ui_kit import BiodeskUIKit
-        universal_style = BiodeskUIKit.get_universal_button_stylesheet()
+        # 🎨 Inicializar sistema universal de estilos Biodesk (VERSÃO AGRESSIVA)
+        try:
+            from biodesk_style_manager import BiodeskStyleManager
+            manager = BiodeskStyleManager.initialize()
+            
+            # 🚨 CORREÇÃO EMERGENCIAL: Força re-estilização múltipla e agressiva
+            QTimer.singleShot(1000, BiodeskStyleManager.force_style_all_buttons)
+            QTimer.singleShot(3000, BiodeskStyleManager.nuclear_option)
+            QTimer.singleShot(6000, BiodeskStyleManager.force_style_all_buttons)
+            QTimer.singleShot(10000, BiodeskStyleManager.nuclear_option)
+            
+        except Exception as e:
+            # Fallback para sistema legado
+            try:
+                from biodesk_ui_kit import BiodeskUIKit
+                universal_style = BiodeskUIKit.get_universal_button_stylesheet()
+                app = QApplication.instance()
+                if app:
+                    app.setStyleSheet(universal_style)
+            except:
+                pass  # Ignorar erros de carregamento de estilo
         
-        # Carregar QSS global se existir, mantendo estilos locais dos botões
+        # Carregar QSS global complementar se existir
         try:
             qss_path = os.path.join(os.path.dirname(__file__), 'assets', 'biodesk.qss')
             if os.path.exists(qss_path):
                 with open(qss_path, 'r', encoding='utf-8') as f:
                     qss = f.read()
                 
-                # Adicionar estilo universal de botões
-                qss += "\n" + universal_style
-                
                 app = QApplication.instance()
                 if app:
-                    app.setStyleSheet(qss)
-            else:
-                # Se não existe QSS, aplicar apenas o estilo universal
-                app = QApplication.instance()
-                if app:
-                    app.setStyleSheet(universal_style)
-                    
+                    # Manter QSS existente se já foi aplicado pelo BiodeskStyleManager
+                    current_stylesheet = app.styleSheet()
+                    if current_stylesheet:
+                        # Adicionar QSS complementar
+                        app.setStyleSheet(current_stylesheet + "\n" + qss)
+                    else:
+                        app.setStyleSheet(qss)
         except Exception as e:
-            # Fallback: aplicar apenas estilo universal
-            try:
-                app = QApplication.instance()
-                if app:
-                    app.setStyleSheet(universal_style)
-            except:
-                pass  # Ignorar erros de carregamento de estilo
+            pass  # QSS não é crítico
 
     def abrir_lista_pacientes(self):
         FichaPaciente.mostrar_seletor(callback=self.abrir_ficha_existente, parent=self)
@@ -675,9 +640,7 @@ class MainWindow(QMainWindow):
             self._patients_panel.raise_()
             self._patients_panel.activateWindow()
         except Exception as e:
-            print(f"[ERRO] Erro ao mostrar painel Pacientes: {e}")
-            import traceback
-            traceback.print_exc()
+            pass  # Erro não crítico
 
     def open_terapia(self):
         """Abre módulo de terapia quântica com HS3"""
@@ -707,7 +670,7 @@ class MainWindow(QMainWindow):
                         os.makedirs(assets_dir, exist_ok=True)
                         shutil.copy(file_path, frequency_file)
                     else:
-                        print("❌ Arquivo não selecionado")
+                        pass  # Arquivo não selecionado
                         return
                 else:
                     return
@@ -765,7 +728,7 @@ class MainWindow(QMainWindow):
                 self.showMaximized()
                 
         except Exception as e:
-            print(f"❌ Erro ao maximizar: {str(e)}")
+            pass  # Erro não crítico
             self.showMaximized()  # Fallback padrão
     
     def resizeEvent(self, event):
@@ -813,7 +776,7 @@ class MainWindow(QMainWindow):
                 window.showMaximized()
                 
         except Exception as e:
-            print(f"❌ Erro ao maximizar janela: {str(e)}")
+            pass  # Erro não crítico
             try:
                 window.showMaximized()
             except:
@@ -862,67 +825,11 @@ class PatientsPanel(QDialog):
         layout.setContentsMargins(16, 12, 16, 12)
         layout.setSpacing(16)
 
-        # Pill 1: Selecionar Paciente (forma oval verde-água)
+        # Pill 1: Selecionar Paciente
         btn_select = QPushButton("🔍\nSelecionar")
-        btn_select.setStyleSheet("""
-            QPushButton {
-                font-family: 'Segoe UI', 'Inter', 'Open Sans', 'Roboto', sans-serif;
-                background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                          stop: 0 #E0F2F1, stop: 1 #B2DFDB);
-                color: #00796B;
-                border: 1px solid rgba(0,121,107,0.2);
-                border-radius: 22px;
-                font-size: 12px;
-                font-weight: 500;
-                padding: 16px 8px;
-                text-align: center;
-                min-width: 140px;
-                max-width: 140px;
-                min-height: 44px;
-            }
-            QPushButton:hover {
-                background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                          stop: 0 #26A69A, stop: 1 #00796B);
-                color: white;
-                border-color: #00796B;
-                transform: scale(1.02);
-            }
-            QPushButton:pressed {
-                background: #00695C;
-                border-color: #00695C;
-            }
-        """)
 
-        # Pill 2: Novo Paciente (forma oval verde suave)
+        # Pill 2: Novo Paciente  
         btn_new = QPushButton("➕\nNovo")
-        btn_new.setStyleSheet("""
-            QPushButton {
-                font-family: 'Segoe UI', 'Inter', 'Open Sans', 'Roboto', sans-serif;
-                background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                          stop: 0 #F1F8E9, stop: 1 #C8E6C9);
-                color: #4CAF50;
-                border: 1px solid rgba(76,175,80,0.2);
-                border-radius: 22px;
-                font-size: 12px;
-                font-weight: 500;
-                padding: 16px 8px;
-                text-align: center;
-                min-width: 140px;
-                max-width: 140px;
-                min-height: 44px;
-            }
-            QPushButton:hover {
-                background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                          stop: 0 #66BB6A, stop: 1 #4CAF50);
-                color: white;
-                border-color: #4CAF50;
-                transform: scale(1.02);
-            }
-            QPushButton:pressed {
-                background: #388E3C;
-                border-color: #388E3C;
-            }
-        """)
         
         # Conectar sinais
         btn_select.clicked.connect(self.selectRequested.emit)

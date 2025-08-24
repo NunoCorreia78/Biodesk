@@ -73,7 +73,6 @@ class EmailConfigWindow(QDialog):
         
         btn_guardar = QPushButton("💾 Guardar")
         btn_guardar.clicked.connect(self.guardar_config)
-        BiodeskUIKit.apply_universal_button_style(btn_guardar)
         
         btn_cancelar = QPushButton("❌ Cancelar")
         btn_cancelar.clicked.connect(self.reject)

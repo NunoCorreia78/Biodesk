@@ -77,35 +77,6 @@ def estilizar_botao_outline(
         """
     ) if usar_checked else ""
 
-    btn.setStyleSheet(
-        f"""
-        QPushButton {{
-            min-height: {altura}px;
-            max-height: {altura}px;
-            border: {border_width}px solid {cor};
-            border-radius: {radius}px;
-            background-color: transparent;
-            color: {cor};
-            font-size: {font_size}px;
-            font-weight: {font_weight};
-            padding: 0 14px;
-            text-align: center;
-            {linha_bg}
-        }}
-        QPushButton:hover {{
-            background-color: {cor};
-            color: {txt_hover};
-            border-color: {cor_hover};
-        }}
-        QPushButton:pressed {{
-            background-color: {cor_pressed};
-            color: {txt_hover};
-            border-color: {cor_pressed};
-        }}
-        {checked_rule}
-        """
-    )
-
 # =========================
 # Botão outline -> sólido no hover/checked
 # =========================
@@ -122,29 +93,24 @@ def _hex_to_rgb(hex_color):
     except Exception:
         return (33, 143, 176)
 
-
 def _rgb_to_hex(r, g, b):
     r = max(0, min(255, int(r)))
     g = max(0, min(255, int(g)))
     b = max(0, min(255, int(b)))
     return f"#{r:02X}{g:02X}{b:02X}"
 
-
 def _mix(a, b, t):
     return int(round(a + (b - a) * t))
-
 
 def _lighten(hex_color, percent):
     r, g, b = _hex_to_rgb(hex_color)
     t = max(0.0, min(1.0, (percent or 0) / 100.0))
     return _rgb_to_hex(_mix(r, 255, t), _mix(g, 255, t), _mix(b, 255, t))
 
-
 def _darken(hex_color, percent):
     r, g, b = _hex_to_rgb(hex_color)
     t = max(0.0, min(1.0, (percent or 0) / 100.0))
     return _rgb_to_hex(_mix(r, 0, t), _mix(g, 0, t), _mix(b, 0, t))
-
 
 def _contrast_text_for(hex_color):
     """Retorna #FFFFFF ou #000000 consoante luminância (aproximação WCAG)."""
@@ -155,12 +121,10 @@ def _contrast_text_for(hex_color):
     L = 0.2126 * srgb_ch(r) + 0.7152 * srgb_ch(g) + 0.0722 * srgb_ch(b)
     return "#000000" if L > 0.58 else "#FFFFFF"
 
-
 def _rgba_str(hex_color, alpha_float):
     r, g, b = _hex_to_rgb(hex_color)
     a = int(max(0, min(1, alpha_float)) * 255)
     return f"rgba({r}, {g}, {b}, {a})"
-
 
 def estilizar_botao_outline(
     btn,
@@ -204,38 +168,4 @@ def estilizar_botao_outline(
         checked_rule = (
             f"QPushButton:checked {{ background-color: {cor_hover}; color: {texto_hover}; border-color: {cor_hover}; }}"
         )
-
-    btn.setStyleSheet(
-        f"""
-        QPushButton {{
-            background-color: transparent;
-            {bg_line}
-            color: {cor_hex};
-            border: 2px solid {cor_hex};
-            border-radius: {radius}px;
-            padding: 8px 12px;
-            font-size: {font_size}px;
-            font-weight: {font_weight};
-            min-height: {altura}px;
-            {width_rules}
-        }}
-        QPushButton:hover {{
-            background-color: {cor_hover};
-            color: {texto_hover};
-            border-color: {cor_hover};
-        }}
-        QPushButton:pressed {{
-            background-color: {cor_press};
-            color: {texto_press};
-            border-color: {cor_press};
-        }}
-        QPushButton:disabled {{
-            background-color: transparent;
-            color: #9aa3a7;
-            border-color: #cfd9de;
-        }}
-        {checked_rule}
-        """
-    )
-
 

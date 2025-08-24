@@ -5,13 +5,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QPixmap, QIcon
 
-try:
-    from biodesk_styles import aplicar_estilo_biodesk, BIODESK_DIALOG_STYLE
-except ImportError:
-    # Fallback se biodesk_styles não estiver disponível
-    def aplicar_estilo_biodesk():
-        pass
-    BIODESK_DIALOG_STYLE = ""
+# ✨ Estilos aplicados automaticamente pelo BiodeskStyleManager
 
 from biodesk_ui_kit import BiodeskUIKit
 
@@ -27,7 +21,7 @@ class BiodeskMessageBox:
     @staticmethod
     def apply_style(msgbox):
         """Aplica estilo Biodesk a qualquer QMessageBox"""
-        msgbox.setStyleSheet(BIODESK_DIALOG_STYLE)
+        # ✨ Estilo aplicado automaticamente pelo BiodeskStyleManager
         return msgbox
     
     @staticmethod
@@ -94,14 +88,14 @@ class BiodeskFileDialog:
     def getOpenFileName(parent=None, caption="", directory="", filter="", selectedFilter=""):
         """Diálogo para abrir arquivo estilizado"""
         dialog = QFileDialog()
-        dialog.setStyleSheet(BIODESK_DIALOG_STYLE)
+        # ✨ Estilo aplicado automaticamente pelo BiodeskStyleManager
         return dialog.getOpenFileName(parent, caption, directory, filter, selectedFilter)
     
     @staticmethod
     def getSaveFileName(parent=None, caption="", directory="", filter="", selectedFilter=""):
         """Diálogo para salvar arquivo estilizado"""
         dialog = QFileDialog()
-        dialog.setStyleSheet(BIODESK_DIALOG_STYLE)
+        # ✨ Estilo aplicado automaticamente pelo BiodeskStyleManager
         return dialog.getSaveFileName(parent, caption, directory, filter, selectedFilter)
 
 
@@ -115,12 +109,7 @@ class BiodeskDialog(QDialog):
         self.setModal(True)
         self.resultado = None
         
-        # ✅ APLICAR ESTILO CENTRALIZADO
-        if aplicar_estilo_biodesk:
-            aplicar_estilo_biodesk(self)
-        else:
-            # Fallback para estilo antigo se não conseguir importar
-            BiodeskUIKit.apply_universal_button_style(self)
+        # ✨ Estilo aplicado automaticamente pelo BiodeskStyleManager
         
         self.layout = QVBoxLayout(self)
         self.layout.setSpacing(25)

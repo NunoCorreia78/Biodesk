@@ -25,7 +25,6 @@ from PyQt6.QtGui import QFont, QPixmap, QIcon, QPainter, QPen, QColor
 from services.styles import style_button, lighten_color
 from biodesk_dialogs import mostrar_sucesso, mostrar_erro, mostrar_aviso
 
-
 class ConsentimentosWidget(QWidget):
     """Widget especializado para gestão de consentimentos médicos"""
     
@@ -118,26 +117,7 @@ class ConsentimentosWidget(QWidget):
             btn = QPushButton(nome)
             btn.setCheckable(True)
             btn.setFixedSize(220, 45)
-            btn.setStyleSheet(f"""
-                QPushButton {{
-                    font-size: 13px !important;
-                    font-weight: 600 !important;
-                    border: none !important;
-                    border-radius: 8px !important;
-                    padding: 10px 15px !important;
-                    background-color: {cor} !important;
-                    color: #2c3e50 !important;
-                    text-align: left !important;
-                }}
-                QPushButton:hover {{
-                    background-color: {lighten_color(cor, 15)} !important;
-                    color: #2c3e50 !important;
-                }}
-                QPushButton:checked {{
-                    background-color: {lighten_color(cor, 25)} !important;
-                    color: #2c3e50 !important;
-                }}
-            """)
+            
             btn.clicked.connect(lambda checked, t=tipo: self.selecionar_tipo_consentimento(t))
             self.botoes_consentimento[tipo] = btn
             scroll_layout.addWidget(btn)

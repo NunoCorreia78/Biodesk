@@ -11,7 +11,6 @@ Sistema de Templates Editáveis para Prescrições
 Permite criar templates com campos personalizáveis e variáveis automáticas
 """
 
-
 class TemplateEditavel(QDialog):
     def __init__(self, parent=None, paciente_data=None):
         super().__init__(parent)
@@ -88,8 +87,7 @@ class TemplateEditavel(QDialog):
         
         btn_cancelar = QPushButton("❌ Cancelar")
         btn_cancelar.clicked.connect(self.reject)
-        btn_cancelar.setStyleSheet("background: linear-gradient(45deg, #f44336, #d32f2f);")
-        
+
         botoes_layout.addWidget(btn_preview)
         botoes_layout.addWidget(btn_salvar)
         botoes_layout.addWidget(btn_pdf)
@@ -252,7 +250,6 @@ Medicina Integrativa
                 
         except Exception as e:
             BiodeskMessageBox.critical(self, "❌ Erro", f"Erro ao gerar PDF:\n{e}")
-
 
 def abrir_editor_template(parent=None, paciente_data=None):
     """Função para abrir o editor de template"""

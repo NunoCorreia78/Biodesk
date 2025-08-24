@@ -26,7 +26,6 @@ from PyQt6.QtGui import QFont
 
 # Importar componentes do Biodesk
 from biodesk_dialogs import BiodeskMessageBox
-from biodesk_styles import get_button_style
 
 from biodesk_ui_kit import BiodeskUIKit
 from biodesk_dialogs import mostrar_erro, mostrar_sucesso, mostrar_aviso
@@ -68,7 +67,7 @@ class DeclaracaoSaudeWidget(QWidget):
         self._alterado = False
         
         self.init_ui()
-        self._conectar_sinais_alteracao()
+        # self._conectar_sinais_alteracao()  # TODO: Implementar se necessário
         
     def init_ui(self):
         """Interface profissional com design limpo e compacto"""
@@ -152,36 +151,35 @@ class DeclaracaoSaudeWidget(QWidget):
         layout = QVBoxLayout(container)
         layout.setSpacing(18)  # Aumentado para mais espaço entre botões
         
-        # Botão Assinar e Guardar - ESTILO BIODESK
+        # Botão Assinar e Guardar - SUCCESS (verde) detectado automaticamente
         btn_assinar = QPushButton("📝 Assinar e Guardar")
-        btn_assinar.setStyleSheet(get_button_style("#28a745"))  # Verde Biodesk
+        # ✨ Estilo aplicado automaticamente pelo BiodeskStyleManager (tema SUCCESS)
         btn_assinar.clicked.connect(self.assinar_e_guardar)
         layout.addWidget(btn_assinar)
         
         # Espaçamento extra
         layout.addSpacing(6)
         
-        # Botão Guardar Rascunho - ESTILO BIODESK
+        # Botão Guardar Rascunho - Estilo Biodesk padrão automático
         btn_rascunho = QPushButton("💾 Guardar Rascunho")
-        btn_rascunho.setStyleSheet(get_button_style("#007bff"))  # Azul Biodesk
         btn_rascunho.clicked.connect(self.guardar_rascunho)
         layout.addWidget(btn_rascunho)
         
         # Espaçamento extra
         layout.addSpacing(6)
         
-        # Botão Limpar - ESTILO BIODESK
+        # Botão Limpar - SECONDARY (cinza) detectado automaticamente
         btn_limpar = QPushButton("🗑️ Limpar Formulário")
-        btn_limpar.setStyleSheet(get_button_style("#6c757d"))  # Cinza Biodesk
+        # ✨ Estilo aplicado automaticamente pelo BiodeskStyleManager (tema SECONDARY)
         btn_limpar.clicked.connect(self.limpar_formulario)
         layout.addWidget(btn_limpar)
         
         # Espaçamento extra
         layout.addSpacing(6)
         
-        # Botão Navegação Rápida - ESTILO BIODESK
+        # Botão Navegação Rápida - WARNING (laranja) detectado automaticamente
         btn_navegacao = QPushButton("🧭 Navegação Rápida")
-        btn_navegacao.setStyleSheet(get_button_style("#ff9800"))  # Laranja Biodesk
+        # ✨ Estilo aplicado automaticamente pelo BiodeskStyleManager (tema WARNING)
         btn_navegacao.clicked.connect(self.abrir_navegacao_rapida)
         layout.addWidget(btn_navegacao)
         
@@ -1117,28 +1115,7 @@ class DeclaracaoSaudeWidget(QWidget):
         
         # Botão de informação para Naturopatia - ESTILO BIODESK
         btn_info_nat = QPushButton("ℹ️")
-        btn_info_nat.setStyleSheet("""
-            QPushButton {
-                background-color: #f8f9fa;
-                color: #17a2b8;
-                border: 1px solid #17a2b8;
-                border-radius: 15px;
-                font-size: 14px;
-                font-weight: bold;
-                min-width: 30px;
-                max-width: 30px;
-                min-height: 30px;
-                max-height: 30px;
-            }
-            QPushButton:hover {
-                background-color: #17a2b8;
-                color: white;
-            }
-            QPushButton:pressed {
-                background-color: #138496;
-                border-color: #138496;
-            }
-        """)
+        
         btn_info_nat.setToolTip("Clique para saber mais sobre Naturopatia")
         btn_info_nat.clicked.connect(lambda: self._mostrar_explicacao_modalidade("naturopatia"))
         nat_layout.addWidget(btn_info_nat)
@@ -1154,1447 +1131,13 @@ class DeclaracaoSaudeWidget(QWidget):
         
         # Botão de informação para Osteopatia - ESTILO BIODESK
         btn_info_osteo = QPushButton("ℹ️")
-        btn_info_osteo.setStyleSheet(self._estilo_botao_info_biodesk("#28a745"))  # Verde
-        btn_info_osteo.setToolTip("Clique para saber mais sobre Osteopatia")
-        btn_info_osteo.clicked.connect(lambda: self._mostrar_explicacao_modalidade("osteopatia"))
-        osteo_layout.addWidget(btn_info_osteo)
-        consentimentos_layout.addLayout(osteo_layout)
         
-        # Mesoterapia
-        meso_layout = QHBoxLayout()
-        meso_layout.addWidget(QLabel("Mesoterapia (homeopática) →"))
-        self.mesoterapia_consent_combo = QComboBox()
-        self.mesoterapia_consent_combo.addItems(["Selecionar...", "Aceito", "Não aceito"])
-        self.mesoterapia_consent_combo.setStyleSheet(self._estilo_campo())
-        meso_layout.addWidget(self.mesoterapia_consent_combo)
-        
-        # Botão de informação para Mesoterapia - ESTILO BIODESK
-        btn_info_meso = QPushButton("ℹ️")
-        btn_info_meso.setStyleSheet(self._estilo_botao_info_biodesk("#fd7e14"))  # Laranja
-        btn_info_meso.setToolTip("Clique para saber mais sobre Mesoterapia")
-        btn_info_meso.clicked.connect(lambda: self._mostrar_explicacao_modalidade("mesoterapia"))
-        meso_layout.addWidget(btn_info_meso)
-        consentimentos_layout.addLayout(meso_layout)
-        
-        # Medicina quântica
-        quantum_layout = QHBoxLayout()
-        quantum_layout.addWidget(QLabel("Medicina quântica / frequencial →"))
-        self.medicina_quantica_combo = QComboBox()
-        self.medicina_quantica_combo.addItems(["Selecionar...", "Aceito", "Não aceito"])
-        self.medicina_quantica_combo.setStyleSheet(self._estilo_campo())
-        quantum_layout.addWidget(self.medicina_quantica_combo)
-        
-        # Botão de informação para Medicina Quântica - ESTILO BIODESK
-        btn_info_quantum = QPushButton("ℹ️")
-        btn_info_quantum.setStyleSheet(self._estilo_botao_info_biodesk("#6f42c1"))  # Roxo
-        btn_info_quantum.setToolTip("Clique para saber mais sobre Medicina Quântica")
-        btn_info_quantum.clicked.connect(lambda: self._mostrar_explicacao_modalidade("medicina_quantica"))
-        quantum_layout.addWidget(btn_info_quantum)
-        consentimentos_layout.addLayout(quantum_layout)
-        
-        form.addWidget(consentimentos_frame)
-        
-        # C) Toque terapêutico e privacidade
-        toque_frame = QFrame()
-        toque_frame.setStyleSheet("""
-            QFrame {
-                background-color: #f3e5f5;
-                border: 2px solid #9c27b0;
-                border-radius: 8px;
-                padding: 15px;
-                margin: 10px 0;
-            }
-        """)
-        toque_layout = QVBoxLayout(toque_frame)
-        
-        toque_titulo = QLabel("<b>C) Toque terapêutico e privacidade (obrigatório indicar)</b>")
-        toque_layout.addWidget(toque_titulo)
-        
-        toque_texto = QLabel("O toque é profissional, proporcional e clinicamente justificado, com draping e exposição mínima da área a tratar. Não são realizados exames internos íntimos. Posso recusar/interromper a qualquer momento.")
-        toque_texto.setWordWrap(True)
-        toque_texto.setStyleSheet("font-size: 14px; margin: 10px 0;")
-        toque_layout.addWidget(toque_texto)
-        
-        # Cabeça/pescoço/coluna
-        cabeca_layout = QHBoxLayout()
-        cabeca_layout.addWidget(QLabel("Cabeça/pescoço/coluna"))
-        self.cabeca_combo = QComboBox()
-        self.cabeca_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.cabeca_combo.setStyleSheet(self._estilo_campo())
-        cabeca_layout.addWidget(self.cabeca_combo)
-        toque_layout.addLayout(cabeca_layout)
-        
-        # Ombro/membros superiores/mãos
-        ombro_layout = QHBoxLayout()
-        ombro_layout.addWidget(QLabel("Ombro/membros superiores/mãos"))
-        self.ombro_combo = QComboBox()
-        self.ombro_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.ombro_combo.setStyleSheet(self._estilo_campo())
-        ombro_layout.addWidget(self.ombro_combo)
-        toque_layout.addLayout(ombro_layout)
-        
-        # Anca/membros inferiores/pés
-        anca_layout = QHBoxLayout()
-        anca_layout.addWidget(QLabel("Anca/membros inferiores/pés"))
-        self.anca_combo = QComboBox()
-        self.anca_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.anca_combo.setStyleSheet(self._estilo_campo())
-        anca_layout.addWidget(self.anca_combo)
-        toque_layout.addLayout(anca_layout)
-        
-        # Palpação externa
-        palpacao_layout = QHBoxLayout()
-        palpacao_layout.addWidget(QLabel("Palpação externa de tórax/abdómen/pélvis"))
-        self.palpacao_combo = QComboBox()
-        self.palpacao_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.palpacao_combo.setStyleSheet(self._estilo_campo())
-        palpacao_layout.addWidget(self.palpacao_combo)
-        toque_layout.addLayout(palpacao_layout)
-        
-        form.addWidget(toque_frame)
-        
-        # E) Proteção de Dados (RGPD)
-        rgpd_frame = QFrame()
-        rgpd_frame.setStyleSheet("""
-            QFrame {
-                background-color: #e3f2fd;
-                border: 2px solid #2196f3;
-                border-radius: 8px;
-                padding: 15px;
-                margin: 10px 0;
-            }
-        """)
-        rgpd_layout = QVBoxLayout(rgpd_frame)
-        
-        rgpd_titulo = QLabel("<b>E) Proteção de Dados (RGPD)</b>")
-        rgpd_layout.addWidget(rgpd_titulo)
-        
-        rgpd_texto = QLabel("""<b>Responsável:</b> Nuno Filipe de Jesus Possante Correia (Cédula 0300450) • Email: nunocorreiaterapiasnaturais@gmail.com • Telem.: 964 860 387<br>
-<b>Finalidades:</b> avaliação/intervenção, marcações, faturação/contabilidade, obrigações legais e (quando consentido) lembretes/seguimento.<br>
-<b>Categorias:</b> identificação, contactos, dados de saúde, exames e imagens clínicas.<br>
-<b>Fundamentos:</b> prestação de cuidados (art. 9.º/2/h RGPD), consentimento, obrigação legal, interesse legítimo.<br>
-<b>Conservação:</b> período legal aplicável ou até 10 anos após o último atendimento, salvo obrigação diferente.<br>
-<b>Partilha:</b> sem cedência a terceiros, salvo exigência legal ou encaminhamento com consentimento.<br>
-<b>Direitos:</b> acesso, retificação, apagamento, limitação, portabilidade, oposição; revogação do consentimento a qualquer momento, sem prejuízo da licitude do tratamento já efetuado. Reclamações: CNPD.""")
-        rgpd_texto.setWordWrap(True)
-        rgpd_texto.setStyleSheet("font-size: 12px; margin: 10px 0;")
-        rgpd_layout.addWidget(rgpd_texto)
-        
-        # Checkbox para RGPD
-        self.rgpd_checkbox = QCheckBox("Autorizo o tratamento dos meus dados de saúde nos termos acima. (obrigatório)")
-        self.rgpd_checkbox.setStyleSheet("""
-            QCheckBox {
-                font-weight: bold;
-                font-size: 14px;
-                color: #d84315;
-            }
-            QCheckBox::indicator {
-                width: 18px;
-                height: 18px;
-            }
-        """)
-        rgpd_layout.addWidget(self.rgpd_checkbox)
-        
-        form.addWidget(rgpd_frame)
-        
-        # F) Âmbito, alternativas e encaminhamento
-        ambito_frame = QFrame()
-        ambito_frame.setStyleSheet("""
-            QFrame {
-                background-color: #fff8e1;
-                border: 2px solid #ffc107;
-                border-radius: 8px;
-                padding: 15px;
-                margin: 10px 0;
-            }
-        """)
-        ambito_layout = QVBoxLayout(ambito_frame)
-        
-        ambito_titulo = QLabel("<b>F) Âmbito, alternativas e encaminhamento</b>")
-        ambito_layout.addWidget(ambito_titulo)
-        
-        ambito_texto = QLabel("Reconheço que estas intervenções não substituem cuidados médicos de urgência. Em sinais de alarme (p. ex., défice neurológico agudo, dor torácica, febre persistente, dor intensa súbita, incontinência de início recente), aceito o encaminhamento para serviços médicos/urgência e/ou contacto com o meu médico assistente. Fui informado(a) de alternativas e do meu direito de recusar qualquer técnica, toque ou modalidade.")
-        ambito_texto.setWordWrap(True)
-        ambito_texto.setStyleSheet("font-size: 14px; margin: 10px 0;")
-        ambito_layout.addWidget(ambito_texto)
-        
-        form.addWidget(ambito_frame)
-        
-        # G) Confirmações finais
-        confirmacoes_frame = QFrame()
-        confirmacoes_frame.setStyleSheet("""
-            QFrame {
-                background-color: #f1f8e9;
-                border: 2px solid #8bc34a;
-                border-radius: 8px;
-                padding: 15px;
-                margin: 10px 0;
-            }
-        """)
-        confirmacoes_layout = QVBoxLayout(confirmacoes_frame)
-        
-        confirmacoes_titulo = QLabel("<b>G) Confirmações finais (pré-assinatura)</b>")
-        confirmacoes_layout.addWidget(confirmacoes_titulo)
-        
-        self.li_compreendi_checkbox = QCheckBox("Li e compreendi esta Declaração e os Consentimentos.")
-        self.li_compreendi_checkbox.setStyleSheet("font-size: 14px; margin: 5px 0;")
-        confirmacoes_layout.addWidget(self.li_compreendi_checkbox)
-        
-        self.escolhi_modalidades_checkbox = QCheckBox("Escolhi Aceito/Não aceito em todas as modalidades.")
-        self.escolhi_modalidades_checkbox.setStyleSheet("font-size: 14px; margin: 5px 0;")
-        confirmacoes_layout.addWidget(self.escolhi_modalidades_checkbox)
-        
-        self.assinalei_caixas_checkbox = QCheckBox("Assinalei as caixas de veracidade e RGPD.")
-        self.assinalei_caixas_checkbox.setStyleSheet("font-size: 14px; margin: 5px 0;")
-        confirmacoes_layout.addWidget(self.assinalei_caixas_checkbox)
-        
-        self.questoes_respondidas_checkbox = QCheckBox("Coloquei as minhas questões e obtive respostas claras.")
-        self.questoes_respondidas_checkbox.setStyleSheet("font-size: 14px; margin: 5px 0;")
-        confirmacoes_layout.addWidget(self.questoes_respondidas_checkbox)
-        
-        form.addWidget(confirmacoes_frame)
-        
-        secao.layout().addLayout(form)
-        layout.addWidget(secao)
-    
-    def _criar_secao_identificacao(self, layout):
-        """Cria seção de identificação"""
-        secao = self._criar_secao_profissional("👤 Identificação", "#667eea")
-        form = QGridLayout()
-        
-        # Nome completo
-        form.addWidget(QLabel("Nome completo (obrigatório):"), 0, 0)
-        self.nome_edit = QLineEdit()
-        self.nome_edit.setReadOnly(True)
-        self.nome_edit.setStyleSheet(self._estilo_campo_readonly())
-        form.addWidget(self.nome_edit, 0, 1)
-        
-        # Data nascimento
-        form.addWidget(QLabel("Data nasc.:"), 1, 0)
-        self.data_nasc_edit = QLineEdit()
-        self.data_nasc_edit.setReadOnly(True)
-        self.data_nasc_edit.setStyleSheet(self._estilo_campo_readonly())
-        form.addWidget(self.data_nasc_edit, 1, 1)
-        
-        # Contacto telemóvel
-        form.addWidget(QLabel("Contacto (telem.):"), 2, 0)
-        self.contacto_telem = QLineEdit()
-        self.contacto_telem.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.contacto_telem, 2, 1)
-        
-        # Email
-        form.addWidget(QLabel("Email:"), 3, 0)
-        self.email = QLineEdit()
-        self.email.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.email, 3, 1)
-        
-        # Profissão
-        form.addWidget(QLabel("Profissão:"), 4, 0)
-        self.profissao_edit = QLineEdit()
-        self.profissao_edit.setPlaceholderText("Ex: Enfermeiro, Professor, Programador...")
-        self.profissao_edit.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.profissao_edit, 4, 1)
-        
-        form.addWidget(QLabel("Esforço físico na profissão:"), 5, 0)
-        self.profissao_combo = QComboBox()
-        self.profissao_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.profissao_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.profissao_combo, 5, 1)
-        
-        form.addWidget(QLabel("→ Detalhe do esforço:"), 6, 0)
-        self.profissao_detalhe = QLineEdit()
-        self.profissao_detalhe.setPlaceholderText("Descreva o tipo de esforço físico...")
-        self.profissao_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.profissao_detalhe, 6, 1)
-        
-        # Contacto de emergência
-        form.addWidget(QLabel("Contacto emergência + relação:"), 7, 0)
-        self.contacto_emergencia = QLineEdit()
-        self.contacto_emergencia.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.contacto_emergencia, 7, 1)
-        
-        # Motivo da consulta
-        form.addWidget(QLabel("Motivo da consulta e objetivos:"), 8, 0, Qt.AlignmentFlag.AlignTop)
-        self.motivo_consulta = QTextEdit()
-        self.motivo_consulta.setMaximumHeight(80)
-        self.motivo_consulta.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.motivo_consulta, 8, 1)
-        
-        secao.layout().addLayout(form)
-        layout.addWidget(secao)
-    
-    def _criar_secao_metabolicas(self, layout):
-        """Cria seção 1: Metabólicas / Endócrinas"""
-        secao = self._criar_secao_profissional("⚡ 1) Metabólicas / Endócrinas", "#e91e63")
-        form = QGridLayout()
-        
-        # Diabetes
-        form.addWidget(QLabel("Diabetes:"), 0, 0)
-        self.diabetes_combo = QComboBox()
-        self.diabetes_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.diabetes_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.diabetes_combo, 0, 1)
-        
-        form.addWidget(QLabel("→ Tipo, HbA1c, hipoglicemias, tratamento:"), 1, 0)
-        self.diabetes_detalhe = QLineEdit()
-        self.diabetes_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.diabetes_detalhe, 1, 1)
-        
-        # Hipertensão
-        form.addWidget(QLabel("Hipertensão:"), 2, 0)
-        self.hipertensao_combo = QComboBox()
-        self.hipertensao_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.hipertensao_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.hipertensao_combo, 2, 1)
-        
-        form.addWidget(QLabel("→ Valores médios, medicação:"), 3, 0)
-        self.hipertensao_detalhe = QLineEdit()
-        self.hipertensao_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.hipertensao_detalhe, 3, 1)
-        
-        # Disfunção tiroideia
-        form.addWidget(QLabel("Disfunção tiroideia:"), 4, 0)
-        self.tireoide_combo = QComboBox()
-        self.tireoide_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.tireoide_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.tireoide_combo, 4, 1)
-        
-        form.addWidget(QLabel("→ Hipo/Hiper, cirurgia, medicação:"), 5, 0)
-        self.tireoide_detalhe = QLineEdit()
-        self.tireoide_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.tireoide_detalhe, 5, 1)
-        
-        # Dislipidemia
-        form.addWidget(QLabel("Dislipidemia:"), 6, 0)
-        self.dislipidemia_combo = QComboBox()
-        self.dislipidemia_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.dislipidemia_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.dislipidemia_combo, 6, 1)
-        
-        form.addWidget(QLabel("→ Valores recentes:"), 7, 0)
-        self.dislipidemia_detalhe = QLineEdit()
-        self.dislipidemia_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.dislipidemia_detalhe, 7, 1)
-        
-        # Doença hepática
-        form.addWidget(QLabel("Doença hepática (esteatose/hepatite/cirrose):"), 8, 0)
-        self.hepatica_combo = QComboBox()
-        self.hepatica_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.hepatica_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.hepatica_combo, 8, 1)
-        
-        form.addWidget(QLabel("→ Detalhe:"), 9, 0)
-        self.hepatica_detalhe = QLineEdit()
-        self.hepatica_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.hepatica_detalhe, 9, 1)
-        
-        # Doença renal
-        form.addWidget(QLabel("Doença renal (IRC/síndrome nefrótica):"), 10, 0)
-        self.renal_combo = QComboBox()
-        self.renal_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.renal_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.renal_combo, 10, 1)
-        
-        form.addWidget(QLabel("→ Estádio/clearance:"), 11, 0)
-        self.renal_detalhe = QLineEdit()
-        self.renal_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.renal_detalhe, 11, 1)
-        
-        secao.layout().addLayout(form)
-        layout.addWidget(secao)
-    
-    def _criar_secao_cardiovasculares(self, layout):
-        """Cria seção 2: Cardiovasculares"""
-        secao = self._criar_secao_profissional("❤️ 2) Cardiovasculares", "#f44336")
-        form = QGridLayout()
-        
-        # Doença cardíaca
-        form.addWidget(QLabel("Doença cardíaca (enfarte/insuf./válvulas/arritmias):"), 0, 0)
-        self.cardiaca_combo = QComboBox()
-        self.cardiaca_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.cardiaca_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.cardiaca_combo, 0, 1)
-        
-        form.addWidget(QLabel("→ Detalhe:"), 1, 0)
-        self.cardiaca_detalhe = QLineEdit()
-        self.cardiaca_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.cardiaca_detalhe, 1, 1)
-        
-        # AVC/TIA
-        form.addWidget(QLabel("AVC/TIA:"), 2, 0)
-        self.avc_combo = QComboBox()
-        self.avc_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.avc_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.avc_combo, 2, 1)
-        
-        form.addWidget(QLabel("→ Ano e sequelas:"), 3, 0)
-        self.avc_detalhe = QLineEdit()
-        self.avc_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.avc_detalhe, 3, 1)
-        
-        # Trombose/TEP/varizes
-        form.addWidget(QLabel("Trombose/TEP/varizes importantes:"), 4, 0)
-        self.trombose_combo = QComboBox()
-        self.trombose_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.trombose_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.trombose_combo, 4, 1)
-        
-        form.addWidget(QLabel("→ Detalhe:"), 5, 0)
-        self.trombose_detalhe = QLineEdit()
-        self.trombose_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.trombose_detalhe, 5, 1)
-        
-        # Aneurisma/estenose carotídea
-        form.addWidget(QLabel("Aneurisma/estenose carotídea conhecida:"), 6, 0)
-        self.aneurisma_combo = QComboBox()
-        self.aneurisma_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.aneurisma_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.aneurisma_combo, 6, 1)
-        
-        form.addWidget(QLabel("→ Detalhe:"), 7, 0)
-        self.aneurisma_detalhe = QLineEdit()
-        self.aneurisma_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.aneurisma_detalhe, 7, 1)
-        
-        # Dor torácica
-        form.addWidget(QLabel("Dor torácica (esforço/repouso – últimas 4 semanas):"), 8, 0)
-        self.dor_toracica_combo = QComboBox()
-        self.dor_toracica_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.dor_toracica_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.dor_toracica_combo, 8, 1)
-        
-        form.addWidget(QLabel("→ Descrever:"), 9, 0)
-        self.dor_toracica_detalhe = QLineEdit()
-        self.dor_toracica_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.dor_toracica_detalhe, 9, 1)
-        
-        # Pacemaker/DAI/Stent/Prótese valvular
-        form.addWidget(QLabel("Pacemaker/DAI/Stent/Prótese valvular:"), 10, 0)
-        self.pacemaker_combo = QComboBox()
-        self.pacemaker_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.pacemaker_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.pacemaker_combo, 10, 1)
-        
-        form.addWidget(QLabel("→ Tipo, data, local:"), 11, 0)
-        self.pacemaker_detalhe = QLineEdit()
-        self.pacemaker_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.pacemaker_detalhe, 11, 1)
-        
-        secao.layout().addLayout(form)
-        layout.addWidget(secao)
-    
-    def _criar_secao_respiratorias(self, layout):
-        """Cria seção 3: Respiratórias"""
-        secao = self._criar_secao_profissional("🫁 3) Respiratórias", "#2196f3")
-        form = QGridLayout()
-        
-        # Asma
-        form.addWidget(QLabel("Asma:"), 0, 0)
-        self.asma_combo = QComboBox()
-        self.asma_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.asma_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.asma_combo, 0, 1)
-        
-        form.addWidget(QLabel("→ Crises, controladores/resgate:"), 1, 0)
-        self.asma_detalhe = QLineEdit()
-        self.asma_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.asma_detalhe, 1, 1)
-        
-        # DPOC / Fibrose
-        form.addWidget(QLabel("DPOC / Fibrose:"), 2, 0)
-        self.dpoc_combo = QComboBox()
-        self.dpoc_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.dpoc_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.dpoc_combo, 2, 1)
-        
-        form.addWidget(QLabel("→ SatO₂ habitual:"), 3, 0)
-        self.dpoc_detalhe = QLineEdit()
-        self.dpoc_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.dpoc_detalhe, 3, 1)
-        
-        # Apneia do sono
-        form.addWidget(QLabel("Apneia do sono:"), 4, 0)
-        self.apneia_combo = QComboBox()
-        self.apneia_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.apneia_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.apneia_combo, 4, 1)
-        
-        form.addWidget(QLabel("→ CPAP?"), 5, 0)
-        self.apneia_detalhe = QLineEdit()
-        self.apneia_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.apneia_detalhe, 5, 1)
-        
-        # Infeção respiratória recente
-        form.addWidget(QLabel("Infeção respiratória recente (< 3 semanas):"), 6, 0)
-        self.infecao_resp_combo = QComboBox()
-        self.infecao_resp_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.infecao_resp_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.infecao_resp_combo, 6, 1)
-        
-        form.addWidget(QLabel("→ Detalhe:"), 7, 0)
-        self.infecao_resp_detalhe = QLineEdit()
-        self.infecao_resp_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.infecao_resp_detalhe, 7, 1)
-        
-        secao.layout().addLayout(form)
-        layout.addWidget(secao)
-    
-    def _criar_secao_gastrointestinais(self, layout):
-        """Cria seção 4: Gastrointestinais"""
-        secao = self._criar_secao_profissional("🍃 4) Gastrointestinais", "#ff9800")
-        form = QGridLayout()
-        
-        # Refluxo/úlcera/gastrite
-        form.addWidget(QLabel("Refluxo/úlcera/gastrite:"), 0, 0)
-        self.refluxo_combo = QComboBox()
-        self.refluxo_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.refluxo_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.refluxo_combo, 0, 1)
-        
-        form.addWidget(QLabel("→ Endoscopia/terapêutica:"), 1, 0)
-        self.refluxo_detalhe = QLineEdit()
-        self.refluxo_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.refluxo_detalhe, 1, 1)
-        
-        # Doença inflamatória intestinal
-        form.addWidget(QLabel("Doença inflamatória intestinal:"), 2, 0)
-        self.dii_combo = QComboBox()
-        self.dii_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.dii_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.dii_combo, 2, 1)
-        
-        form.addWidget(QLabel("→ Atividade atual/medicação:"), 3, 0)
-        self.dii_detalhe = QLineEdit()
-        self.dii_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.dii_detalhe, 3, 1)
-        
-        # Cirurgias digestivas
-        form.addWidget(QLabel("Cirurgias digestivas:"), 4, 0)
-        self.cirurgias_digest_combo = QComboBox()
-        self.cirurgias_digest_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.cirurgias_digest_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.cirurgias_digest_combo, 4, 1)
-        
-        form.addWidget(QLabel("→ Tipo/data/complicações:"), 5, 0)
-        self.cirurgias_digest_detalhe = QLineEdit()
-        self.cirurgias_digest_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.cirurgias_digest_detalhe, 5, 1)
-        
-        secao.layout().addLayout(form)
-        layout.addWidget(secao)
-    
-    def _criar_secao_neurologicas(self, layout):
-        """Cria seção 5: Neurológicas / Psiquiátricas"""
-        secao = self._criar_secao_profissional("🧠 5) Neurológicas / Psiquiátricas", "#9c27b0")
-        form = QGridLayout()
-        
-        # Epilepsia/Convulsões
-        form.addWidget(QLabel("Epilepsia/Convulsões:"), 0, 0)
-        self.epilepsia_combo = QComboBox()
-        self.epilepsia_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.epilepsia_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.epilepsia_combo, 0, 1)
-        
-        form.addWidget(QLabel("→ Última crise/medicação:"), 1, 0)
-        self.epilepsia_detalhe = QLineEdit()
-        self.epilepsia_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.epilepsia_detalhe, 1, 1)
-        
-        # Desmielinizantes/degenerativas
-        form.addWidget(QLabel("Desmielinizantes/degenerativas (EM, Parkinson, ELA):"), 2, 0)
-        self.desmielinizantes_combo = QComboBox()
-        self.desmielinizantes_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.desmielinizantes_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.desmielinizantes_combo, 2, 1)
-        
-        form.addWidget(QLabel("→ Detalhe:"), 3, 0)
-        self.desmielinizantes_detalhe = QLineEdit()
-        self.desmielinizantes_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.desmielinizantes_detalhe, 3, 1)
-        
-        # TCE/Concussão
-        form.addWidget(QLabel("TCE/Concussão (< 3 meses):"), 4, 0)
-        self.tce_combo = QComboBox()
-        self.tce_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.tce_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.tce_combo, 4, 1)
-        
-        # Cefaleias com aura/vertigens
-        form.addWidget(QLabel("Cefaleias com aura/vertigens persistentes:"), 5, 0)
-        self.cefaleias_combo = QComboBox()
-        self.cefaleias_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.cefaleias_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.cefaleias_combo, 5, 1)
-        
-        form.addWidget(QLabel("→ Detalhe:"), 6, 0)
-        self.cefaleias_detalhe = QLineEdit()
-        self.cefaleias_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.cefaleias_detalhe, 6, 1)
-        
-        # Perturbações psiquiátricas
-        form.addWidget(QLabel("Perturbações psiquiátricas (depressão, ansiedade, bipolar):"), 7, 0)
-        self.psiquiatricas_combo = QComboBox()
-        self.psiquiatricas_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.psiquiatricas_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.psiquiatricas_combo, 7, 1)
-        
-        form.addWidget(QLabel("→ Dx/terapia:"), 8, 0)
-        self.psiquiatricas_detalhe = QLineEdit()
-        self.psiquiatricas_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.psiquiatricas_detalhe, 8, 1)
-        
-        # Sintomas de "cauda equina"
-        form.addWidget(QLabel("Sintomas de \"cauda equina\" (30 dias):"), 9, 0)
-        self.cauda_equina_combo = QComboBox()
-        self.cauda_equina_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.cauda_equina_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.cauda_equina_combo, 9, 1)
-        
-        form.addWidget(QLabel("→ Anestesia em sela, incontinência – descrever:"), 10, 0)
-        self.cauda_equina_detalhe = QLineEdit()
-        self.cauda_equina_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.cauda_equina_detalhe, 10, 1)
-        
-        secao.layout().addLayout(form)
-        layout.addWidget(secao)
-    
-    def _criar_secao_musculoesqueleticas(self, layout):
-        """Cria seção 6: Músculo-esqueléticas (foco osteopatia)"""
-        secao = self._criar_secao_profissional("🦴 6) Músculo-esqueléticas (foco osteopatia)", "#795548")
-        form = QGridLayout()
-        
-        # Artrite/Artrose
-        form.addWidget(QLabel("Artrite/Artrose:"), 0, 0)
-        self.artrite_combo = QComboBox()
-        self.artrite_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.artrite_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.artrite_combo, 0, 1)
-        
-        form.addWidget(QLabel("→ Articulações afetadas:"), 1, 0)
-        self.artrite_detalhe = QLineEdit()
-        self.artrite_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.artrite_detalhe, 1, 1)
-        
-        # Osteoporose / Osteopenia
-        form.addWidget(QLabel("Osteoporose / Osteopenia:"), 2, 0)
-        self.osteoporose_combo = QComboBox()
-        self.osteoporose_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.osteoporose_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.osteoporose_combo, 2, 1)
-        
-        form.addWidget(QLabel("→ T-score, fraturas por fragilidade?"), 3, 0)
-        self.osteoporose_detalhe = QLineEdit()
-        self.osteoporose_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.osteoporose_detalhe, 3, 1)
-        
-        # Hérnias discais / radiculopatia
-        form.addWidget(QLabel("Hérnias discais / radiculopatia:"), 4, 0)
-        self.hernias_combo = QComboBox()
-        self.hernias_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.hernias_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.hernias_combo, 4, 1)
-        
-        form.addWidget(QLabel("→ Nível, data RM:"), 5, 0)
-        self.hernias_detalhe = QLineEdit()
-        self.hernias_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.hernias_detalhe, 5, 1)
-        
-        # Escoliose/espondilolistese/instabilidade atlanto-axial
-        form.addWidget(QLabel("Escoliose/espondilolistese/instabilidade atlanto-axial:"), 6, 0)
-        self.escoliose_combo = QComboBox()
-        self.escoliose_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.escoliose_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.escoliose_combo, 6, 1)
-        
-        form.addWidget(QLabel("→ Detalhe:"), 7, 0)
-        self.escoliose_detalhe = QLineEdit()
-        self.escoliose_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.escoliose_detalhe, 7, 1)
-        
-        # Fraturas
-        form.addWidget(QLabel("Fraturas (qualquer data):"), 8, 0)
-        self.fraturas_combo = QComboBox()
-        self.fraturas_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.fraturas_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.fraturas_combo, 8, 1)
-        
-        form.addWidget(QLabel("→ Osso, data, seguimento:"), 9, 0)
-        self.fraturas_detalhe = QLineEdit()
-        self.fraturas_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.fraturas_detalhe, 9, 1)
-        
-        # Quedas
-        form.addWidget(QLabel("Quedas (últimos 12 meses):"), 10, 0)
-        self.quedas_combo = QComboBox()
-        self.quedas_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.quedas_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.quedas_combo, 10, 1)
-        
-        form.addWidget(QLabel("→ Nº, lesões, causa:"), 11, 0)
-        self.quedas_detalhe = QLineEdit()
-        self.quedas_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.quedas_detalhe, 11, 1)
-        
-        # Cirurgias ortopédicas
-        form.addWidget(QLabel("Cirurgias ortopédicas:"), 12, 0)
-        self.cirurgias_ortop_combo = QComboBox()
-        self.cirurgias_ortop_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.cirurgias_ortop_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.cirurgias_ortop_combo, 12, 1)
-        
-        form.addWidget(QLabel("→ Tipo, data, restrições:"), 13, 0)
-        self.cirurgias_ortop_detalhe = QLineEdit()
-        self.cirurgias_ortop_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.cirurgias_ortop_detalhe, 13, 1)
-        
-        # Próteses / Artrodeses / Placas/Parafusos
-        form.addWidget(QLabel("Próteses / Artrodeses / Placas/Parafusos:"), 14, 0)
-        self.proteses_combo = QComboBox()
-        self.proteses_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.proteses_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.proteses_combo, 14, 1)
-        
-        form.addWidget(QLabel("→ Local, data:"), 15, 0)
-        self.proteses_detalhe = QLineEdit()
-        self.proteses_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.proteses_detalhe, 15, 1)
-        
-        # Infiltrações corticoides
-        form.addWidget(QLabel("Infiltrações corticoides (< 6 semanas):"), 16, 0)
-        self.infiltracoes_combo = QComboBox()
-        self.infiltracoes_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.infiltracoes_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.infiltracoes_combo, 16, 1)
-        
-        form.addWidget(QLabel("→ Local/data:"), 17, 0)
-        self.infiltracoes_detalhe = QLineEdit()
-        self.infiltracoes_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.infiltracoes_detalhe, 17, 1)
-        
-        # Doenças do tecido conjuntivo
-        form.addWidget(QLabel("Doenças do tecido conjuntivo (Ehlers-Danlos/hipermobilidade):"), 18, 0)
-        self.tecido_conjuntivo_combo = QComboBox()
-        self.tecido_conjuntivo_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.tecido_conjuntivo_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.tecido_conjuntivo_combo, 18, 1)
-        
-        form.addWidget(QLabel("→ Detalhe:"), 19, 0)
-        self.tecido_conjuntivo_detalhe = QLineEdit()
-        self.tecido_conjuntivo_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.tecido_conjuntivo_detalhe, 19, 1)
-        
-        secao.layout().addLayout(form)
-        layout.addWidget(secao)
-    
-    def _criar_secao_dermatologia(self, layout):
-        """Cria seção 7: Dermatologia / Feridas (foco mesoterapia)"""
-        secao = self._criar_secao_profissional("🔬 7) Dermatologia / Feridas (foco mesoterapia)", "#607d8b")
-        form = QGridLayout()
-        
-        # Feridas/ulcerações/dermatites
-        form.addWidget(QLabel("Feridas/ulcerações/dermatites na zona a tratar:"), 0, 0)
-        self.feridas_combo = QComboBox()
-        self.feridas_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.feridas_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.feridas_combo, 0, 1)
-        
-        form.addWidget(QLabel("→ Local:"), 1, 0)
-        self.feridas_detalhe = QLineEdit()
-        self.feridas_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.feridas_detalhe, 1, 1)
-        
-        # Tendência a queloides
-        form.addWidget(QLabel("Tendência a queloides/cicatrização difícil:"), 2, 0)
-        self.queloides_combo = QComboBox()
-        self.queloides_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.queloides_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.queloides_combo, 2, 1)
-        
-        form.addWidget(QLabel("→ Detalhe:"), 3, 0)
-        self.queloides_detalhe = QLineEdit()
-        self.queloides_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.queloides_detalhe, 3, 1)
-        
-        # Infeções cutâneas ativas
-        form.addWidget(QLabel("Infeções cutâneas ativas (bact./fúng./herpéticas):"), 4, 0)
-        self.infecoes_cutaneas_combo = QComboBox()
-        self.infecoes_cutaneas_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.infecoes_cutaneas_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.infecoes_cutaneas_combo, 4, 1)
-        
-        form.addWidget(QLabel("→ Local:"), 5, 0)
-        self.infecoes_cutaneas_detalhe = QLineEdit()
-        self.infecoes_cutaneas_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.infecoes_cutaneas_detalhe, 5, 1)
-        
-        # Doenças hemorrágicas/plaquetopenia
-        form.addWidget(QLabel("Doenças hemorrágicas/plaquetopenia:"), 6, 0)
-        self.hemorragicas_combo = QComboBox()
-        self.hemorragicas_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.hemorragicas_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.hemorragicas_combo, 6, 1)
-        
-        form.addWidget(QLabel("→ Últimos exames:"), 7, 0)
-        self.hemorragicas_detalhe = QLineEdit()
-        self.hemorragicas_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.hemorragicas_detalhe, 7, 1)
-        
-        # Alergia a anestésicos locais
-        form.addWidget(QLabel("Alergia a anestésicos locais (ex.: lidocaína/prilocaína):"), 8, 0)
-        self.alergia_anestesicos_combo = QComboBox()
-        self.alergia_anestesicos_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.alergia_anestesicos_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.alergia_anestesicos_combo, 8, 1)
-        
-        form.addWidget(QLabel("→ Reação:"), 9, 0)
-        self.alergia_anestesicos_detalhe = QLineEdit()
-        self.alergia_anestesicos_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.alergia_anestesicos_detalhe, 9, 1)
-        
-        # Alergia a adesivos/latex/níquel
-        form.addWidget(QLabel("Alergia a adesivos/latex/níquel:"), 10, 0)
-        self.alergia_adesivos_combo = QComboBox()
-        self.alergia_adesivos_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.alergia_adesivos_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.alergia_adesivos_combo, 10, 1)
-        
-        form.addWidget(QLabel("→ Reação:"), 11, 0)
-        self.alergia_adesivos_detalhe = QLineEdit()
-        self.alergia_adesivos_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.alergia_adesivos_detalhe, 11, 1)
-        
-        secao.layout().addLayout(form)
-        layout.addWidget(secao)
-    
-    def _criar_secao_alergias(self, layout):
-        """Cria seção 8: Alergias / Intolerâncias (foco naturopatia)"""
-        secao = self._criar_secao_profissional("🌿 8) Alergias / Intolerâncias (foco naturopatia)", "#4caf50")
-        form = QGridLayout()
-        
-        # Medicamentos
-        form.addWidget(QLabel("Medicamentos:"), 0, 0)
-        self.alergias_medicamentos_combo = QComboBox()
-        self.alergias_medicamentos_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.alergias_medicamentos_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.alergias_medicamentos_combo, 0, 1)
-        
-        form.addWidget(QLabel("→ Quais e reação:"), 1, 0)
-        self.alergias_medicamentos_detalhe = QLineEdit()
-        self.alergias_medicamentos_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.alergias_medicamentos_detalhe, 1, 1)
-        
-        # Alimentos
-        form.addWidget(QLabel("Alimentos:"), 2, 0)
-        self.alergias_alimentos_combo = QComboBox()
-        self.alergias_alimentos_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.alergias_alimentos_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.alergias_alimentos_combo, 2, 1)
-        
-        form.addWidget(QLabel("→ Quais e reação:"), 3, 0)
-        self.alergias_alimentos_detalhe = QLineEdit()
-        self.alergias_alimentos_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.alergias_alimentos_detalhe, 3, 1)
-        
-        # Plantas/fitoterápicos/óleos essenciais
-        form.addWidget(QLabel("Plantas/fitoterápicos/óleos essenciais:"), 4, 0)
-        self.alergias_plantas_combo = QComboBox()
-        self.alergias_plantas_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.alergias_plantas_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.alergias_plantas_combo, 4, 1)
-        
-        form.addWidget(QLabel("→ Quais e reação:"), 5, 0)
-        self.alergias_plantas_detalhe = QLineEdit()
-        self.alergias_plantas_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.alergias_plantas_detalhe, 5, 1)
-        
-        # Homeopáticos/excipientes
-        form.addWidget(QLabel("Homeopáticos/excipientes (ex.: lactose):"), 6, 0)
-        self.alergias_homeopaticos_combo = QComboBox()
-        self.alergias_homeopaticos_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.alergias_homeopaticos_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.alergias_homeopaticos_combo, 6, 1)
-        
-        form.addWidget(QLabel("→ Quais e reação:"), 7, 0)
-        self.alergias_homeopaticos_detalhe = QLineEdit()
-        self.alergias_homeopaticos_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.alergias_homeopaticos_detalhe, 7, 1)
-        
-        # Intolerâncias
-        form.addWidget(QLabel("Intolerâncias (glúten, lactose, histamina, FODMAP):"), 8, 0)
-        self.intolerancias_combo = QComboBox()
-        self.intolerancias_combo.addItems(["Selecionar...", "Sim", "Não"])
-        self.intolerancias_combo.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.intolerancias_combo, 8, 1)
-        
-        form.addWidget(QLabel("→ Detalhe:"), 9, 0)
-        self.intolerancias_detalhe = QLineEdit()
-        self.intolerancias_detalhe.setStyleSheet(self._estilo_campo())
-        form.addWidget(self.intolerancias_detalhe, 9, 1)
-        
-        secao.layout().addLayout(form)
-        layout.addWidget(secao)
-    
-    def _conectar_sinais_alteracao(self):
-        """Conecta sinais para auto-save e atualização de progresso - VERSÃO SEGURA"""
-        try:
-            # Timer para auto-save
-            from PyQt6.QtCore import QTimer
-            self.auto_save_timer = QTimer()
-            self.auto_save_timer.timeout.connect(self._auto_save_safe)
-            self.auto_save_timer.setSingleShot(True)
-            
-            # Conectar apenas campos que sempre existem na versão compacta
-            campos_basicos = ['nome_edit', 'email', 'contacto_telem', 'profissao_edit', 'motivo_consulta']
-            
-            for campo_nome in campos_basicos:
-                if hasattr(self, campo_nome):
-                    campo = getattr(self, campo_nome)
-                    if hasattr(campo, 'textChanged'):
-                        campo.textChanged.connect(self._field_changed_safe)
-                    elif hasattr(campo, 'currentTextChanged'):
-                        campo.currentTextChanged.connect(self._field_changed_safe)
-            
-            print("✅ Sinais básicos conectados com sucesso")
-            
-        except Exception as e:
-            print(f"⚠️ Erro ao conectar sinais (não crítico): {e}")
-    
-    def _field_changed_safe(self):
-        """Triggered quando um campo é alterado - VERSÃO SEGURA"""
-        try:
-            # Marcar como alterado
-            self._alterado = True
-            
-            # Iniciar timer de auto-save (3 segundos de delay)
-            if hasattr(self, 'auto_save_timer'):
-                self.auto_save_timer.start(3000)
-            
-            # Atualizar progresso
-            self._atualizar_progresso()
-            
-        except Exception as e:
-            print(f"❌ Erro no field_changed (não crítico): {e}")
-    
-    def _auto_save_safe(self):
-        """Auto-save automático após alterações - VERSÃO SEGURA"""
-        try:
-            if getattr(self, '_alterado', False):
-                print("💾 Auto-save triggered...")
-                # Por enquanto só marcar como não alterado
-                self._alterado = False
-                
-        except Exception as e:
-            print(f"❌ Erro no auto-save (não crítico): {e}")
-    
-    def _conectar_combos_antigos(self):
-        """Método legado para conectar combos da versão completa"""
-        # Combos antigos da versão completa
-        combos = [
-            # Dermatologia / Feridas  
-            self.feridas_combo, self.queloides_combo, self.infecoes_cutaneas_combo,
-            self.hemorragicas_combo, self.alergia_anestesicos_combo, self.alergia_adesivos_combo,
-            
-            # Alergias / Intolerâncias
-            self.alergias_medicamentos_combo, self.alergias_alimentos_combo,
-            self.alergias_plantas_combo, self.alergias_homeopaticos_combo, self.intolerancias_combo,
-            
-            # Infecciosas / Imunológicas
-            self.autoimunes_combo, self.hiv_hepatites_combo, self.febre_perda_peso_combo,
-            
-            # Oncologia
-            self.cancro_combo, self.tratamento_oncologico_combo, self.linfedema_combo,
-            
-            # Saúde Reprodutiva
-            self.gravidez_combo, self.amamentacao_combo, self.gineco_urologicas_combo,
-            self.dispositivo_intrauterino_combo,
-            
-            # Cirurgias / Internamentos / Traumas
-            self.cirurgias_combo, self.internamentos_combo, self.acidentes_combo,
-            
-            # Implantes e Dispositivos
-            self.dispositivos_eletronicos_combo, self.implantes_metalicos_combo, self.tatuagens_combo,
-            
-            # Medicação e Suplementos
-            self.anticoagulantes_combo, self.imunossupressores_combo, self.antidiabeticos_combo,
-            self.psicotropicos_combo, self.fotossensibilizantes_combo, self.bifosfonatos_combo,
-            self.suplementos_combo, self.reacoes_previas_combo,
-            
-            # Estilo de Vida
-            self.tabaco_combo, self.alcool_combo, self.drogas_combo,
-            self.atividade_fisica_combo, self.sono_combo, self.stress_combo,
-            
-            # Exames
-            self.exames_combo,
-            
-            # Red Flags
-            self.dor_noturna_combo, self.defices_neurologicos_combo, self.incontinencia_combo,
-            self.febre_sem_causa_combo, self.perda_peso_combo,
-            
-            # Preferências / Limites
-            self.hvla_combo, self.mesoterapia_aceit_combo, self.terapias_freq_combo,
-            self.aversao_agulhas_combo,
-            
-            # Consentimentos
-            self.naturopatia_combo, self.osteopatia_combo, self.mesoterapia_consent_combo,
-            self.medicina_quantica_combo, self.cabeca_combo, self.ombro_combo,
-            self.anca_combo, self.palpacao_combo,
-        ]
-        
-        # Conectar todos os combos se existirem
-        try:
-            for combo in combos:
-                if hasattr(self, combo.__class__.__name__.lower()):
-                    combo.currentTextChanged.connect(self.on_dados_alterados)
-        except Exception as e:
-            print(f"⚠️ Erro ao conectar combos antigos: {e}")
-    
-    def conectar_sinais_versao_completa(self):
-        """Conecta sinais da versão completa (método legado)"""
-        pass  # Desabilitado para versão compacta
-    
-    
-    # === MÉTODOS DE NAVEGAÇÃO E UTILITÁRIOS ===
-    
-    def abrir_navegacao_rapida(self):
-        """Método órfão - implementação real está na linha 4132"""
-        pass
-    
-    def _criar_secao_profissional(self, titulo, cor):
-        """Cria uma seção com design profissional"""
-        secao = QGroupBox(titulo)
-        secao.setStyleSheet(f"""
-            QGroupBox {{
-                font-size: 16px;
-                font-weight: bold;
-                color: {cor};
-                border: 2px solid {cor};
-                border-radius: 12px;
-                padding-top: 15px;
-                margin-top: 10px;
-                background-color: #f8f9fa;
-            }}
-            QGroupBox::title {{
-                subcontrol-origin: margin;
-                left: 20px;
-                padding: 5px 15px;
-                background-color: white;
-                border-radius: 8px;
-            }}
-        """)
-        
-        layout = QVBoxLayout(secao)
-        layout.setSpacing(15)
-        layout.setContentsMargins(20, 20, 20, 20)
-        
-        return secao
-    
-    def _estilo_campo(self):
-        """Estilo para campos editáveis"""
-        return """
-            QLineEdit, QComboBox, QTextEdit {
-                padding: 8px 12px;
-                border: 2px solid #e9ecef;
-                border-radius: 6px;
-                font-size: 14px;
-                background-color: white;
-                min-height: 20px;
-            }
-            QComboBox {
-                min-width: 150px;
-                max-width: 200px;
-            }
-            QLineEdit:focus, QComboBox:focus, QTextEdit:focus {
-                border-color: #667eea;
-                outline: none;
-            }
-            QComboBox::drop-down {
-                border: none;
-                width: 25px;
-                border-left: 1px solid #e9ecef;
-            }
-            QComboBox::down-arrow {
-                image: none;
-                border-left: 4px solid transparent;
-                border-right: 4px solid transparent;
-                border-top: 6px solid #667eea;
-                margin: 2px;
-            }
-            QComboBox:hover {
-                border-color: #667eea;
-            }
-        """
-    
-    def _estilo_campo_readonly(self):
-        """Estilo para campos readonly"""
-        return """
-            QLineEdit {
-                padding: 10px;
-                border: 2px solid #dee2e6;
-                border-radius: 8px;
-                font-size: 14px;
-                background-color: #f8f9fa;
-                color: #6c757d;
-                font-weight: bold;
-            }
-        """
-
-    def _mostrar_explicacao_modalidade(self, modalidade):
-        """Mostra explicação detalhada sobre cada modalidade terapêutica"""
-        explicacoes = {
-            "naturopatia": {
-                "titulo": "🌿 Naturopatia / Fitoterapia / Suplementos",
-                "conteudo": """<b>NATUROPATIA</b> é um sistema de cuidados de saúde que utiliza métodos naturais para promover a capacidade de autocura do organismo.
-
-<b>Princípios fundamentais:</b>
-• Primum non nocere (primeiro não causar dano)
-• Vis medicatrix naturae (poder curativo da natureza)
-• Tolle causam (identificar e tratar as causas)
-• Docere (educar o paciente)
-
-<b>FITOTERAPIA</b> - Uso terapêutico de plantas medicinais:
-• Extratos padronizados e seguros
-• Baseada em evidência científica
-• Complementar à medicina convencional
-• Pode interagir com medicamentos
-
-<b>SUPLEMENTOS NUTRICIONAIS:</b>
-• Vitaminas, minerais e nutrientes essenciais
-• Correção de défices nutricionais
-• Apoio a funções fisiológicas específicas
-• Sempre com base em avaliação individual
-
-<b>Indicações principais:</b>
-• Desequilíbrios nutricionais
-• Suporte ao sistema imunitário
-• Gestão do stress e fadiga
-• Otimização da função digestiva
-• Apoio hormonal natural
-
-<b>Contraindicações:</b>
-• Alergias conhecidas a plantas específicas
-• Interações com medicações
-• Gravidez/amamentação (caso a caso)
-• Doenças autoimunes severas (avaliação)"""
-            },
-            
-            "osteopatia": {
-                "titulo": "🤲 Osteopatia / Técnicas Manuais",
-                "conteudo": """<b>OSTEOPATIA</b> é uma abordagem terapêutica manual que trata disfunções do sistema músculo-esquelético e suas repercussões na saúde global.
-
-<b>Princípios osteopáticos:</b>
-• O corpo é uma unidade funcional
-• A estrutura e função estão interrelacionadas
-• O corpo possui mecanismos de autorregulação
-• O movimento é vida
-
-<b>TÉCNICAS UTILIZADAS:</b>
-
-<b>1. Técnicas de Tecidos Moles:</b>
-• Massagem terapêutica profunda
-• Release miofascial
-• Técnicas de energia muscular
-• Stretching assistido
-
-<b>2. Técnicas Articulares:</b>
-• Mobilizações articulares suaves
-• Técnicas de baixa velocidade
-• Técnicas funcionais
-• Técnicas de equilíbrio
-
-<b>3. HVLA (High Velocity Low Amplitude):</b>
-• Técnicas de thrust específicas
-• "Crack" articular terapêutico
-• Restauração da mobilidade
-• <b>Sempre precedidas de avaliação rigorosa</b>
-
-<b>Indicações:</b>
-• Dores musculares e articulares
-• Limitação de mobilidade
-• Tensão e rigidez
-• Dores de cabeça tensionais
-• Disfunções posturais
-
-<b>Contraindicações absolutas HVLA:</b>
-• Osteoporose severa
-• Artrite reumatóide ativa
-• Tumores ósseos
-• Instabilidade articular
-• Pós-cirurgia recente
-• Infeções locais"""
-            },
-            
-            "mesoterapia": {
-                "titulo": "💉 Mesoterapia Homeopática",
-                "conteudo": """<b>MESOTERAPIA HOMEOPÁTICA</b> combina os princípios da homeopatia com a aplicação local através de microinjeções superficiais.
-
-<b>Fundamentos científicos:</b>
-• Estimulação de pontos específicos
-• Ação local e sistémica
-• Doses mínimas eficazes
-• Principio da similitude homeopática
-
-<b>TÉCNICA:</b>
-• Agulhas muito finas (30G/32G)
-• Injeções superficiais (2-3mm)
-• Volume mínimo (0,1-0,2ml por ponto)
-• Preparados homeopáticos estéreis
-• Protocolo asséptico rigoroso
-
-<b>PREPARADOS UTILIZADOS:</b>
-• Complexos homeopáticos específicos
-• Oligoelementos
-• Vitaminas homeopatizadas
-• Nosodes (quando indicado)
-• Organoterapia diluída
-
-<b>Indicações principais:</b>
-• Dores localizadas
-• Inflamações articulares
-• Contraturas musculares
-• Neuropatias periféricas
-• Disfunções circulatórias locais
-• Celulite e retenção
-• Cicatrizes patológicas
-
-<b>Vantagens:</b>
-• Mínimos efeitos secundários
-• Ação local dirigida
-• Compatible com outras terapias
-• Não interfere com medicação
-
-<b>Contraindicações:</b>
-• Fobia a agulhas
-• Distúrbios da coagulação
-• Infeções cutâneas locais
-• Gravidez (zonas específicas)
-• Alergia aos componentes"""
-            },
-            
-            "medicina_quantica": {
-                "titulo": "⚛️ Medicina Quântica / Frequencial",
-                "conteudo": """<b>MEDICINA QUÂNTICA</b> utiliza frequências específicas para promover o equilíbrio bioenergético e estimular os mecanismos naturais de autocura.
-
-<b>Base científica:</b>
-• Biofísica quântica aplicada
-• Ressonância biológica
-• Medicina vibracional
-• Campos electromagnéticos terapêuticos
-
-<b>TECNOLOGIAS UTILIZADAS:</b>
-
-<b>1. Análise Frequencial:</b>
-• Scanning bioenergético
-• Deteção de desequilíbrios
-• Mapeamento de frequências
-• Análise não-invasiva
-
-<b>2. Terapia Frequencial:</b>
-• Emissão de frequências específicas
-• Modulação de campos biológicos
-• Estimulação celular suave
-• Programas terapêuticos personalizados
-
-<b>3. Equipamentos Certificados:</b>
-• Dispositivos CE aprovados
-• Tecnologia alemã/suíça
-• Protocolos validados
-• Segurança garantida
-
-<b>Mecanismo de ação:</b>
-• Ressonância com frequências celulares
-• Estimulação da regeneração
-• Harmonização bioenergética
-• Ativação do potencial autocurativo
-
-<b>Indicações:</b>
-• Desequilíbrios energéticos
-• Fadiga crónica
-• Stress e ansiedade
-• Disfunções imunitárias
-• Dores crónicas
-• Distúrbios do sono
-• Suporte à recuperação
-
-<b>Contraindicações:</b>
-• Pacemaker ou dispositivos eletrónicos implantados
-• Gravidez (precaução)
-• Epilepsia não controlada
-• Distúrbios psiquiátricos severos
-
-<b>Sessão típica:</b>
-• Duração: 30-60 minutos
-• Indolor e não-invasiva
-• Relaxamento profundo
-• Sem efeitos secundários"""
-            }
-        }
-        
-        modalidade_info = explicacoes.get(modalidade, {})
-        if not modalidade_info:
-            return
-            
-        # Criar diálogo personalizado
-        from PyQt6.QtWidgets import QDialog, QVBoxLayout, QTextBrowser, QPushButton, QHBoxLayout
-        from PyQt6.QtCore import Qt
-        
-        dialog = QDialog(self)
-        dialog.setWindowTitle(modalidade_info["titulo"])
-        dialog.setModal(True)
-        dialog.resize(800, 600)
-        
-        # Estilo do diálogo
-        dialog.setStyleSheet("""
-            QDialog {
-                background-color: white;
-                border-radius: 12px;
-            }
-        """)
-        
-        layout = QVBoxLayout(dialog)
-        layout.setSpacing(20)
-        layout.setContentsMargins(30, 30, 30, 30)
-        
-        # Título
-        titulo = QLabel(modalidade_info["titulo"])
-        titulo.setStyleSheet("""
-            QLabel {
-                font-size: 24px;
-                font-weight: bold;
-                color: #2c3e50;
-                padding: 15px;
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #667eea, stop:1 #764ba2);
-                color: white;
-                border-radius: 8px;
-                margin-bottom: 10px;
-            }
-        """)
-        titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(titulo)
-        
-        # Conteúdo
-        conteudo = QTextBrowser()
-        conteudo.setHtml(f"""
-        <div style="font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #2c3e50;">
-            {modalidade_info["conteudo"]}
-        </div>
-        """)
-        conteudo.setStyleSheet("""
-            QTextBrowser {
-                background-color: #f8f9fa;
-                border: 2px solid #e9ecef;
-                border-radius: 8px;
-                padding: 20px;
-                font-size: 14px;
-            }
-        """)
-        layout.addWidget(conteudo)
-        
-        # Botões
-        botoes_layout = QHBoxLayout()
-        botoes_layout.addStretch()
-        
-        btn_fechar = QPushButton("✅ Compreendi")
-        btn_fechar.setStyleSheet("""
-            QPushButton {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #667eea, stop:1 #764ba2);
-                color: white;
-                border: none;
-                padding: 12px 30px;
-                font-size: 16px;
-                font-weight: bold;
-                border-radius: 8px;
-                min-width: 150px;
-            }
-            QPushButton:hover {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #5a6fd8, stop:1 #6a4c93);
-            }
-            QPushButton:pressed {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #4c63d2, stop:1 #5a4280);
-            }
-        """)
-        btn_fechar.clicked.connect(dialog.accept)
-        botoes_layout.addWidget(btn_fechar)
-        
-        layout.addLayout(botoes_layout)
-        
-        # Mostrar diálogo
-        dialog.exec()
-    
-    def _validar_email(self, email):
-        """Valida formato básico de email"""
-        import re
-        pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-        return re.match(pattern, email) is not None
-    
-    def _validar_telemovel(self, telemovel):
-        """Valida formato básico de telemóvel português"""
-        import re
-        # Remover espaços e caracteres especiais
-        clean_number = re.sub(r'[^\d+]', '', telemovel)
-        
-        # Padrões aceites:
-        # 9xxxxxxxx (9 dígitos começando por 9)
-        # +3519xxxxxxxx (internacional)
-        # 2xxxxxxxx (fixo Lisboa/Porto)
-        patterns = [
-            r'^9\d{8}$',              # 912345678
-            r'^\+3519\d{8}$',         # +351912345678
-            r'^2[1-9]\d{7}$'          # 212345678 (fixo)
-        ]
-        
-        return any(re.match(pattern, clean_number) for pattern in patterns)
-    
-    def set_paciente_data(self, dados):
-        """Define dados do paciente"""
-        self.paciente_data = dados
-        
-        # Auto-povoar campos
-        if dados:
-            self.nome_edit.setText(dados.get('nome', ''))
-            self.data_nasc_edit.setText(dados.get('data_nascimento', ''))
-    
-    def _criar_area_acoes(self):
-        """Área de ações com botões profissionais"""
-        frame = QFrame()
-        frame.setStyleSheet("""
-            QFrame {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                           stop:0 #f8f9fa, stop:1 #e9ecef);
-                border: 1px solid #dee2e6;
-                border-radius: 15px;
-                padding: 20px;
-                margin-top: 10px;
-            }
-        """)
-        
-        layout = QHBoxLayout(frame)
-        layout.setSpacing(20)
-        
-        # Botão Assinar e Guardar
-        btn_assinar = BiodeskUIKit.create_primary_button("✍️ Assinar e Guardar")
-        btn_assinar.setStyleSheet(btn_assinar.styleSheet() + """
-            QPushButton {
-                font-size: 16px;
-                padding: 15px 30px;
-                min-width: 200px;
-            }
-        """)
         btn_assinar.clicked.connect(self.assinar_e_guardar)
         layout.addWidget(btn_assinar)
         
         # Botão Limpar
         btn_limpar = BiodeskUIKit.create_neutral_button("🗑️ Limpar Formulário")
-        btn_limpar.setStyleSheet(btn_limpar.styleSheet() + """
-            QPushButton {
-                font-size: 16px;
-                padding: 15px 30px;
-                min-width: 160px;
-            }
-        """)
+        
         btn_limpar.clicked.connect(self.limpar_formulario)
         layout.addWidget(btn_limpar)
         
@@ -3988,29 +2531,11 @@ class DeclaracaoSaudeWidget(QWidget):
             botoes_layout = QHBoxLayout()
             
             btn_ir = QPushButton("🎯 Ir para Seção")
-            btn_ir.setStyleSheet("""
-                QPushButton {
-                    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, 
-                               stop:0 #4CAF50, stop:1 #45a049);
-                    color: white; border: none; padding: 10px 20px;
-                    font-size: 13px; font-weight: bold; border-radius: 6px;
-                }
-                QPushButton:hover {
-                    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, 
-                               stop:0 #45a049, stop:1 #3d8b40);
-                }
-            """)
+            
             btn_ir.clicked.connect(lambda: self._navegar_para_secao(lista.currentRow(), dialog))
             
             btn_cancelar = QPushButton("❌ Cancelar")
-            btn_cancelar.setStyleSheet("""
-                QPushButton {
-                    background: transparent; color: #6c757d;
-                    border: 2px solid #6c757d; padding: 10px 20px;
-                    font-size: 13px; font-weight: bold; border-radius: 6px;
-                }
-                QPushButton:hover { background-color: #6c757d; color: white; }
-            """)
+            
             btn_cancelar.clicked.connect(dialog.reject)
             
             botoes_layout.addWidget(btn_ir)
@@ -5147,9 +3672,27 @@ class DeclaracaoSaudeWidget(QWidget):
         
         # Naturopatia
         naturo_layout = QHBoxLayout()
-        naturo_info_btn = QPushButton("ℹ️")
-        naturo_info_btn.setMaximumWidth(30)
-        naturo_info_btn.setStyleSheet("background: #2196f3; color: white; border-radius: 15px; font-weight: bold;")
+        # BOTÃO MELHORADO: Mais informativo e intuitivo
+        naturo_info_btn = QPushButton("� Ler")
+        naturo_info_btn.setMinimumWidth(140)
+        naturo_info_btn.setMaximumWidth(140)
+        naturo_info_btn.setToolTip("Clique para ler o consentimento informado sobre naturopatia, fitoterapia e suplementação")
+        naturo_info_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #e8f5e8;
+                color: #2e7d32;
+                border: 2px solid #a5d6a7;
+                border-radius: 6px;
+                padding: 8px 12px;
+                font-size: 12px;
+                font-weight: 600;
+            }
+            QPushButton:hover {
+                background-color: #2e7d32;
+                color: white;
+                border-color: #2e7d32;
+            }
+        """)
         naturo_info_btn.clicked.connect(lambda: self._mostrar_info_naturopatia())
         
         self.naturopatia_combo = QComboBox()
@@ -5166,9 +3709,27 @@ class DeclaracaoSaudeWidget(QWidget):
         
         # Osteopatia
         osteo_layout = QHBoxLayout()
-        osteo_info_btn = QPushButton("ℹ️")
-        osteo_info_btn.setMaximumWidth(30)
-        osteo_info_btn.setStyleSheet("background: #ff9800; color: white; border-radius: 15px; font-weight: bold;")
+        # BOTÃO MELHORADO: Mais informativo e intuitivo
+        osteo_info_btn = QPushButton("� Ler")
+        osteo_info_btn.setMinimumWidth(140)
+        osteo_info_btn.setMaximumWidth(140)
+        osteo_info_btn.setToolTip("Clique para ler o consentimento informado sobre osteopatia e técnicas manuais")
+        osteo_info_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #fff3e0;
+                color: #f57c00;
+                border: 2px solid #ffcc02;
+                border-radius: 6px;
+                padding: 8px 12px;
+                font-size: 12px;
+                font-weight: 600;
+            }
+            QPushButton:hover {
+                background-color: #f57c00;
+                color: white;
+                border-color: #f57c00;
+            }
+        """)
         osteo_info_btn.clicked.connect(lambda: self._mostrar_info_osteopatia())
         
         self.osteopatia_combo = QComboBox()
@@ -5185,9 +3746,27 @@ class DeclaracaoSaudeWidget(QWidget):
         
         # Mesoterapia
         meso_layout = QHBoxLayout()
-        meso_info_btn = QPushButton("ℹ️")
-        meso_info_btn.setMaximumWidth(30)
-        meso_info_btn.setStyleSheet("background: #4caf50; color: white; border-radius: 15px; font-weight: bold;")
+        # BOTÃO MELHORADO: Mais informativo e intuitivo
+        meso_info_btn = QPushButton("� Ler")
+        meso_info_btn.setMinimumWidth(140)
+        meso_info_btn.setMaximumWidth(140)
+        meso_info_btn.setToolTip("Clique para ler o consentimento informado sobre mesoterapia homeopática")
+        meso_info_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #fce4ec;
+                color: #c2185b;
+                border: 2px solid #f8bbd9;
+                border-radius: 6px;
+                padding: 8px 12px;
+                font-size: 12px;
+                font-weight: 600;
+            }
+            QPushButton:hover {
+                background-color: #c2185b;
+                color: white;
+                border-color: #c2185b;
+            }
+        """)
         meso_info_btn.clicked.connect(lambda: self._mostrar_info_mesoterapia())
         
         self.mesoterapia_combo = QComboBox()
@@ -5204,9 +3783,27 @@ class DeclaracaoSaudeWidget(QWidget):
         
         # Medicina quântica
         quantica_layout = QHBoxLayout()
-        quantica_info_btn = QPushButton("ℹ️")
-        quantica_info_btn.setMaximumWidth(30)
-        quantica_info_btn.setStyleSheet("background: #9c27b0; color: white; border-radius: 15px; font-weight: bold;")
+        # BOTÃO MELHORADO: Mais informativo e intuitivo
+        quantica_info_btn = QPushButton("� Ler")
+        quantica_info_btn.setMinimumWidth(140)
+        quantica_info_btn.setMaximumWidth(140)
+        quantica_info_btn.setToolTip("Clique para ler o consentimento informado sobre medicina quântica e frequencial")
+        quantica_info_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #f3e5f5;
+                color: #7b1fa2;
+                border: 2px solid #ce93d8;
+                border-radius: 6px;
+                padding: 8px 12px;
+                font-size: 12px;
+                font-weight: 600;
+            }
+            QPushButton:hover {
+                background-color: #7b1fa2;
+                color: white;
+                border-color: #7b1fa2;
+            }
+        """)
         quantica_info_btn.clicked.connect(lambda: self._mostrar_info_medicina_quantica())
         
         self.medicina_quantica_combo = QComboBox()

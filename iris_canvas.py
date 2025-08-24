@@ -18,11 +18,6 @@ try:
 except ImportError:
     IrisAnalysisConfig = None
 
-from biodesk_styles import (
-    apply_primary_button_style, apply_secondary_button_style,
-    apply_warning_button_style, apply_info_button_style, apply_purple_button_style,
-    BiodeskButtonThemes, apply_biodesk_button_style, force_button_reset_and_style
-)
 from biodesk_ui_kit import BiodeskUIKit
 
 # --- Função de morphing para converter pontos polares normalizados em coordenadas no canvas ---
@@ -159,7 +154,7 @@ class SinalAnalysisPopup(QDialog):
         button_layout = QHBoxLayout()
         
         self.close_button = QPushButton("Fechar")
-        apply_secondary_button_style(self.close_button)  # Cinza Biodesk
+        # ✨ Estilo aplicado automaticamente pelo BiodeskStyleManager
         self.close_button.clicked.connect(self.close)
         button_layout.addWidget(self.close_button)
         
@@ -714,42 +709,42 @@ class IrisCanvas(QWidget):
             toolbar_layout.setContentsMargins(5, 2, 5, 2)  # Margens reduzidas
             toolbar_layout.setSpacing(8)  # Espaçamento reduzido
 
-            # Botão para calibração - AZUL BIODESK (FORÇA BRUTA)
+            # Botão para calibração - INFO (azul) detectado automaticamente
             self.btn_calibracao = QPushButton("Calibração: OFF")
             self.btn_calibracao.setCheckable(True)
             self.btn_calibracao.setChecked(False)
-            force_button_reset_and_style(self.btn_calibracao, BiodeskButtonThemes.INFO, "normal")
+            # ✨ Estilo aplicado automaticamente pelo BiodeskStyleManager (tema INFO)
             self.btn_calibracao.setToolTip("Ativar/desativar modo de calibração para ajustar centro e raios da íris")
             toolbar_layout.addWidget(self.btn_calibracao)
 
-            # Botão para ajuste fino (morphing) - ROSA/MAGENTA BIODESK (FORÇA BRUTA)
+            # Botão para ajuste fino (morphing) - PRIMARY (cor principal) detectado automaticamente  
             self.btn_ajuste_fino = QPushButton("Ajuste Fino: OFF")
             self.btn_ajuste_fino.setCheckable(True)
             self.btn_ajuste_fino.setChecked(False)
-            force_button_reset_and_style(self.btn_ajuste_fino, "#e91e63", "normal")
+            # ✨ Estilo aplicado automaticamente pelo BiodeskStyleManager (tema PRIMARY)
             self.btn_ajuste_fino.setToolTip("Ativar/desativar ajuste fino (morphing) para deformar íris e pupila")
             toolbar_layout.addWidget(self.btn_ajuste_fino)
 
-            # Botões de zoom - AMARELO BIODESK (FORÇA BRUTA)
+            # Botões de zoom - WARNING (amarelo) detectado automaticamente
             self.btn_zoom_in = QPushButton("🔍+")
             self.btn_zoom_in.setToolTip("Ampliar imagem")
-            force_button_reset_and_style(self.btn_zoom_in, BiodeskButtonThemes.WARNING, "normal")
+            # ✨ Estilo aplicado automaticamente pelo BiodeskStyleManager (tema WARNING)
             toolbar_layout.addWidget(self.btn_zoom_in)
 
             self.btn_zoom_out = QPushButton("🔍-")
             self.btn_zoom_out.setToolTip("Reduzir imagem")
-            force_button_reset_and_style(self.btn_zoom_out, BiodeskButtonThemes.WARNING, "normal")
+            # ✨ Estilo aplicado automaticamente pelo BiodeskStyleManager (tema WARNING)
             toolbar_layout.addWidget(self.btn_zoom_out)
 
             self.btn_zoom_fit = QPushButton("📐")
             self.btn_zoom_fit.setToolTip("Ajustar imagem à janela")
-            force_button_reset_and_style(self.btn_zoom_fit, BiodeskButtonThemes.PURPLE, "normal")
+            # ✨ Estilo aplicado automaticamente pelo BiodeskStyleManager (tema PURPLE)
             toolbar_layout.addWidget(self.btn_zoom_fit)
 
-            # Botão para ocultar/mostrar mapa - CINZA BIODESK (FORÇA BRUTA)
+            # Botão para ocultar/mostrar mapa - SECONDARY (cinza) detectado automaticamente
             self.btn_ocultar_mapa = QPushButton("👁️ Ocultar Mapa")
             self.btn_ocultar_mapa.setToolTip("Ocultar/mostrar o mapa da íris e todos os overlays")
-            force_button_reset_and_style(self.btn_ocultar_mapa, BiodeskButtonThemes.SECONDARY, "normal")
+            # ✨ Estilo aplicado automaticamente pelo BiodeskStyleManager (tema SECONDARY)
             toolbar_layout.addWidget(self.btn_ocultar_mapa)
 
             # Espaço flexível à direita

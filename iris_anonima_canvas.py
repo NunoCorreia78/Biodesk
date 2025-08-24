@@ -25,36 +25,12 @@ class IrisAnonimaCanvas(QWidget):
         
         self.setup_ui()
 
-    def _style_modern_button(self, button, pastel_color="#a8e6cf"):
-        """ESTILO INVERTIDO: Cores pastéis normais → Cinza no hover (como templates)"""
-        
-        button.setFixedHeight(45)
-        button.setStyleSheet(f"""
-            QPushButton {{
-                font-size: 13px !important;
-                font-weight: 600 !important;
-                border: none !important;
-                border-radius: 8px !important;
-                padding: 10px 15px !important;
-                background-color: {pastel_color} !important;
-                color: #2c3e50 !important;
-                text-align: center !important;
-                min-height: 45px !important;
-                max-height: 45px !important;
-            }}
-            QPushButton:hover {{
-                background-color: #95a5a6 !important;
-                color: white !important;
-                border: none !important;
-            }}
-            QPushButton:pressed {{
-                background-color: #7f8c8d !important;
-                color: white !important;
-                border: none !important;
-            }}
-        """)
-        
-        print(f"🎨 ESTILO PASTEL aplicado: {button.text()} (normal: {pastel_color}, hover: cinza)")
+    def apply_pastel_style(self, button, pastel_color):
+        """Aplica estilo pastel suave aos botões - DESATIVADO para usar BiodeskStyleManager"""
+        # COMENTADO: Deixar o BiodeskStyleManager aplicar os estilos uniformes
+        # button.setFixedHeight(45)
+        # print(f"🎨 BiodeskStyleManager controla: {button.text()}")
+        pass
 
     def setup_ui(self):
         """Configura a interface do usuário"""
@@ -71,7 +47,8 @@ class IrisAnonimaCanvas(QWidget):
         # Botão principal à esquerda - Capturar imagem (função primária)
         self.btn_capturar = QPushButton("📷 Capturar Imagem da Íris")
         self.btn_capturar.setMinimumSize(200, 45)
-        self._style_modern_button(self.btn_capturar, "#a8e6cf")  # Verde pastel suave
+        # DESATIVADO: Deixar BiodeskStyleManager aplicar estilos uniformes
+        # self._style_modern_button(self.btn_capturar, "#a8e6cf")  # Verde pastel suave
         self.btn_capturar.setToolTip("Abrir câmera para capturar imagem da íris em tempo real")
         btn_layout.addWidget(self.btn_capturar)
         
@@ -82,7 +59,8 @@ class IrisAnonimaCanvas(QWidget):
         self.btn_calibracao = QPushButton("Calibração: OFF")
         self.btn_calibracao.setCheckable(True)
         self.btn_calibracao.setChecked(False)
-        self._style_modern_button(self.btn_calibracao, "#dceefb")  # Azul pastel suave
+        # DESATIVADO: Deixar BiodeskStyleManager aplicar estilos uniformes
+        # self._style_modern_button(self.btn_calibracao, "#dceefb")  # Azul pastel suave
         self.btn_calibracao.setToolTip("Ativar/desativar modo de calibração para ajustar centro e raios da íris")
         btn_layout.addWidget(self.btn_calibracao)
         
@@ -90,30 +68,35 @@ class IrisAnonimaCanvas(QWidget):
         self.btn_ajuste_fino = QPushButton("Ajuste Fino: OFF")
         self.btn_ajuste_fino.setCheckable(True)
         self.btn_ajuste_fino.setChecked(False)
-        self._style_modern_button(self.btn_ajuste_fino, "#ffd3e1")  # Rosa pastel suave
+        # DESATIVADO: Deixar BiodeskStyleManager aplicar estilos uniformes
+        # self._style_modern_button(self.btn_ajuste_fino, "#ffd3e1")  # Rosa pastel suave
         self.btn_ajuste_fino.setToolTip("Ativar/desativar ajuste fino (morphing) para deformar íris e pupila")
         btn_layout.addWidget(self.btn_ajuste_fino)
         
         # Botões de zoom
         self.btn_zoom_in = QPushButton("🔍+")
         self.btn_zoom_in.setToolTip("Ampliar imagem")
-        self._style_modern_button(self.btn_zoom_in, "#ffeaa7")  # Amarelo pastel suave
+        # DESATIVADO: Deixar BiodeskStyleManager aplicar estilos uniformes
+        # self._style_modern_button(self.btn_zoom_in, "#ffeaa7")  # Amarelo pastel suave
         btn_layout.addWidget(self.btn_zoom_in)
         
         self.btn_zoom_out = QPushButton("🔍-")
         self.btn_zoom_out.setToolTip("Reduzir imagem")
-        self._style_modern_button(self.btn_zoom_out, "#ffeaa7")  # Amarelo pastel suave
+        # DESATIVADO: Deixar BiodeskStyleManager aplicar estilos uniformes
+        # self._style_modern_button(self.btn_zoom_out, "#ffeaa7")  # Amarelo pastel suave
         btn_layout.addWidget(self.btn_zoom_out)
         
         self.btn_zoom_fit = QPushButton("📐")
         self.btn_zoom_fit.setToolTip("Ajustar imagem à janela")
-        self._style_modern_button(self.btn_zoom_fit, "#e6d7ff")  # Roxo pastel suave
+        # DESATIVADO: Deixar BiodeskStyleManager aplicar estilos uniformes
+        # self._style_modern_button(self.btn_zoom_fit, "#e6d7ff")  # Roxo pastel suave
         btn_layout.addWidget(self.btn_zoom_fit)
         
         # Botão para ocultar/mostrar mapa
         self.btn_ocultar_mapa = QPushButton("👁️ Ocultar Mapa")
         self.btn_ocultar_mapa.setToolTip("Ocultar/mostrar o mapa da íris e todos os overlays")
-        self._style_modern_button(self.btn_ocultar_mapa, "#f8f9fa")  # Cinza muito claro
+        # DESATIVADO: Deixar BiodeskStyleManager aplicar estilos uniformes
+        # self._style_modern_button(self.btn_ocultar_mapa, "#f8f9fa")  # Cinza muito claro
         btn_layout.addWidget(self.btn_ocultar_mapa)
         
         # Espaço flexível à direita

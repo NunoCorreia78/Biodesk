@@ -73,23 +73,8 @@ class DadosPessoaisWidget(QWidget):
     def init_ui(self):
         """Inicializa interface otimizada dos dados pessoais"""
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(25, 25, 25, 25)
-        layout.setSpacing(25)
-        
-        # Título da seção
-        titulo = QLabel("👤 Dados Pessoais")
-        titulo.setStyleSheet(f"""
-            QLabel {{
-                font-size: {BiodeskUIKit.FONTS['size_xl']};
-                font-weight: bold;
-                color: {BiodeskUIKit.COLORS['primary']};
-                padding: 10px;
-                background: {BiodeskUIKit.COLORS['background_light']};
-                border-radius: 8px;
-                border-left: 4px solid {BiodeskUIKit.COLORS['primary']};
-            }}
-        """)
-        layout.addWidget(titulo)
+        layout.setContentsMargins(25, 15, 25, 25)  # Menos margem superior para ganhar espaço
+        layout.setSpacing(20)  # Espaçamento reduzido para aproveitar melhor o espaço
         
         # Grid com larguras fixas para distâncias uniformes
         self.criar_grid_principal(layout)
@@ -102,8 +87,8 @@ class DadosPessoaisWidget(QWidget):
     def criar_grid_principal(self, parent_layout):
         """Cria o grid principal com campos de dados pessoais"""
         grid = QGridLayout()
-        grid.setHorizontalSpacing(15)  # Reduzir espaçamento horizontal
-        grid.setVerticalSpacing(18)
+        grid.setHorizontalSpacing(20)  # Espaçamento horizontal harmonioso
+        grid.setVerticalSpacing(25)    # Espaçamento vertical harmonioso
         
         # Larguras fixas otimizadas para melhor alinhamento
         grid.setColumnMinimumWidth(0, 140)  # Labels esquerda: reduzir para 140px
@@ -160,6 +145,7 @@ class DadosPessoaisWidget(QWidget):
         
         self.nasc_edit = ModernDateWidget()
         self.nasc_edit.setDate(QDate(1990, 1, 1))
+        self.nasc_edit.setMinimumHeight(44)  # Ajuste simples da altura do campo da data
         self.aplicar_estilo_widget(self.nasc_edit)
         grid.addWidget(self.nasc_edit, linha, 1)
         
@@ -171,6 +157,7 @@ class DadosPessoaisWidget(QWidget):
             items=['', 'Masculino', 'Feminino', 'Outro'],
             max_width=130
         )
+        self.sexo_combo.setMinimumHeight(44)  # Harmonização da altura
         grid.addWidget(self.sexo_combo, linha, 3)
         
         # Estado civil
@@ -181,6 +168,7 @@ class DadosPessoaisWidget(QWidget):
             items=['', 'Solteiro(a)', 'Casado(a)', 'Divorciado(a)', 'Viúvo(a)', 'União de facto'],
             max_width=150
         )
+        self.estado_civil_combo.setMinimumHeight(44)  # Harmonização da altura
         grid.addWidget(self.estado_civil_combo, linha, 5)
     
     def criar_linha_dados_base(self, grid, linha):
@@ -248,6 +236,7 @@ class DadosPessoaisWidget(QWidget):
                    'Samora Correia', 'Cliniprata', 'Spazzio Vita', 'Online', 'Outro'],
             max_width=200
         )
+        self.local_combo.setMinimumHeight(44)  # Harmonização da altura
         grid.addWidget(self.local_combo, linha, 1, 1, 2)  # Span 2 colunas
     
     def criar_linha_origem(self, grid, linha):
@@ -261,6 +250,7 @@ class DadosPessoaisWidget(QWidget):
                    'Folheto', 'Evento', 'Amigo/Familiar', 'Outro'],
             max_width=180
         )
+        self.conheceu_combo.setMinimumHeight(44)  # Harmonização da altura
         grid.addWidget(self.conheceu_combo, linha, 1)
         
         # Referenciado por
@@ -359,13 +349,13 @@ class DadosPessoaisWidget(QWidget):
         cor_borda = BiodeskUIKit.COLORS['border_light']
         
         estilo_base = f"""
-            padding: 6px 8px;
+            padding: 10px 12px;
             font-size: {BiodeskUIKit.FONTS['size_normal']};
             border: 2px solid {cor_borda};
             border-radius: 5px;
             background: {BiodeskUIKit.COLORS['white']};
-            min-height: 14px;
-            max-height: 32px;
+            min-height: 20px;
+            max-height: 44px;
         """
         
         if isinstance(widget, QLineEdit):

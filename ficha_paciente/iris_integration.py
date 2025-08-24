@@ -30,11 +30,6 @@ from PyQt6.QtGui import *
 from PyQt6.QtWidgets import QMessageBox  # Para StandardButton
 from biodesk_dialogs import BiodeskMessageBox
 
-from biodesk_styles import (
-    apply_primary_button_style, apply_secondary_button_style,
-    apply_danger_button_style, apply_warning_button_style, apply_info_button_style,
-    force_button_reset_and_style, BiodeskButtonThemes
-)
 from biodesk_ui_kit import BiodeskUIKit
 from data_cache import DataCache
 
@@ -120,12 +115,12 @@ class IrisIntegrationWidget(QWidget):
         
         self.btn_adicionar_iris = QPushButton("📷")
         self.btn_adicionar_iris.setToolTip("Adicionar nova íris")
-        force_button_reset_and_style(self.btn_adicionar_iris, BiodeskButtonThemes.PRIMARY, "normal")
+        # ✨ Estilo aplicado automaticamente pelo BiodeskStyleManager (tema PRIMARY)
         self.btn_adicionar_iris.clicked.connect(self.adicionar_nova_iris)
         
         self.btn_remover_iris = QPushButton("🗑️")
         self.btn_remover_iris.setToolTip("Remover íris selecionada")
-        force_button_reset_and_style(self.btn_remover_iris, BiodeskButtonThemes.DANGER, "normal")
+        # ✨ Estilo aplicado automaticamente pelo BiodeskStyleManager (tema DANGER)
         self.btn_remover_iris.clicked.connect(self.apagar_imagem_selecionada)
         
         botoes_layout.addWidget(self.btn_adicionar_iris)
@@ -261,17 +256,17 @@ class IrisIntegrationWidget(QWidget):
             self.notas_iris.setMinimumHeight(350)
             notas_layout.addWidget(self.notas_iris, 1)
         
-        # Botões de ação (FORÇA BRUTA)
+        # Botões de ação - estilos aplicados automaticamente
         self.btn_exportar_notas = QPushButton("📋 Histórico")
-        force_button_reset_and_style(self.btn_exportar_notas, BiodeskButtonThemes.INFO, "normal")
+        # ✨ Estilo aplicado automaticamente pelo BiodeskStyleManager (tema INFO)
         self.btn_exportar_notas.clicked.connect(self.exportar_notas_iris)
         
         self.btn_exportar_terapia = QPushButton("⚡ Terapia")
-        force_button_reset_and_style(self.btn_exportar_terapia, BiodeskButtonThemes.WARNING, "normal")
+        # ✨ Estilo aplicado automaticamente pelo BiodeskStyleManager (tema WARNING)
         self.btn_exportar_terapia.clicked.connect(self.exportar_para_terapia_quantica)
         
         btn_limpar_notas = QPushButton("🧹 Limpar")
-        force_button_reset_and_style(btn_limpar_notas, BiodeskButtonThemes.DANGER, "normal")
+        # ✨ Estilo aplicado automaticamente pelo BiodeskStyleManager (tema DANGER)
         btn_limpar_notas.clicked.connect(self.limpar_notas_iris)
         
         notas_layout.addWidget(self.btn_exportar_notas)
@@ -569,11 +564,11 @@ class IrisIntegrationWidget(QWidget):
                     botoes_layout = QHBoxLayout()
                     
                     self.btn_capturar = QPushButton("📸 Capturar")
-                    apply_primary_button_style(self.btn_capturar, "normal")  # Altura uniforme 32px
+                    # ✨ Estilo aplicado automaticamente pelo BiodeskStyleManager (tema PRIMARY)
                     self.btn_capturar.clicked.connect(self.capturar_imagem)
                     
                     self.btn_cancelar = QPushButton("❌ Cancelar")
-                    apply_secondary_button_style(self.btn_cancelar, "normal")  # Altura uniforme 32px
+                    # ✨ Estilo aplicado automaticamente pelo BiodeskStyleManager (tema SECONDARY)
                     self.btn_cancelar.clicked.connect(self.reject)
                     
                     botoes_layout.addWidget(self.btn_capturar)
