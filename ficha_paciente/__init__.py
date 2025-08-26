@@ -1,26 +1,25 @@
 """
-Biodesk - Módulo Ficha Paciente Refatorizado
-============================================
+📋 FICHA PACIENTE - MÓDULO PRINCIPAL
+===================================
 
-Este módulo contém a versão refatorizada da ficha do paciente,
-dividida em componentes especializados para melhor performance e manutenção.
+Este módulo centraliza todas as funcionalidades relacionadas com a ficha de paciente.
+Mantém a estrutura original de duas abas principais:
 
-Estrutura:
-- main_window.py: Janela principal e coordenação
-- dados_pessoais.py: Gestão de dados pessoais ✅ IMPLEMENTADO
-- historico_clinico.py: Histórico clínico e anotações
-- templates_manager.py: Sistema de templates e prescrições  
-- comunicacao_manager.py: Centro de comunicação e emails
-- iris_integration.py: Integração com análise de íris
-- signature_widget.py: Assinaturas digitais
+ESTRUTURA ORIGINAL:
+📋 DOCUMENTAÇÃO CLÍNICA:
+   - 👤 Dados Pessoais
+   - 🩺 Declaração de Saúde  
+   - 📁 Gestão de Documentos
 
-Performance Esperada:
-- Startup: 75% mais rápido (~2-3s vs 8-12s)
-- Memory: 47% menos uso (~80MB vs 150MB)
-- Load Patient: 85% mais rápido (~0.5s vs 3-5s)
+🩺 ÁREA CLÍNICA:
+   - 📝 Histórico Clínico
+   - 👁️ Análise de Íris
+   - 📋 Modelos de Prescrição (Templates)
+   - 📧 Email
+   - ⚡ Terapia Quântica (futuro)
 """
 
-# Importar a classe principal do arquivo ficha_paciente.py
+# Importar a classe principal do arquivo ficha_paciente.py (ESTRUTURA ORIGINAL)
 import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
@@ -32,19 +31,50 @@ spec = importlib.util.spec_from_file_location("ficha_paciente_module",
 ficha_paciente_module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(ficha_paciente_module)
 
-# Expor a classe principal
+# Expor a classe principal ORIGINAL
 FichaPaciente = ficha_paciente_module.FichaPaciente
 
 __all__ = ['FichaPaciente']
 
-# Importações principais
+# Importações dos widgets especializados (mantidas)
 from .dados_pessoais import DadosPessoaisWidget
 from .historico_clinico import HistoricoClinicoWidget
 from .templates_manager import TemplatesManagerWidget
 from .comunicacao_manager import ComunicacaoManagerWidget
 
 # Importação principal para compatibilidade (quando implementado)
-# from .main_window import FichaPacienteRefatorizada as FichaPaciente
+try:
+    from .gestao_documentos import GestaoDocumentosWidget
+    __all__.append('GestaoDocumentosWidget')
+except ImportError:
+    pass
 
-__all__ = ['DadosPessoaisWidget', 'HistoricoClinicoWidget', 'TemplatesManagerWidget', 'ComunicacaoManagerWidget']  # 'FichaPaciente' quando implementado
-__version__ = '2.0.0'
+try:
+    from .declaracao_saude import DeclaracaoSaudeWidget
+    __all__.append('DeclaracaoSaudeWidget')
+except ImportError:
+    pass
+
+try:
+    from .pesquisa_pacientes import PesquisaPacientesManager
+    __all__.append('PesquisaPacientesManager')
+except ImportError:
+    pass
+
+# Atualizar exportações
+__all__.extend([
+    'DadosPessoaisWidget',
+    'HistoricoClinicoWidget', 
+    'TemplatesManagerWidget',
+    'ComunicacaoManagerWidget'
+])
+
+# MANTER ButtonManager disponível para uso futuro (sem interferir na estrutura)
+try:
+    from .core.button_manager import ButtonManager
+    __all__.append('ButtonManager')
+except ImportError:
+    # ButtonManager é opcional
+    pass
+
+__version__ = '2.0.1'  # Estrutura original restaurada

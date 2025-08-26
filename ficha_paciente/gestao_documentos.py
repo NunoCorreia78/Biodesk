@@ -20,7 +20,16 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, pyqtSignal, QTimer, QThread, QObject, pyqtSlot
 from PyQt6.QtGui import QIcon, QFont, QPixmap, QPainter
 
-# Imports locais
+# ✅ SISTEMA NOVO: BiodeskStyles v2.0 - Estilos centralizados
+try:
+    from biodesk_styles import BiodeskStyles, DialogStyles, ButtonType
+    BIODESK_STYLES_AVAILABLE = True
+    print("✅ BiodeskStyles v2.0 carregado no gestao_documentos.py")
+except ImportError as e:
+    BIODESK_STYLES_AVAILABLE = False
+    print(f"⚠️ BiodeskStyles não disponível: {e}")
+
+# Imports locais - Sistema legado mantido como fallback
 from services.styles import (
     estilizar_botao_principal, estilizar_botao_secundario, 
     estilizar_botao_perigo, estilizar_botao_sucesso
@@ -254,18 +263,23 @@ class GestaoDocumentosWidget(QWidget):
         header_layout.addStretch()
         
         # Botão de atualizar
-        btn_refresh = QPushButton("🔄 Atualizar")
-        BiodeskUIKit.apply_universal_button_style(btn_refresh)
+        if BIODESK_STYLES_AVAILABLE:
+            btn_refresh = BiodeskStyles.create_button("🔄 Atualizar", ButtonType.TOOL)
+        else:
+            btn_refresh = QPushButton("🔄 Atualizar")
+            BiodeskUIKit.apply_universal_button_style(btn_refresh)
         btn_refresh.clicked.connect(self.atualizar_lista_documentos)
         header_layout.addWidget(btn_refresh)
         
         # Botão de upload
-        btn_upload = QPushButton("📤 Adicionar Documento")
-        btn_upload.setObjectName("btn_doc_upload")
+        if BIODESK_STYLES_AVAILABLE:
+            btn_upload = BiodeskStyles.create_button("📤 Adicionar Documento", ButtonType.UPDATE)
+        else:
+            btn_upload = QPushButton("📤 Adicionar Documento")
+            btn_upload.setObjectName("btn_doc_upload")
+            # Aplicar estilo do botão upload
+            estilizar_botao_principal(btn_upload)
         btn_upload.clicked.connect(self.adicionar_documento)
-        
-        # Aplicar estilo do botão upload
-        estilizar_botao_principal(btn_upload)
         header_layout.addWidget(btn_upload)
         
         layout.addLayout(header_layout)
@@ -432,13 +446,22 @@ class GestaoDocumentosWidget(QWidget):
         acoes_layout = QHBoxLayout(acoes_frame)
         
         # Botões de ação
-        btn_visualizar = QPushButton("👁️ Visualizar")
+        if BIODESK_STYLES_AVAILABLE:
+            btn_visualizar = BiodeskStyles.create_button("👁️ Visualizar", ButtonType.NAVIGATION)
+        else:
+            btn_visualizar = QPushButton("👁️ Visualizar")
         btn_visualizar.clicked.connect(self.visualizar_documento_selecionado)
         
-        btn_email = QPushButton("📧 Enviar Email")
+        if BIODESK_STYLES_AVAILABLE:
+            btn_email = BiodeskStyles.create_button("📧 Enviar Email", ButtonType.TOOL)
+        else:
+            btn_email = QPushButton("📧 Enviar Email")
         btn_email.clicked.connect(self.enviar_documento_email)
         
-        btn_remover = QPushButton("🗑️ Remover")
+        if BIODESK_STYLES_AVAILABLE:
+            btn_remover = BiodeskStyles.create_button("🗑️ Remover", ButtonType.DELETE)
+        else:
+            btn_remover = QPushButton("🗑️ Remover")
         btn_remover.clicked.connect(self.remover_documento)
         
         # Aplicar estilos

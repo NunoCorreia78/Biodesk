@@ -7,7 +7,7 @@ melhorando significativamente o tempo de startup da aplicação.
 """
 
 import threading
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 from PyQt6.QtCore import QObject, pyqtSignal
 
 

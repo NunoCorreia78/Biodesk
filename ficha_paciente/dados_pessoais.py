@@ -27,6 +27,16 @@ from PyQt6.QtWidgets import *
 from PyQt6.QtCore import *
 from PyQt6.QtGui import *
 
+# ✅ SISTEMA NOVO: BiodeskStyles v2.0 - Estilos centralizados
+try:
+    from biodesk_styles import BiodeskStyles, DialogStyles, ButtonType
+    BIODESK_STYLES_AVAILABLE = True
+    print("✅ BiodeskStyles v2.0 carregado no dados_pessoais.py")
+except ImportError as e:
+    BIODESK_STYLES_AVAILABLE = False
+    print(f"⚠️ BiodeskStyles não disponível: {e}")
+
+# Sistema legado mantido como fallback
 from biodesk_ui_kit import BiodeskUIKit
 from modern_date_widget import ModernDateWidget
 from data_cache import DataCache
@@ -279,19 +289,25 @@ class DadosPessoaisWidget(QWidget):
         botao_layout = QHBoxLayout()
         botao_layout.addStretch()
         
-        # Botão de guardar - neutro com hover verde
-        self.btn_guardar = BiodeskUIKit.create_neutral_button(
-            "💾 Guardar Dados", 
-            hover_color=BiodeskUIKit.COLORS['success']
-        )
+        # Botão de guardar - usando BiodeskStyles v2.0
+        if BIODESK_STYLES_AVAILABLE:
+            self.btn_guardar = BiodeskStyles.create_button("💾 Guardar Dados", ButtonType.SAVE)
+        else:
+            self.btn_guardar = BiodeskUIKit.create_neutral_button(
+                "💾 Guardar Dados", 
+                hover_color=BiodeskUIKit.COLORS['success']
+            )
         self.btn_guardar.clicked.connect(self.guardar_dados)
         botao_layout.addWidget(self.btn_guardar)
         
-        # Botão de limpar - neutro com hover secundário
-        self.btn_limpar = BiodeskUIKit.create_neutral_button(
-            "🗑️ Limpar",
-            hover_color=BiodeskUIKit.COLORS['warning']
-        )
+        # Botão de limpar - usando BiodeskStyles v2.0
+        if BIODESK_STYLES_AVAILABLE:
+            self.btn_limpar = BiodeskStyles.create_button("🗑️ Limpar", ButtonType.DELETE)
+        else:
+            self.btn_limpar = BiodeskUIKit.create_neutral_button(
+                "🗑️ Limpar",
+                hover_color=BiodeskUIKit.COLORS['warning']
+            )
         self.btn_limpar.clicked.connect(self.limpar_campos)
         botao_layout.addWidget(self.btn_limpar)
         
@@ -553,7 +569,13 @@ class DadosPessoaisWidget(QWidget):
         finally:
             self._inicializando = False
             self._dados_carregados = True
-            
+    
+    def set_paciente_data(self, paciente_data: Dict):
+        """Define novos dados do paciente e recarrega campos"""
+        self.paciente_data = paciente_data or {}
+        self.carregar_dados()
+        print(f"✅ Dados pessoais atualizados para: {paciente_data.get('nome', 'N/A')}")
+        
         # Validar após carregar
         self.validar_todos_campos()
     

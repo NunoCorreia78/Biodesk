@@ -7,20 +7,25 @@ from PyQt6.QtWidgets import (
     QWidget,
     QLabel,
     QToolButton,
-    QGridLayout,
-    QMenu,
     QVBoxLayout,
     QHBoxLayout,
-    QSizePolicy,
     QPushButton,
     QFrame,
     QGraphicsDropShadowEffect,
     QDialog,
 )
-from PyQt6.QtGui import QIcon, QPixmap, QGuiApplication, QColor, QFont
+from PyQt6.QtGui import QIcon, QPixmap, QGuiApplication, QColor
 from PyQt6.QtCore import Qt, QSize, QPoint, QTimer, QDateTime
 from ficha_paciente import FichaPaciente
 from biodesk_dialogs import BiodeskMessageBox
+
+# ✅ IMPORTAR NOVO SISTEMA DE ESTILOS
+try:
+    from biodesk_styles import BiodeskStyles, ButtonType, DialogStyles
+    print("✅ BiodeskStyles v2.0 carregado no main_window.py")
+except ImportError as e:
+    print(f"⚠️ BiodeskStyles não disponível: {e}")
+    BiodeskStyles = None
 
 # Importar módulos de íris com tratamento de erro
 try:
@@ -68,39 +73,11 @@ class MainWindow(QMainWindow):
         # Configurar cursores apropriados
         self.configurar_cursores()
         
-        # 🔥 SISTEMA DE HOTKEYS PARA ESTILIZAÇÃO MANUAL
-        self.setup_biodesk_hotkeys()
-    
-    def setup_biodesk_hotkeys(self):
-        """Configura hotkeys para controle manual do sistema de estilos"""
-        try:
-            from PyQt6.QtGui import QShortcut, QKeySequence
-            
-            # Ctrl+F5 = Força re-estilização
-            self.hotkey_restyle = QShortcut(QKeySequence("Ctrl+F5"), self)
-            self.hotkey_restyle.activated.connect(self.manual_force_restyle)
-            
-            # Ctrl+Shift+F5 = Opção nuclear
-            self.hotkey_nuclear = QShortcut(QKeySequence("Ctrl+Shift+F5"), self)
-            self.hotkey_nuclear.activated.connect(self.manual_nuclear_option)
-            
-        except Exception as e:
-            pass  # Hotkeys não são críticos
-    
-    def manual_force_restyle(self):
-        """Força re-estilização manual via hotkey"""
-        try:
-            from biodesk_style_manager import BiodeskStyleManager
-            BiodeskStyleManager.force_style_all_buttons()
-        except Exception as e:
-            pass
-    
-    def manual_nuclear_option(self):
-        """Executa opção nuclear manual via hotkey"""
-        try:
-            from biodesk_style_manager import BiodeskStyleManager
-            BiodeskStyleManager.nuclear_option()
-        except Exception as e:
+        # ✅ SISTEMA NOVO: BiodeskStyles v2.0 (substitui hotkeys do BiodeskStyleManager)
+        if BiodeskStyles:
+            print("✅ Sistema BiodeskStyles ativo - hotkeys obsoletos removidos")
+        else:
+            print("⚠️ BiodeskStyles não disponível - funcionalidade reduzida")
             pass
     
     def showEvent(self, event):
@@ -267,7 +244,7 @@ class MainWindow(QMainWindow):
         actions.setSpacing(20)
         actions.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        # Botão To-Do List (vai usar BiodeskStyleManager automaticamente)
+        # Botão To-Do List (usa BiodeskStyles v2.0)
         btn_todo = QToolButton()
         btn_todo.setText('📝')
         btn_todo.setFixedSize(50, 50)
@@ -291,13 +268,24 @@ class MainWindow(QMainWindow):
         # Usar painel custom em vez de QMenu
         btn_pacientes.clicked.connect(lambda: self.show_pacientes_panel(btn_pacientes))
 
-        # Adicionar sombra verde suave ao botão Pacientes
-        shadow_pacientes = QGraphicsDropShadowEffect()
-        shadow_pacientes.setBlurRadius(15)
-        shadow_pacientes.setXOffset(0)
-        shadow_pacientes.setYOffset(4)
-        shadow_pacientes.setColor(QColor(76, 175, 80, 60))
-        btn_pacientes.setGraphicsEffect(shadow_pacientes)
+        # 🎨 Estilo personalizado para botão Pacientes
+        btn_pacientes.setStyleSheet("""
+            QToolButton {
+                background-color: #f8f9fa;
+                border: none;
+                border-radius: 15px;
+                color: #2c3e50;
+                font-family: "Segoe UI", sans-serif;
+                font-size: 16px;
+                font-weight: 600;
+            }
+            QToolButton:hover {
+                background-color: #a0cf9c;
+            }
+            QToolButton:pressed {
+                background-color: #8bb38a;
+            }
+        """)
 
         # Adicionar ao grupo de ações
         actions.addWidget(btn_pacientes)
@@ -315,13 +303,24 @@ class MainWindow(QMainWindow):
         # Conectar diretamente à análise anónima (sem menu)
         btn_iris.clicked.connect(lambda: self.open_iris(modo_anonimo=True))
         
-        # Adicionar sombra verde-água ao botão Íris
-        shadow_iris = QGraphicsDropShadowEffect()
-        shadow_iris.setBlurRadius(15)
-        shadow_iris.setXOffset(0)
-        shadow_iris.setYOffset(4)
-        shadow_iris.setColor(QColor(38, 166, 154, 60))
-        btn_iris.setGraphicsEffect(shadow_iris)
+        # 🎨 Estilo personalizado para botão Íris
+        btn_iris.setStyleSheet("""
+            QToolButton {
+                background-color: #f8f9fa;
+                border: none;
+                border-radius: 15px;
+                color: #2c3e50;
+                font-family: "Segoe UI", sans-serif;
+                font-size: 16px;
+                font-weight: 600;
+            }
+            QToolButton:hover {
+                background-color: #d6ffd2;
+            }
+            QToolButton:pressed {
+                background-color: #b8e6b5;
+            }
+        """)
         
         actions.addWidget(btn_iris)
 
@@ -337,13 +336,24 @@ class MainWindow(QMainWindow):
         btn_terapia.setFixedSize(200, 200)
         btn_terapia.clicked.connect(self.open_terapia)
         
-        # Adicionar sombra verde musgo ao botão Terapia
-        shadow_terapia = QGraphicsDropShadowEffect()
-        shadow_terapia.setBlurRadius(15)
-        shadow_terapia.setXOffset(0)
-        shadow_terapia.setYOffset(4)
-        shadow_terapia.setColor(QColor(85, 139, 47, 60))
-        btn_terapia.setGraphicsEffect(shadow_terapia)
+        # 🎨 Estilo personalizado para botão Terapia
+        btn_terapia.setStyleSheet("""
+            QToolButton {
+                background-color: #f8f9fa;
+                border: none;
+                border-radius: 15px;
+                color: #2c3e50;
+                font-family: "Segoe UI", sans-serif;
+                font-size: 16px;
+                font-weight: 600;
+            }
+            QToolButton:hover {
+                background-color: #e4ffe1;
+            }
+            QToolButton:pressed {
+                background-color: #c8e6c5;
+            }
+        """)
         
         actions.addWidget(btn_terapia)
 
@@ -507,46 +517,26 @@ class MainWindow(QMainWindow):
             )
 
     def load_styles(self):
-        # 🎨 Inicializar sistema universal de estilos Biodesk (VERSÃO AGRESSIVA)
+        """
+        🔥 REVOLUÇÃO COMPLETA: BiodeskStyles v2.0 com QSS Global
+        FORÇA todos os botões a ficarem bonitos SEM EXCEÇÃO!
+        """
         try:
-            from biodesk_style_manager import BiodeskStyleManager
-            manager = BiodeskStyleManager.initialize()
-            
-            # 🚨 CORREÇÃO EMERGENCIAL: Força re-estilização múltipla e agressiva
-            QTimer.singleShot(1000, BiodeskStyleManager.force_style_all_buttons)
-            QTimer.singleShot(3000, BiodeskStyleManager.nuclear_option)
-            QTimer.singleShot(6000, BiodeskStyleManager.force_style_all_buttons)
-            QTimer.singleShot(10000, BiodeskStyleManager.nuclear_option)
-            
-        except Exception as e:
-            # Fallback para sistema legado
-            try:
-                from biodesk_ui_kit import BiodeskUIKit
-                universal_style = BiodeskUIKit.get_universal_button_stylesheet()
-                app = QApplication.instance()
-                if app:
-                    app.setStyleSheet(universal_style)
-            except:
-                pass  # Ignorar erros de carregamento de estilo
-        
-        # Carregar QSS global complementar se existir
-        try:
-            qss_path = os.path.join(os.path.dirname(__file__), 'assets', 'biodesk.qss')
-            if os.path.exists(qss_path):
-                with open(qss_path, 'r', encoding='utf-8') as f:
-                    qss = f.read()
+            if BiodeskStyles:
+                print("✅ Sistema BiodeskStyles v2.0 ativo - estilos centralizados")
                 
-                app = QApplication.instance()
-                if app:
-                    # Manter QSS existente se já foi aplicado pelo BiodeskStyleManager
-                    current_stylesheet = app.styleSheet()
-                    if current_stylesheet:
-                        # Adicionar QSS complementar
-                        app.setStyleSheet(current_stylesheet + "\n" + qss)
-                    else:
-                        app.setStyleSheet(qss)
+                # 🔥 APLICAR QSS GLOBAL PARA FORÇAR TODOS OS BOTÕES
+                BiodeskStyles.apply_global_qss()
+                print("✅ QSS global aplicado")
+                
+            else:
+                print("⚠️ BiodeskStyles não disponível - problemas críticos!")
+                    
         except Exception as e:
-            pass  # QSS não é crítico
+            print(f"❌ Erro ao carregar estilos: {e}")
+        
+        # ✅ Marcar que o sistema está ativo
+        print("✅ Sistema BiodeskStyles ativo - hotkeys obsoletos removidos")
 
     def abrir_lista_pacientes(self):
         FichaPaciente.mostrar_seletor(callback=self.abrir_ficha_existente, parent=self)
@@ -805,6 +795,13 @@ class PatientsPanel(QDialog):
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Tool | Qt.WindowType.Popup)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
 
+        # ✅ APLICAR ESTILO PROFISSIONAL se disponível
+        if BiodeskStyles and DialogStyles:
+            try:
+                DialogStyles.apply_to_dialog(self)
+            except Exception as e:
+                print(f"⚠️ Erro ao aplicar DialogStyles: {e}")
+
         # Container principal com design pill (cilíndrico)
         container = QFrame()
         container.setObjectName("patientsPanel")
@@ -825,11 +822,17 @@ class PatientsPanel(QDialog):
         layout.setContentsMargins(16, 12, 16, 12)
         layout.setSpacing(16)
 
-        # Pill 1: Selecionar Paciente
-        btn_select = QPushButton("🔍\nSelecionar")
+        # Pill 1: Selecionar Paciente - usando BiodeskStyles
+        if BiodeskStyles:
+            btn_select = BiodeskStyles.create_button("🔍 Selecionar", ButtonType.NAVIGATION)
+        else:
+            btn_select = QPushButton("🔍\nSelecionar")
 
-        # Pill 2: Novo Paciente  
-        btn_new = QPushButton("➕\nNovo")
+        # Pill 2: Novo Paciente - usando BiodeskStyles
+        if BiodeskStyles:
+            btn_new = BiodeskStyles.create_button("➕ Novo", ButtonType.SAVE)
+        else:
+            btn_new = QPushButton("➕\nNovo")
         
         # Conectar sinais
         btn_select.clicked.connect(self.selectRequested.emit)

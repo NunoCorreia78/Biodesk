@@ -6,6 +6,14 @@ import os
 from biodesk_dialogs import BiodeskMessageBox
 from datetime import datetime
 from biodesk_ui_kit import BiodeskUIKit
+
+# 🎨 SISTEMA DE ESTILOS CENTRALIZADO
+try:
+    from biodesk_styles import BiodeskStyles, ButtonType
+    STYLES_AVAILABLE = True
+except ImportError:
+    STYLES_AVAILABLE = False
+
 """
 Sistema de Templates Editáveis para Prescrições
 Permite criar templates com campos personalizáveis e variáveis automáticas
@@ -76,16 +84,28 @@ class TemplateEditavel(QDialog):
         # Botões
         botoes_layout = QHBoxLayout()
         
-        btn_preview = QPushButton("👁️ Atualizar Preview")
+        if STYLES_AVAILABLE:
+            btn_preview = BiodeskStyles.create_button("👁️ Atualizar Preview", ButtonType.NAVIGATION)
+        else:
+            btn_preview = QPushButton("👁️ Atualizar Preview")
         btn_preview.clicked.connect(self.atualizar_preview)
         
-        btn_salvar = QPushButton("💾 Salvar Template")
+        if STYLES_AVAILABLE:
+            btn_salvar = BiodeskStyles.create_button("💾 Salvar Template", ButtonType.SAVE)
+        else:
+            btn_salvar = QPushButton("💾 Salvar Template")
         btn_salvar.clicked.connect(self.salvar_template)
         
-        btn_pdf = QPushButton("📄 Gerar PDF")
+        if STYLES_AVAILABLE:
+            btn_pdf = BiodeskStyles.create_button("📄 Gerar PDF", ButtonType.NAVIGATION)
+        else:
+            btn_pdf = QPushButton("📄 Gerar PDF")
         btn_pdf.clicked.connect(self.gerar_pdf)
         
-        btn_cancelar = QPushButton("❌ Cancelar")
+        if STYLES_AVAILABLE:
+            btn_cancelar = BiodeskStyles.create_button("❌ Cancelar", ButtonType.DEFAULT)
+        else:
+            btn_cancelar = QPushButton("❌ Cancelar")
         btn_cancelar.clicked.connect(self.reject)
 
         botoes_layout.addWidget(btn_preview)

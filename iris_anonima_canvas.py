@@ -93,7 +93,7 @@ class IrisAnonimaCanvas(QWidget):
         btn_layout.addWidget(self.btn_zoom_fit)
         
         # Botão para ocultar/mostrar mapa
-        self.btn_ocultar_mapa = QPushButton("👁️ Ocultar Mapa")
+        self.btn_ocultar_mapa = QPushButton("👁️ Ver Mapa")
         self.btn_ocultar_mapa.setToolTip("Ocultar/mostrar o mapa da íris e todos os overlays")
         # DESATIVADO: Deixar BiodeskStyleManager aplicar estilos uniformes
         # self._style_modern_button(self.btn_ocultar_mapa, "#f8f9fa")  # Cinza muito claro

@@ -1,20 +1,28 @@
 import json
 import os
+import sys
 from datetime import datetime
 from PyQt6.QtWidgets import (
-from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QFont, QIcon
-from biodesk_dialogs import BiodeskMessageBox
-    import sys
-from biodesk_ui_kit import BiodeskUIKit
-"""
-To-Do List Window para Biodesk
-Lista de tarefas integrada de forma não-intrusiva
-"""
     QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QPushButton, 
     QListWidget, QListWidgetItem, QCheckBox, QLabel, QTextEdit,
     QDialog, QDialogButtonBox, QSplitter, QFrame
 )
+from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtGui import QFont, QIcon
+from biodesk_dialogs import BiodeskMessageBox
+from biodesk_ui_kit import BiodeskUIKit
+
+# 🎨 SISTEMA DE ESTILOS CENTRALIZADO
+try:
+    from biodesk_styles import BiodeskStyles, ButtonType
+    STYLES_AVAILABLE = True
+except ImportError:
+    STYLES_AVAILABLE = False
+
+"""
+To-Do List Window para Biodesk
+Lista de tarefas integrada de forma não-intrusiva
+"""
 
 class TodoItem:
     def __init__(self, text, completed=False, created_date=None, priority="Normal"):
@@ -164,18 +172,27 @@ class TodoListWindow(QWidget):
         # Botões de ação
         btn_layout = QHBoxLayout()
         
-        add_btn = QPushButton("➕ Nova Tarefa")
-        BiodeskUIKit.apply_universal_button_style(add_btn)
+        if STYLES_AVAILABLE:
+            add_btn = BiodeskStyles.create_button("➕ Nova Tarefa", ButtonType.SAVE)
+        else:
+            add_btn = QPushButton("➕ Nova Tarefa")
+            BiodeskUIKit.apply_universal_button_style(add_btn)
         add_btn.clicked.connect(self.add_todo)
         btn_layout.addWidget(add_btn)
         
-        clear_completed_btn = QPushButton("🗑️ Limpar Concluídas")
-        BiodeskUIKit.apply_universal_button_style(clear_completed_btn)
+        if STYLES_AVAILABLE:
+            clear_completed_btn = BiodeskStyles.create_button("🗑️ Limpar Concluídas", ButtonType.DELETE)
+        else:
+            clear_completed_btn = QPushButton("🗑️ Limpar Concluídas")
+            BiodeskUIKit.apply_universal_button_style(clear_completed_btn)
         clear_completed_btn.clicked.connect(self.clear_completed)
         btn_layout.addWidget(clear_completed_btn)
         
-        delete_btn = QPushButton("❌ Deletar Selecionada")
-        BiodeskUIKit.apply_universal_button_style(delete_btn)
+        if STYLES_AVAILABLE:
+            delete_btn = BiodeskStyles.create_button("❌ Deletar Selecionada", ButtonType.DELETE)
+        else:
+            delete_btn = QPushButton("❌ Deletar Selecionada")
+            BiodeskUIKit.apply_universal_button_style(delete_btn)
         delete_btn.clicked.connect(self.delete_selected_item)
         btn_layout.addWidget(delete_btn)
         

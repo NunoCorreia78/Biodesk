@@ -18,6 +18,15 @@ from reportlab.lib.units import cm
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
 import tempfile
+
+# ✅ SISTEMA NOVO: BiodeskStyles v2.0 - Estilos centralizados
+try:
+    from biodesk_styles import BiodeskStyles, DialogStyles, ButtonType
+    BIODESK_STYLES_AVAILABLE = True
+    print("✅ BiodeskStyles v2.0 carregado no editor_documentos.py")
+except ImportError as e:
+    BIODESK_STYLES_AVAILABLE = False
+    print(f"⚠️ BiodeskStyles não disponível: {e}")
 from biodesk_dialogs import BiodeskMessageBox
 from PyQt6.QtWidgets import QMessageBox
 import os
@@ -115,15 +124,24 @@ class EditorDocumentos(QMainWindow):
         botoes_frame = QGroupBox("🎯 Ações")
         botoes_layout = QHBoxLayout(botoes_frame)
         
-        self.btn_preview = QPushButton("👁️ Preview")
+        if BIODESK_STYLES_AVAILABLE:
+            self.btn_preview = BiodeskStyles.create_button("👁️ Preview", ButtonType.NAVIGATION)
+        else:
+            self.btn_preview = QPushButton("👁️ Preview")
         self.btn_preview.clicked.connect(self.gerar_preview)
         botoes_layout.addWidget(self.btn_preview)
         
-        self.btn_salvar = QPushButton("💾 Salvar Template")
+        if BIODESK_STYLES_AVAILABLE:
+            self.btn_salvar = BiodeskStyles.create_button("💾 Salvar Template", ButtonType.SAVE)
+        else:
+            self.btn_salvar = QPushButton("💾 Salvar Template")
         self.btn_salvar.clicked.connect(self.salvar_template)
         botoes_layout.addWidget(self.btn_salvar)
         
-        self.btn_gerar_pdf = QPushButton("📄 Gerar PDF")
+        if BIODESK_STYLES_AVAILABLE:
+            self.btn_gerar_pdf = BiodeskStyles.create_button("📄 Gerar PDF", ButtonType.TOOL)
+        else:
+            self.btn_gerar_pdf = QPushButton("📄 Gerar PDF")
         self.btn_gerar_pdf.clicked.connect(self.gerar_pdf)
         botoes_layout.addWidget(self.btn_gerar_pdf)
         
@@ -390,11 +408,17 @@ As variáveis são substituídas automaticamente na geração do documento.<br>
         # Botões
         botoes_layout = QHBoxLayout()
         
-        btn_inserir = QPushButton("✅ Inserir Selecionada")
+        if BIODESK_STYLES_AVAILABLE:
+            btn_inserir = BiodeskStyles.create_button("✅ Inserir Selecionada", ButtonType.SAVE)
+        else:
+            btn_inserir = QPushButton("✅ Inserir Selecionada")
         btn_inserir.clicked.connect(lambda: self.inserir_variavel_selecionada(tabs, dialog))
         botoes_layout.addWidget(btn_inserir)
         
-        btn_fechar = QPushButton("❌ Fechar")
+        if BIODESK_STYLES_AVAILABLE:
+            btn_fechar = BiodeskStyles.create_button("❌ Fechar", ButtonType.DEFAULT)
+        else:
+            btn_fechar = QPushButton("❌ Fechar")
         btn_fechar.clicked.connect(dialog.reject)
         botoes_layout.addWidget(btn_fechar)
         

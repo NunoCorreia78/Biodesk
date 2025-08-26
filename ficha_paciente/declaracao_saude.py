@@ -27,6 +27,15 @@ from PyQt6.QtGui import QFont
 # Importar componentes do Biodesk
 from biodesk_dialogs import BiodeskMessageBox
 
+# ✅ SISTEMA NOVO: BiodeskStyles v2.0 - Estilos centralizados
+try:
+    from biodesk_styles import BiodeskStyles, ButtonType
+    BIODESK_STYLES_AVAILABLE = True
+    print("✅ BiodeskStyles v2.0 carregado no declaracao_saude.py")
+except ImportError as e:
+    BIODESK_STYLES_AVAILABLE = False
+    print(f"⚠️ BiodeskStyles não disponível em declaracao_saude.py: {e}")
+
 from biodesk_ui_kit import BiodeskUIKit
 from biodesk_dialogs import mostrar_erro, mostrar_sucesso, mostrar_aviso
 
@@ -151,34 +160,44 @@ class DeclaracaoSaudeWidget(QWidget):
         layout = QVBoxLayout(container)
         layout.setSpacing(18)  # Aumentado para mais espaço entre botões
         
-        # Botão Assinar e Guardar - SUCCESS (verde) detectado automaticamente
-        btn_assinar = QPushButton("📝 Assinar e Guardar")
-        # ✨ Estilo aplicado automaticamente pelo BiodeskStyleManager (tema SUCCESS)
+        # Botão Assinar e Guardar - usando BiodeskStyles v2.0
+        if BIODESK_STYLES_AVAILABLE:
+            btn_assinar = BiodeskStyles.create_button("📝 Assinar e Guardar", ButtonType.SAVE)
+        else:
+            btn_assinar = QPushButton("📝 Assinar e Guardar")
         btn_assinar.clicked.connect(self.assinar_e_guardar)
         layout.addWidget(btn_assinar)
         
         # Espaçamento extra
         layout.addSpacing(6)
         
-        # Botão Guardar Rascunho - Estilo Biodesk padrão automático
-        btn_rascunho = QPushButton("💾 Guardar Rascunho")
+        # Botão Guardar Rascunho - usando BiodeskStyles v2.0
+        if BIODESK_STYLES_AVAILABLE:
+            btn_rascunho = BiodeskStyles.create_button("💾 Guardar Rascunho", ButtonType.DRAFT)
+        else:
+            btn_rascunho = QPushButton("💾 Guardar Rascunho")
         btn_rascunho.clicked.connect(self.guardar_rascunho)
         layout.addWidget(btn_rascunho)
         
         # Espaçamento extra
         layout.addSpacing(6)
         
-        # Botão Limpar - SECONDARY (cinza) detectado automaticamente
-        btn_limpar = QPushButton("🗑️ Limpar Formulário")
-        # ✨ Estilo aplicado automaticamente pelo BiodeskStyleManager (tema SECONDARY)
+        # Botão Limpar - usando BiodeskStyles v2.0
+        if BIODESK_STYLES_AVAILABLE:
+            btn_limpar = BiodeskStyles.create_button("🗑️ Limpar Formulário", ButtonType.DELETE)
+        else:
+            btn_limpar = QPushButton("🗑️ Limpar Formulário")
         btn_limpar.clicked.connect(self.limpar_formulario)
         layout.addWidget(btn_limpar)
         
         # Espaçamento extra
         layout.addSpacing(6)
         
-        # Botão Navegação Rápida - WARNING (laranja) detectado automaticamente
-        btn_navegacao = QPushButton("🧭 Navegação Rápida")
+        # Botão Navegação Rápida - usando BiodeskStyles v2.0
+        if BIODESK_STYLES_AVAILABLE:
+            btn_navegacao = BiodeskStyles.create_button("🧭 Navegação Rápida", ButtonType.NAVIGATION)
+        else:
+            btn_navegacao = QPushButton("🧭 Navegação Rápida")
         # ✨ Estilo aplicado automaticamente pelo BiodeskStyleManager (tema WARNING)
         btn_navegacao.clicked.connect(self.abrir_navegacao_rapida)
         layout.addWidget(btn_navegacao)
@@ -1113,8 +1132,11 @@ class DeclaracaoSaudeWidget(QWidget):
         self.naturopatia_combo.setStyleSheet(self._estilo_campo())
         nat_layout.addWidget(self.naturopatia_combo)
         
-        # Botão de informação para Naturopatia - ESTILO BIODESK
-        btn_info_nat = QPushButton("ℹ️")
+        # Botão de informação para Naturopatia - usando BiodeskStyles v2.0
+        if BIODESK_STYLES_AVAILABLE:
+            btn_info_nat = BiodeskStyles.create_button("ℹ️", ButtonType.TOOL)
+        else:
+            btn_info_nat = QPushButton("ℹ️")
         
         btn_info_nat.setToolTip("Clique para saber mais sobre Naturopatia")
         btn_info_nat.clicked.connect(lambda: self._mostrar_explicacao_modalidade("naturopatia"))
@@ -2530,11 +2552,17 @@ class DeclaracaoSaudeWidget(QWidget):
             # Botões
             botoes_layout = QHBoxLayout()
             
-            btn_ir = QPushButton("🎯 Ir para Seção")
+            if BIODESK_STYLES_AVAILABLE:
+                btn_ir = BiodeskStyles.create_button("🎯 Ir para Seção", ButtonType.NAVIGATION)
+            else:
+                btn_ir = QPushButton("🎯 Ir para Seção")
             
             btn_ir.clicked.connect(lambda: self._navegar_para_secao(lista.currentRow(), dialog))
             
-            btn_cancelar = QPushButton("❌ Cancelar")
+            if BIODESK_STYLES_AVAILABLE:
+                btn_cancelar = BiodeskStyles.create_button("❌ Cancelar", ButtonType.DEFAULT)
+            else:
+                btn_cancelar = QPushButton("❌ Cancelar")
             
             btn_cancelar.clicked.connect(dialog.reject)
             

@@ -5,8 +5,16 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QPixmap, QIcon
 
-# ✨ Estilos aplicados automaticamente pelo BiodeskStyleManager
+# ✅ SISTEMA NOVO: BiodeskStyles v2.0 - Estilos centralizados
+try:
+    from biodesk_styles import BiodeskStyles, DialogStyles, ButtonType
+    BIODESK_STYLES_AVAILABLE = True
+    print("✅ BiodeskStyles v2.0 carregado no biodesk_dialogs.py")
+except ImportError as e:
+    BIODESK_STYLES_AVAILABLE = False
+    print(f"⚠️ BiodeskStyles não disponível: {e}")
 
+# Sistema legado mantido como fallback
 from biodesk_ui_kit import BiodeskUIKit
 
 """
@@ -153,14 +161,20 @@ class LateralidadeDialog(BiodeskDialog):
         botoes_layout.setSpacing(20)
         
         # Botão Esquerda
-        self.btn_esquerda = QPushButton("👁️ ESQUERDA")
-        self.btn_esquerda.setObjectName("btn_info")
+        if BIODESK_STYLES_AVAILABLE:
+            self.btn_esquerda = BiodeskStyles.create_button("👁️ ESQUERDA", ButtonType.NAVIGATION)
+        else:
+            self.btn_esquerda = QPushButton("👁️ ESQUERDA")
+            self.btn_esquerda.setObjectName("btn_info")
         self.btn_esquerda.clicked.connect(lambda: self.selecionar('esq'))
         botoes_layout.addWidget(self.btn_esquerda)
         
         # Botão Direita
-        self.btn_direita = QPushButton("👁️ DIREITA")
-        self.btn_direita.setObjectName("btn_success")
+        if BIODESK_STYLES_AVAILABLE:
+            self.btn_direita = BiodeskStyles.create_button("👁️ DIREITA", ButtonType.NAVIGATION)
+        else:
+            self.btn_direita = QPushButton("👁️ DIREITA")
+            self.btn_direita.setObjectName("btn_success")
         self.btn_direita.clicked.connect(lambda: self.selecionar('drt'))
         botoes_layout.addWidget(self.btn_direita)
         
@@ -225,12 +239,18 @@ class ConfirmacaoDialog(BiodeskDialog):
         botoes_layout = QHBoxLayout()
         botoes_layout.setSpacing(15)
         
-        btn_sim = QPushButton(self.btn_sim_texto)
-        btn_sim.setObjectName("btn_success")
+        if BIODESK_STYLES_AVAILABLE:
+            btn_sim = BiodeskStyles.create_button(self.btn_sim_texto, ButtonType.SAVE)
+        else:
+            btn_sim = QPushButton(self.btn_sim_texto)
+            btn_sim.setObjectName("btn_success")
         btn_sim.clicked.connect(self.accept)
         
-        btn_nao = QPushButton(self.btn_nao_texto)
-        btn_nao.setObjectName("btn_danger")
+        if BIODESK_STYLES_AVAILABLE:
+            btn_nao = BiodeskStyles.create_button(self.btn_nao_texto, ButtonType.DEFAULT)
+        else:
+            btn_nao = QPushButton(self.btn_nao_texto)
+            btn_nao.setObjectName("btn_danger")
         btn_nao.clicked.connect(self.reject)
         
         botoes_layout.addWidget(btn_sim)
@@ -281,16 +301,25 @@ class InformacaoDialog(BiodeskDialog):
         self.layout.addSpacing(10)
         
         # Botão OK
-        btn_ok = QPushButton("OK")
-        if self.tipo == "success":
-            btn_ok.setObjectName("btn_success")
-        elif self.tipo == "warning":
-            btn_ok.setObjectName("btn_warning")
-        elif self.tipo == "error":
-            btn_ok.setObjectName("btn_danger")
+        if BIODESK_STYLES_AVAILABLE:
+            if self.tipo == "success":
+                btn_ok = BiodeskStyles.create_button("OK", ButtonType.SAVE)
+            elif self.tipo == "warning":
+                btn_ok = BiodeskStyles.create_button("OK", ButtonType.UPDATE)
+            elif self.tipo == "error":
+                btn_ok = BiodeskStyles.create_button("OK", ButtonType.DELETE)
+            else:
+                btn_ok = BiodeskStyles.create_button("OK", ButtonType.DEFAULT)
         else:
-            btn_ok.setObjectName("btn_primary")
-            
+            btn_ok = QPushButton("OK")
+            if self.tipo == "success":
+                btn_ok.setObjectName("btn_success")
+            elif self.tipo == "warning":
+                btn_ok.setObjectName("btn_warning")
+            elif self.tipo == "error":
+                btn_ok.setObjectName("btn_danger")
+            else:
+                btn_ok.setObjectName("btn_primary")
         btn_ok.clicked.connect(self.accept)
         
         # Centralizar botão
@@ -336,8 +365,11 @@ class AvisoDialog(BiodeskDialog):
         self.layout.addSpacing(10)
         
         # Botão OK
-        btn_ok = QPushButton("Entendi")
-        btn_ok.setObjectName("btn_warning")
+        if BIODESK_STYLES_AVAILABLE:
+            btn_ok = BiodeskStyles.create_button("Entendi", ButtonType.UPDATE)
+        else:
+            btn_ok = QPushButton("Entendi")
+            btn_ok.setObjectName("btn_warning")
         btn_ok.clicked.connect(self.accept)
         
         # Centralizar botão
@@ -394,8 +426,11 @@ class ErroDialog(BiodeskDialog):
         self.layout.addSpacing(10)
         
         # Botão OK
-        btn_ok = QPushButton("Fechar")
-        btn_ok.setObjectName("btn_danger")
+        if BIODESK_STYLES_AVAILABLE:
+            btn_ok = BiodeskStyles.create_button("Fechar", ButtonType.DELETE)
+        else:
+            btn_ok = QPushButton("Fechar")
+            btn_ok.setObjectName("btn_danger")
         btn_ok.clicked.connect(self.accept)
         
         # Centralizar botão

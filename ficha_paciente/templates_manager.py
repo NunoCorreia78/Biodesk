@@ -26,6 +26,16 @@ from PyQt6.QtWidgets import *
 from PyQt6.QtCore import *
 from PyQt6.QtGui import *
 
+# ✅ SISTEMA NOVO: BiodeskStyles v2.0 - Estilos centralizados
+try:
+    from biodesk_styles import BiodeskStyles, DialogStyles, ButtonType
+    BIODESK_STYLES_AVAILABLE = True
+    print("✅ BiodeskStyles v2.0 carregado no templates_manager.py")
+except ImportError as e:
+    BIODESK_STYLES_AVAILABLE = False
+    print(f"⚠️ BiodeskStyles não disponível: {e}")
+
+# Sistema legado mantido como fallback
 from biodesk_ui_kit import BiodeskUIKit
 from data_cache import DataCache
 from biodesk_dialogs import BiodeskMessageBox
@@ -120,12 +130,13 @@ class TemplatesManagerWidget(QWidget):
         
         # Categorias de templates
         self.template_categories = [
-            ("🏃", "Exercícios e Alongamentos", "exercicios", "#ffeaa7"),
-            ("🥗", "Nutrição & Dietética", "dietas", "#a8e6cf"),
-            ("💊", "Suplementação", "suplementos", "#ffd3e1"),
-            ("📋", "Autocuidado e Rotinas", "orientacoes", "#e6d7ff"),
-            ("📚", "Guias Educativos", "educativos", "#e1f5fe"),
-            ("🎯", "Específicos por Condição", "condicoes", "#f3e5f5")
+            ("🏃", "Alongamentos", "alongamentos", "#ffeaa7"),
+            ("💪", "Exercícios", "exercicios", "#ffecb3"),
+            ("🥗", "Nutrição", "dietas", "#a8e6cf"),
+            ("💊", "Suplementos", "suplementos", "#ffd3e1"),
+            ("📋", "Autocuidado", "orientacoes", "#e6d7ff"),
+            ("📚", "Educativos", "educativos", "#e1f5fe"),
+            ("🎯", "Por Condição", "condicoes", "#f3e5f5")
         ]
         
         # Criar botões de categorias
@@ -135,8 +146,12 @@ class TemplatesManagerWidget(QWidget):
             categoria_container_layout.setContentsMargins(0, 0, 0, 5)
             
             # Botão da categoria
-            btn = QPushButton(f"{emoji} {nome}")
-            btn.setFixedHeight(35)
+            if BIODESK_STYLES_AVAILABLE:
+                btn = BiodeskStyles.create_button(f"{emoji} {nome}", ButtonType.NAVIGATION)
+                btn.setMinimumHeight(40)  # Dar mais espaço para o texto não cortar
+            else:
+                btn = QPushButton(f"{emoji} {nome}")
+                btn.setFixedHeight(40)
 
             # Área para templates (inicialmente oculta)
             templates_area = QWidget()
@@ -339,11 +354,19 @@ Selecione um template à esquerda para visualizar:
         self.btn_remover_protocolo.setEnabled(False)
         botoes_layout.addWidget(self.btn_remover_protocolo)
         
-        self.btn_gerar_prescricao = BiodeskUIKit.create_primary_button("📄 Gerar Prescrição")
+        # Botão Gerar Prescrição - usando BiodeskStyles v2.0
+        if BIODESK_STYLES_AVAILABLE:
+            self.btn_gerar_prescricao = BiodeskStyles.create_button("📄 Gerar Prescrição", ButtonType.SAVE)
+        else:
+            self.btn_gerar_prescricao = BiodeskUIKit.create_primary_button("📄 Gerar Prescrição")
         self.btn_gerar_prescricao.clicked.connect(self.gerar_prescricao_completa)
         botoes_layout.addWidget(self.btn_gerar_prescricao)
         
-        self.btn_novo_template = BiodeskUIKit.create_secondary_button("➕ Novo Template")
+        # Botão Novo Template - usando BiodeskStyles v2.0
+        if BIODESK_STYLES_AVAILABLE:
+            self.btn_novo_template = BiodeskStyles.create_button("➕ Novo Template", ButtonType.SAVE)
+        else:
+            self.btn_novo_template = BiodeskUIKit.create_secondary_button("➕ Novo Template")
         self.btn_novo_template.clicked.connect(self.criar_novo_template)
         botoes_layout.addWidget(self.btn_novo_template)
         
@@ -374,49 +397,65 @@ Selecione um template à esquerda para visualizar:
         
         # Templates por categoria (simulando base de dados)
         templates_db = {
+            'alongamentos': [
+                'Cervical',
+                'Dorsal',
+                'Lombar',
+                'Membros Superiores',
+                'Membros Inferiores'
+            ],
             'exercicios': [
-                'Alongamentos Cervicais',
-                'Exercícios Posturais',
+                'Posturais',
                 'Fortalecimento Core',
-                'Mobilização Articular'
+                'Mobilização Articular',
+                'Respiratórios',
+                'Coordenação'
             ],
             'dietas': [
-                'Dieta Anti-inflamatória',
-                'Plano Detox 7 dias',
-                'Alimentação Alcalina',
-                'Dieta Mediterrânica'
+                'Anti-inflamatória',
+                'Detox 7 dias',
+                'Alcalina',
+                'Mediterrânica',
+                'Keto Terapêutica'
             ],
             'suplementos': [
-                'Complexo Vitamínico B',
-                'Ómega 3 + Cúrcuma',
+                'Complexo B',
+                'Ómega 3',
                 'Magnésio + Zinco',
-                'Probióticos Intestinais'
+                'Probióticos',
+                'Antioxidantes'
             ],
             'orientacoes': [
                 'Higiene do Sono',
                 'Gestão do Stress',
-                'Hidratação Adequada',
-                'Rotina Matinal'
+                'Hidratação',
+                'Rotina Matinal',
+                'Técnicas Relaxamento'
             ],
             'educativos': [
-                'Guia Alimentação Saudável',
-                'Manual Exercícios Casa',
-                'Técnicas Relaxamento',
-                'Prevenção Lesões'
+                'Alimentação Saudável',
+                'Exercícios Casa',
+                'Prevenção Lesões',
+                'Técnicas Respiração',
+                'Mindfulness'
             ],
             'condicoes': [
-                'Protocolo Ansiedade',
-                'Tratamento Insónia',
+                'Ansiedade',
+                'Insónia',
                 'Dores Articulares',
-                'Fadiga Crónica'
+                'Fadiga Crónica',
+                'Digestivas'
             ]
         }
         
         templates = templates_db.get(categoria, [])
         
         for template_nome in templates:
-            btn_template = QPushButton(f"📄 {template_nome}")
-            btn_template.setFixedHeight(25)
+            if BIODESK_STYLES_AVAILABLE:
+                btn_template = BiodeskStyles.create_button(f"📄 {template_nome}", ButtonType.DEFAULT)
+            else:
+                btn_template = QPushButton(f"📄 {template_nome}")
+                btn_template.setFixedHeight(25)
 
             # Conectar seleção de template
             btn_template.clicked.connect(
@@ -480,7 +519,8 @@ Selecione um template à esquerda para visualizar:
     def _gerar_conteudo_especifico(self, nome, categoria):
         """Gera conteúdo específico baseado no template"""
         conteudos = {
-            'Alongamentos Cervicais': """
+            # ALONGAMENTOS
+            'Cervical': """
                 <h4>🏃 Protocolo de Alongamentos Cervicais</h4>
                 <ol>
                     <li><strong>Alongamento lateral:</strong> Inclinar cabeça para o lado, manter 30s cada lado</li>
@@ -489,7 +529,47 @@ Selecione um template à esquerda para visualizar:
                 </ol>
                 <p><em>Realizar 2x por dia, manhã e noite.</em></p>
             """,
-            'Dieta Anti-inflamatória': """
+            'Dorsal': """
+                <h4>🏃 Protocolo de Alongamentos Dorsais</h4>
+                <ol>
+                    <li><strong>Extensão torácica:</strong> Apoiar mãos na lombar, empurrar tórax para frente</li>
+                    <li><strong>Rotação dorsal:</strong> Sentado, rodar tronco para cada lado, 30s</li>
+                    <li><strong>Abertura peitoral:</strong> Braços em cruz, empurrar para trás, 30s</li>
+                </ol>
+                <p><em>Realizar 3x por dia, principalmente após trabalho de secretária.</em></p>
+            """,
+            'Lombar': """
+                <h4>🏃 Protocolo de Alongamentos Lombares</h4>
+                <ol>
+                    <li><strong>Joelhos ao peito:</strong> Deitado, abraçar joelhos, 30s</li>
+                    <li><strong>Gato-vaca:</strong> 4 apoios, alternar flexão/extensão, 10x</li>
+                    <li><strong>Torção lombar:</strong> Deitado, joelhos para o lado, 30s cada</li>
+                </ol>
+                <p><em>Realizar 2x por dia, manhã e antes de dormir.</em></p>
+            """,
+            
+            # EXERCÍCIOS
+            'Posturais': """
+                <h4>💪 Exercícios Posturais</h4>
+                <ol>
+                    <li><strong>Ponte glútea:</strong> 3 séries de 15 repetições</li>
+                    <li><strong>Prancha:</strong> 3 séries de 30 segundos</li>
+                    <li><strong>Superman:</strong> 3 séries de 12 repetições</li>
+                </ol>
+                <p><em>Realizar 4x por semana, intercalado.</em></p>
+            """,
+            'Fortalecimento Core': """
+                <h4>💪 Fortalecimento do Core</h4>
+                <ol>
+                    <li><strong>Prancha frontal:</strong> 3x 45s</li>
+                    <li><strong>Prancha lateral:</strong> 3x 30s cada lado</li>
+                    <li><strong>Dead bug:</strong> 3x 10 cada lado</li>
+                </ol>
+                <p><em>Realizar 3x por semana.</em></p>
+            """,
+            
+            # NUTRIÇÃO
+            'Anti-inflamatória': """
                 <h4>🥗 Plano Alimentar Anti-inflamatório</h4>
                 <p><strong>Alimentos a privilegiar:</strong></p>
                 <ul>
@@ -500,12 +580,84 @@ Selecione um template à esquerda para visualizar:
                 </ul>
                 <p><strong>Evitar:</strong> Açúcar refinado, alimentos processados, gorduras trans</p>
             """,
-            'Complexo Vitamínico B': """
+            'Detox 7 dias': """
+                <h4>🥗 Plano Detox 7 Dias</h4>
+                <p><strong>Dias 1-3:</strong> Sumos verdes, sopas vegetais</p>
+                <p><strong>Dias 4-5:</strong> Adicionar proteína magra</p>
+                <p><strong>Dias 6-7:</strong> Reintroduzir cereais integrais</p>
+                <p><strong>Hidratação:</strong> 2-3L água/dia + chás detox</p>
+            """,
+            
+            # SUPLEMENTOS
+            'Complexo B': """
                 <h4>💊 Protocolo de Suplementação - Complexo B</h4>
                 <p><strong>Dosagem:</strong> 1 cápsula ao pequeno-almoço</p>
                 <p><strong>Duração:</strong> 3 meses</p>
                 <p><strong>Benefícios:</strong> Energia, função neurológica, metabolismo</p>
                 <p><strong>Observações:</strong> Tomar com alimentos para melhor absorção</p>
+            """,
+            'Ómega 3': """
+                <h4>💊 Protocolo Ómega 3</h4>
+                <p><strong>Dosagem:</strong> 2 cápsulas ao almoço</p>
+                <p><strong>Duração:</strong> 6 meses</p>
+                <p><strong>Benefícios:</strong> Anti-inflamatório, saúde cardiovascular</p>
+            """,
+            
+            # AUTOCUIDADO
+            'Higiene do Sono': """
+                <h4>📋 Protocolo de Higiene do Sono</h4>
+                <ul>
+                    <li>Deitar sempre à mesma hora</li>
+                    <li>Evitar ecrãs 1h antes de dormir</li>
+                    <li>Quarto escuro e fresco (18-20°C)</li>
+                    <li>Chá de camomila 30min antes</li>
+                </ul>
+            """,
+            'Gestão do Stress': """
+                <h4>📋 Técnicas de Gestão do Stress</h4>
+                <ol>
+                    <li><strong>Respiração 4-7-8:</strong> Inspirar 4s, reter 7s, expirar 8s</li>
+                    <li><strong>Meditação:</strong> 10 minutos diários</li>
+                    <li><strong>Atividade física:</strong> 30min, 3x semana</li>
+                </ol>
+            """,
+            
+            # EDUCATIVOS
+            'Alimentação Saudável': """
+                <h4>📚 Guia de Alimentação Saudável</h4>
+                <p><strong>Princípios básicos:</strong></p>
+                <ul>
+                    <li>5-6 refeições por dia</li>
+                    <li>Variedade de cores no prato</li>
+                    <li>Mastigação lenta e consciente</li>
+                    <li>Hidratação adequada</li>
+                </ul>
+            """,
+            'Exercícios Casa': """
+                <h4>📚 Manual de Exercícios em Casa</h4>
+                <p><strong>Equipamento mínimo:</strong> Tapete, garrafa de água</p>
+                <p><strong>Rotina diária:</strong> 20-30 minutos</p>
+                <p><strong>Progressão:</strong> Aumentar gradualmente intensidade</p>
+            """,
+            
+            # CONDIÇÕES ESPECÍFICAS
+            'Ansiedade': """
+                <h4>🎯 Protocolo para Ansiedade</h4>
+                <ul>
+                    <li>Técnicas de respiração diárias</li>
+                    <li>Atividade física regular</li>
+                    <li>Suplementação: Magnésio, B-Complex</li>
+                    <li>Evitar: Cafeína excessiva, açúcar</li>
+                </ul>
+            """,
+            'Insónia': """
+                <h4>🎯 Protocolo para Insónia</h4>
+                <ol>
+                    <li>Rutina de sono consistente</li>
+                    <li>Quarto escuro e fresco</li>
+                    <li>Chá de valeriana antes de dormir</li>
+                    <li>Evitar ecrãs 2h antes de dormir</li>
+                </ol>
             """
         }
         
@@ -629,12 +781,13 @@ Selecione um template à esquerda para visualizar:
             
             # Simular carregamento de templates
             templates_count = sum(len(templates) for templates in [
-                ['Alongamentos Cervicais', 'Exercícios Posturais', 'Fortalecimento Core'],
-                ['Dieta Anti-inflamatória', 'Plano Detox 7 dias', 'Alimentação Alcalina'],
-                ['Complexo Vitamínico B', 'Ómega 3 + Cúrcuma', 'Magnésio + Zinco'],
-                ['Higiene do Sono', 'Gestão do Stress', 'Hidratação Adequada'],
-                ['Guia Alimentação Saudável', 'Manual Exercícios Casa'],
-                ['Protocolo Ansiedade', 'Tratamento Insónia', 'Dores Articulares']
+                ['Cervical', 'Dorsal', 'Lombar', 'Membros Superiores', 'Membros Inferiores'],
+                ['Posturais', 'Fortalecimento Core', 'Mobilização Articular', 'Respiratórios'],
+                ['Anti-inflamatória', 'Detox 7 dias', 'Alcalina', 'Mediterrânica'],
+                ['Complexo B', 'Ómega 3', 'Magnésio + Zinco', 'Probióticos'],
+                ['Higiene do Sono', 'Gestão do Stress', 'Hidratação', 'Rotina Matinal'],
+                ['Alimentação Saudável', 'Exercícios Casa', 'Prevenção Lesões'],
+                ['Ansiedade', 'Insónia', 'Dores Articulares', 'Fadiga Crónica']
             ])
             
             self.cache.set('templates_inicializados', True)

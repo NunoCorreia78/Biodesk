@@ -5,6 +5,17 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont
 import sys
+
+# ✅ SISTEMA NOVO: BiodeskStyles v2.0 - Estilos centralizados
+try:
+    from biodesk_styles import BiodeskStyles, DialogStyles, ButtonType
+    BIODESK_STYLES_AVAILABLE = True
+    print("✅ BiodeskStyles v2.0 carregado no checkbox_notes_widget.py")
+except ImportError as e:
+    BIODESK_STYLES_AVAILABLE = False
+    print(f"⚠️ BiodeskStyles não disponível: {e}")
+
+# Sistema legado mantido como fallback
 from biodesk_ui_kit import BiodeskUIKit
 """
 Widget de Notas com Checkboxes Seletivos - Biodesk
@@ -76,10 +87,13 @@ class CheckboxNotesWidget(QWidget):
         self.check_selecionar_todos.stateChanged.connect(self.toggle_todos_checkboxes)
         header_row.addWidget(self.check_selecionar_todos)
         header_row.addStretch()
-        self.btn_limpar_tudo = QPushButton("🧹")
-        self.btn_limpar_tudo.setFixedSize(80, 28)
+        if BIODESK_STYLES_AVAILABLE:
+            self.btn_limpar_tudo = BiodeskStyles.create_button("🧹", ButtonType.DELETE)
+        else:
+            self.btn_limpar_tudo = QPushButton("🧹")
+            self.btn_limpar_tudo.setFixedSize(80, 28)
+            BiodeskUIKit.apply_universal_button_style(self.btn_limpar_tudo)
         self.btn_limpar_tudo.setToolTip("Limpar todas as notas")
-        BiodeskUIKit.apply_universal_button_style(self.btn_limpar_tudo)
         self.btn_limpar_tudo.clicked.connect(self.limpar_todas_linhas)
         header_row.addWidget(self.btn_limpar_tudo, 0, Qt.AlignmentFlag.AlignTop)  # Alinhar no topo
         header_row.setContentsMargins(0, 0, 0, 0)
@@ -159,10 +173,13 @@ class CheckboxNotesWidget(QWidget):
                 border-color: #4CAF50;
             }
         """)
-        self.btn_adicionar = QPushButton("📝")
-        self.btn_adicionar.setFixedSize(60, 60)  # Tamanho TOP que você adorou!
+        if BIODESK_STYLES_AVAILABLE:
+            self.btn_adicionar = BiodeskStyles.create_button("📝", ButtonType.SAVE)
+        else:
+            self.btn_adicionar = QPushButton("📝")
+            self.btn_adicionar.setFixedSize(60, 60)  # Tamanho TOP que você adorou!
+            BiodeskUIKit.apply_universal_button_style(self.btn_adicionar)
         self.btn_adicionar.setToolTip("Adicionar nota manual")
-        BiodeskUIKit.apply_universal_button_style(self.btn_adicionar)
         self.btn_adicionar.clicked.connect(self.adicionar_nota_manual)
         input_row.addWidget(self.entrada_texto, 1)
         input_row.addWidget(self.btn_adicionar, 0)
@@ -223,10 +240,13 @@ class CheckboxNotesWidget(QWidget):
         """)
         
         # Botão para remover a linha
-        btn_remover = QPushButton("✖")
-        btn_remover.setFixedSize(20, 20)
+        if BIODESK_STYLES_AVAILABLE:
+            btn_remover = BiodeskStyles.create_button("✖", ButtonType.DELETE)
+        else:
+            btn_remover = QPushButton("✖")
+            btn_remover.setFixedSize(20, 20)
+            BiodeskUIKit.apply_universal_button_style(btn_remover)
         btn_remover.setToolTip("Remover esta linha")
-        BiodeskUIKit.apply_universal_button_style(btn_remover)
         
         # Conectar remoção
         def criar_remocao(widget):

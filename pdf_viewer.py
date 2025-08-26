@@ -2,18 +2,25 @@ import os
 import sys
 from pathlib import Path
 from PyQt6.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, QPushButton, 
+    QLabel, QFrame, QDialog
+)
 from PyQt6.QtCore import Qt, QUrl
 from PyQt6.QtGui import QDesktopServices
 from biodesk_dialogs import BiodeskMessageBox
 from biodesk_ui_kit import BiodeskUIKit
+
+# 🎨 SISTEMA DE ESTILOS CENTRALIZADO
+try:
+    from biodesk_styles import BiodeskStyles, ButtonType
+    STYLES_AVAILABLE = True
+except ImportError:
+    STYLES_AVAILABLE = False
+
 """
 Sistema de Visualização de PDFs para Biodesk
 Permite visualizar PDFs gerados diretamente na interface
 """
-
-    QWidget, QVBoxLayout, QHBoxLayout, QPushButton, 
-    QLabel, QFrame, QDialog
-)
 
 try:
     # Desabilitar QWebEngineView para evitar janela que pisca
@@ -67,12 +74,19 @@ class PDFViewer(QDialog):
         header_layout.addStretch()
         
         # Botões melhorados
-        btn_open_external = QPushButton("🔗 Abrir Externa")
+        if STYLES_AVAILABLE:
+            btn_open_external = BiodeskStyles.create_button("🔗 Abrir Externa", ButtonType.NAVIGATION)
+        else:
+            btn_open_external = QPushButton("🔗 Abrir Externa")
+            BiodeskUIKit.apply_universal_button_style(btn_open_external)
         btn_open_external.clicked.connect(self.open_external)
-        BiodeskUIKit.apply_universal_button_style(btn_open_external)
         header_layout.addWidget(btn_open_external)
         
-        btn_close = QPushButton("❌ Fechar")
+        if STYLES_AVAILABLE:
+            btn_close = BiodeskStyles.create_button("❌ Fechar", ButtonType.DEFAULT)
+        else:
+            btn_close = QPushButton("❌ Fechar")
+            BiodeskUIKit.apply_universal_button_style(btn_close)
         btn_close.clicked.connect(self.close)
         BiodeskUIKit.apply_universal_button_style(btn_close)
         header_layout.addWidget(btn_close)
@@ -188,10 +202,13 @@ class PDFViewer(QDialog):
         info_layout.addWidget(info_text)
         
         # Botão grande melhorado para abrir
-        btn_open_big = QPushButton("🔗 Abrir PDF no Visualizador Externo")
+        if STYLES_AVAILABLE:
+            btn_open_big = BiodeskStyles.create_button("🔗 Abrir PDF no Visualizador Externo", ButtonType.NAVIGATION)
+        else:
+            btn_open_big = QPushButton("🔗 Abrir PDF no Visualizador Externo")
+            BiodeskUIKit.apply_universal_button_style(btn_open_big)
         btn_open_big.setFixedHeight(60)
         btn_open_big.clicked.connect(self.open_external)
-        BiodeskUIKit.apply_universal_button_style(btn_open_big)
         info_layout.addWidget(btn_open_big)
         
         layout.addWidget(info_frame)

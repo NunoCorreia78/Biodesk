@@ -31,6 +31,13 @@ from biodesk_ui_kit import BiodeskUIKit  # Para cores e fontes
 from data_cache import DataCache
 from biodesk_dialogs import BiodeskMessageBox
 
+# 🎨 SISTEMA DE ESTILOS CENTRALIZADO
+try:
+    from biodesk_styles import BiodeskStyles, ButtonType
+    STYLES_AVAILABLE = True
+except ImportError:
+    STYLES_AVAILABLE = False
+
 
 class HistoricoClinicoWidget(QWidget):
     """Widget especializado para gestão do histórico clínico"""
@@ -94,7 +101,9 @@ class HistoricoClinicoWidget(QWidget):
                 color: {BiodeskUIKit.COLORS['text']};
             }}
             QToolButton:hover {{ 
-                background: {BiodeskUIKit.COLORS['border_light']}; 
+                background: #C0C0C0 !important; 
+                border: 1px solid #999999 !important;
+                color: #333333 !important;
             }}
             QToolButton:pressed {{
                 background: {BiodeskUIKit.COLORS['border']};
@@ -148,12 +157,15 @@ class HistoricoClinicoWidget(QWidget):
         """)
         self.toolbar.addWidget(self.status_label)
         
-        # Botão de guardar - USANDO SISTEMA CENTRALIZADO BIODESK
-        self.btn_guardar = QToolButton()
-        self.btn_guardar.setText('💾 Guardar')
+        # Botão de guardar - USANDO BIODESK STYLES v2.0
+        if STYLES_AVAILABLE:
+            self.btn_guardar = BiodeskStyles.create_button('💾 Guardar', ButtonType.SAVE)
+        else:
+            self.btn_guardar = QToolButton()
+            self.btn_guardar.setText('💾 Guardar')
+        
         self.btn_guardar.setToolTip('Guardar histórico (Ctrl+S)')
         self.btn_guardar.clicked.connect(self.guardar_historico)
-        # ✨ Estilo aplicado automaticamente pelo BiodeskStyleManager
         self.toolbar.addWidget(self.btn_guardar)
         
         parent_layout.addWidget(self.toolbar)
@@ -365,6 +377,22 @@ class HistoricoClinicoWidget(QWidget):
     def obter_historico_texto(self) -> str:
         """Obtém histórico atual como texto simples"""
         return self.historico_edit.toPlainText()
+    
+    def set_historico_texto(self, texto: str):
+        """Define o texto do histórico (para carregar dados do paciente)"""
+        if texto != self.historico_texto:
+            self.historico_texto = texto
+            self._texto_original = texto
+            
+            # Atualizar o editor
+            self.historico_edit.setPlainText(texto)
+            
+            # Resetar flag de alteração
+            self._alterado = False
+            
+            # Atualizar status
+            self.status_label.setText("📄 Carregado")
+            print(f"✅ Histórico carregado: {len(texto)} caracteres")
     
     def guardar_historico(self):
         """Guarda o histórico atual"""

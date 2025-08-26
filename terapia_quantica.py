@@ -1,13 +1,21 @@
 from PyQt6.QtWidgets import (
+    QWidget, QVBoxLayout, QLabel, QPushButton
+)
 from PyQt6.QtCore import Qt
 from biodesk_dialogs import BiodeskMessageBox
 from biodesk_ui_kit import BiodeskUIKit
+
+# 🎨 SISTEMA DE ESTILOS CENTRALIZADO
+try:
+    from biodesk_styles import BiodeskStyles, ButtonType
+    STYLES_AVAILABLE = True
+except ImportError:
+    STYLES_AVAILABLE = False
+
 """
 Terapia Quântica - Versão Zero
 Base mínima para começar do zero
 """
-    QWidget, QVBoxLayout, QLabel, QPushButton
-)
 
 class TerapiaQuantica(QWidget):
     """
@@ -90,9 +98,12 @@ class TerapiaQuantica(QWidget):
         layout.addWidget(dev_label)
         
         # Botão de teste
-        btn_teste = QPushButton("🧪 Teste Básico")
+        if STYLES_AVAILABLE:
+            btn_teste = BiodeskStyles.create_button("🧪 Teste Básico", ButtonType.TOOL)
+        else:
+            btn_teste = QPushButton("🧪 Teste Básico")
+            BiodeskUIKit.apply_universal_button_style(btn_teste)
         btn_teste.clicked.connect(self.teste_basico)
-        BiodeskUIKit.apply_universal_button_style(btn_teste)
         layout.addWidget(btn_teste)
         
         # Espaçador

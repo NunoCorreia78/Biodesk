@@ -3,9 +3,18 @@
 from pathlib import Path
 
 # PyQt6 - APENAS o básico para definir classes
-from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QTabWidget, QLabel, QLineEdit, QTextEdit, QComboBox, QDateEdit, QPushButton, QScrollArea, QFrame, QFileDialog, QApplication, QDialog, QListWidget, QListWidgetItem
-from PyQt6.QtCore import Qt, QDate, QTimer
-from PyQt6.QtGui import QFont, QPixmap, QIcon, QAction, QShortcut, QKeySequence
+from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QTabWidget, QLabel, QLineEdit, QTextEdit, QComboBox, QDateEdit, QPushButton, QScrollArea, QFrame, QApplication, QDialog, QListWidget, QListWidgetItem
+from PyQt6.QtCore import Qt, QDate
+from PyQt6.QtGui import QShortcut, QKeySequence
+
+# ✅ SISTEMA NOVO: BiodeskStyles v2.0 - Estilos centralizados
+try:
+    from biodesk_styles import BiodeskStyles, DialogStyles, ButtonType
+    BIODESK_STYLES_AVAILABLE = True
+    print("✅ BiodeskStyles v2.0 carregado no ficha_paciente.py")
+except ImportError as e:
+    BIODESK_STYLES_AVAILABLE = False
+    print(f"⚠️ BiodeskStyles não disponível: {e}")
 
 # Imports essenciais para a classe principal
 from db_manager import DBManager
@@ -146,7 +155,9 @@ class FichaPaciente(QMainWindow):
             nome = self.paciente_data.get('nome', 'Novo Paciente')
             self.setWindowTitle(f"📋 Ficha do Paciente - {nome}")
             
-            # Apenas carregar dados essenciais - tabs serão carregados sob demanda
+            # 🔄 CARREGAR DADOS NOS WIDGETS JÁ INICIALIZADOS
+            self._atualizar_widgets_com_dados()
+            
             print(f"✅ Dados básicos carregados para: {nome}")
             
         except Exception as e:
@@ -154,6 +165,30 @@ class FichaPaciente(QMainWindow):
         finally:
             # Limpar flag de carregamento
             self._carregando_dados = False
+    
+    def _atualizar_widgets_com_dados(self):
+        """Atualiza widgets já inicializados com os novos dados do paciente"""
+        try:
+            # Atualizar dados pessoais se já carregado
+            if hasattr(self, 'dados_pessoais_widget') and self.dados_pessoais_widget:
+                self.dados_pessoais_widget.set_paciente_data(self.paciente_data)
+            
+            # Atualizar histórico clínico se já carregado
+            if hasattr(self, 'historico_widget') and self.historico_widget:
+                historico_texto = self.paciente_data.get('historico', '')
+                self.historico_widget.set_historico_texto(historico_texto)
+            
+            # Atualizar outros widgets conforme necessário
+            if hasattr(self, 'declaracao_widget') and self.declaracao_widget:
+                self.declaracao_widget.carregar_dados(self.paciente_data)
+                
+            if hasattr(self, 'gestao_documentos_widget') and self.gestao_documentos_widget:
+                self.gestao_documentos_widget.atualizar_paciente(self.paciente_data)
+                
+            print("🔄 Widgets atualizados com novos dados do paciente")
+            
+        except Exception as e:
+            print(f"⚠️ Erro ao atualizar widgets: {e}")
     
     def _finalize_startup(self):
         """Finaliza a inicialização com monitoramento de performance"""
@@ -190,9 +225,9 @@ class FichaPaciente(QMainWindow):
         print(f"📄 Template gerado: {template_data.get('nome', 'N/A')}")
     
     def data_atual(self):
-        """Retorna a data atual formatada"""
-        from datetime import datetime
-        return datetime.now().strftime('%d/%m/%Y')
+        """MÉTODO REFATORADO - usa DateUtils"""
+        from ficha_paciente.utils import DateUtils
+        return DateUtils.data_atual()
     
     def selecionar_imagem_galeria(self, img):
         """Seleciona a imagem da galeria visual, atualiza canvas e aplica destaque visual"""
@@ -606,7 +641,7 @@ class FichaPaciente(QMainWindow):
             # Obter histórico atual se existe
             historico_atual = ""
             if hasattr(self, 'paciente_data') and self.paciente_data:
-                historico_atual = self.paciente_data.get('historico_clinico', '')
+                historico_atual = self.paciente_data.get('historico', '')
             
             # Criar widget otimizado
             self.historico_widget = HistoricoClinicoWidget(historico_atual, self)
@@ -633,8 +668,8 @@ class FichaPaciente(QMainWindow):
         """Callback quando histórico é alterado PELO USUÁRIO"""
         # CORREÇÃO: Só marcar como dirty se não estiver carregando dados iniciais
         if not getattr(self, '_carregando_dados', False) and hasattr(self, 'paciente_data') and self.paciente_data:
-            # Atualizar apenas o texto simples no paciente_data
-            self.paciente_data['historico_clinico'] = novo_historico
+            # Atualizar usando a coluna correta da base de dados
+            self.paciente_data['historico'] = novo_historico
             # Marcar como alterado
             self.dirty = True
     
@@ -788,23 +823,22 @@ class FichaPaciente(QMainWindow):
         """)
         para_layout.addWidget(self.destinatario_edit)
         
-        # ✅ BOTÕES NA LINHA "PARA" - ORDEM: Follow-up, Templates, Lista (MESMO TAMANHO)
-        btn_followup = QPushButton("📅 Follow-up")
+        # ✅ BOTÕES NA LINHA "PARA" - USANDO BUTTON MANAGER CENTRALIZADO
+        from ficha_paciente.core.button_manager import ButtonManager
+        
+        btn_followup = ButtonManager.followup_button(self, self.schedule_followup_consulta)
         btn_followup.setFixedHeight(45)
         btn_followup.setFixedWidth(120)  # TAMANHO UNIFICADO
-        btn_followup.clicked.connect(self.schedule_followup_consulta)
         para_layout.addWidget(btn_followup)
         
-        btn_template = QPushButton("📄 Templates")
+        btn_template = ButtonManager.template_button(self, self.abrir_templates_mensagem)
         btn_template.setFixedHeight(45)
         btn_template.setFixedWidth(120)  # TAMANHO UNIFICADO
-        btn_template.clicked.connect(self.abrir_templates_mensagem)
         para_layout.addWidget(btn_template)
         
-        btn_listar_followups = QPushButton("📋 Lista")
+        btn_listar_followups = ButtonManager.lista_followups_button(self, self.listar_followups_agendados)
         btn_listar_followups.setFixedHeight(45)
         btn_listar_followups.setFixedWidth(120)  # TAMANHO UNIFICADO
-        btn_listar_followups.clicked.connect(self.listar_followups_agendados)
         para_layout.addWidget(btn_listar_followups)
         
         para_layout.addStretch()  # Empurra tudo para a esquerda
@@ -838,11 +872,10 @@ class FichaPaciente(QMainWindow):
         """)
         assunto_layout.addWidget(self.assunto_edit)
         
-        # BOTÃO ENVIAR - LARGURA TOTAL dos 3 botões com MESMA MARGEM CSS
-        btn_enviar_email = QPushButton("📧 Enviar")
+        # BOTÃO ENVIAR - USANDO BUTTON MANAGER CENTRALIZADO
+        btn_enviar_email = ButtonManager.email_button(self, self.enviar_mensagem)
         btn_enviar_email.setFixedHeight(45)
         btn_enviar_email.setFixedWidth(390)  # LARGURA AUMENTADA para 390px
-        btn_enviar_email.clicked.connect(self.enviar_mensagem)
         assunto_layout.addWidget(btn_enviar_email)
         
         assunto_layout.addStretch()  # Empurra tudo para a esquerda
@@ -985,10 +1018,9 @@ class FichaPaciente(QMainWindow):
         config_inferior_layout = QHBoxLayout()
         config_inferior_layout.addStretch()  # Empurra para a direita
         
-        btn_config_inferior = QPushButton("⚙️ Config")
+        btn_config_inferior = ButtonManager.config_button(self, self.abrir_configuracoes_comunicacao)
         btn_config_inferior.setFixedHeight(35)
         btn_config_inferior.setFixedWidth(85)
-        btn_config_inferior.clicked.connect(self.abrir_configuracoes_comunicacao)
         config_inferior_layout.addWidget(btn_config_inferior)
         
         layout.addLayout(config_inferior_layout)
@@ -1000,10 +1032,9 @@ class FichaPaciente(QMainWindow):
 
         # Configurar canal e carregar dados
         
-        btn_enviar = QPushButton("📧 Enviar Email")
+        btn_enviar = ButtonManager.email_button(self, self.enviar_mensagem)
         btn_enviar.setFixedHeight(50)  # Ligeiramente maior para destaque
         btn_enviar.setFixedWidth(200)  # Ligeiramente maior
-        btn_enviar.clicked.connect(self.enviar_mensagem)
         # REMOVIDO: botoes_layout.addWidget(btn_enviar) - código duplicado
         
         # REMOVIDO: botoes_layout.addStretch() - código duplicado
@@ -1025,15 +1056,12 @@ class FichaPaciente(QMainWindow):
             self.anexos_frame.show()
 
     def carregar_dados_paciente_email(self):
-        """Carrega automaticamente o email do paciente atual"""
-        # print(f"[EMAIL DEBUG] 🔍 Verificando paciente_data: {bool(self.paciente_data)}")
-        # print(f"[EMAIL DEBUG] 📋 Dados disponíveis: {list(self.paciente_data.keys()) if self.paciente_data else 'Nenhum'}")
+        """MÉTODO REFATORADO - usa EmailService"""
+        from ficha_paciente.services import EmailService
         
         if self.paciente_data:
-            # Carregar email se disponível - PROTEGER CONTRA None
-            email_raw = self.paciente_data.get('email', '')
-            email_paciente = email_raw.strip() if email_raw else ''
-            # print(f"[EMAIL DEBUG] 📧 Email encontrado: '{email_paciente}'")
+            # Usar EmailService para obter email formatado
+            email_paciente = EmailService.formatar_destinatario(self.paciente_data) or ''
             
             if email_paciente:
                 # Só preencher se o campo existir (módulo de comunicação carregado)
@@ -1053,12 +1081,16 @@ class FichaPaciente(QMainWindow):
             # Nenhum paciente carregado
 
     def atualizar_email_paciente_data(self):
-        """Atualiza o email no paciente_data em tempo real e no separador Email"""
+        """MÉTODO REFATORADO - usa DataService"""
+        from ficha_paciente.services import DataService
+        
         novo_email = self.email_edit.text().strip()
         
         if hasattr(self, 'paciente_data') and self.paciente_data:
-            # Atualizar email no paciente_data
-            self.paciente_data['email'] = novo_email
+            # Usar DataService para atualizar dados
+            self.paciente_data = DataService.atualizar_campo_paciente(
+                self.paciente_data, 'email', novo_email
+            )
             print(f"[EMAIL] 🔄 Email atualizado em tempo real: '{novo_email}'")
             
             # Atualizar campo de email no separador Email, se existir
@@ -1473,12 +1505,10 @@ Equipe Médica"""
             botoes_layout = QHBoxLayout()
             botoes_layout.setSpacing(15)
             
-            btn_cancelar = QPushButton("❌ Cancelar")
+            btn_cancelar = ButtonManager.cancelar_button(dialog, dialog.reject)
             btn_cancelar.setFixedHeight(40)
             
-            btn_cancelar.clicked.connect(dialog.reject)
-            
-            btn_usar = QPushButton("✨ Usar Template Personalizado")
+            btn_usar = ButtonManager.template_personalizado_button(dialog, None)  # callback será definido abaixo
             btn_usar.setFixedHeight(40)
 
             # ✅ FUNÇÃO PARA USAR TEMPLATE PERSONALIZADO
@@ -1854,65 +1884,17 @@ Naturopata | Osteopata | Medicina Quântica
         self.template_selecionado = template_data
 
     def usar_template_dialog(self):
-        """Abre diálogo para usar templates predefinidos"""
+        """Abre diálogo para usar templates predefinidos - REFATORADO"""
         try:
-            templates = {
-                "Consulta Inicial": "Obrigado por ter escolhido os nossos serviços...",
-                "Follow-up": "Como tem estado desde a nossa última consulta?",
-                "Agendamento": "Gostaria de agendar a sua próxima consulta..."
-            }
+            from ficha_paciente.dialogs.template_dialog import TemplateDialog
             
-            dialog = QDialog(self)
-            dialog.setWindowTitle("📝 Usar Template")
-            dialog.resize(650, 500)  # AUMENTADO: era 500x400, agora 650x500
+            def aplicar_template(template_texto):
+                """Callback para aplicar o template selecionado"""
+                if hasattr(self, 'mensagem_edit'):
+                    self.mensagem_edit.setPlainText(template_texto)
             
-            layout = QVBoxLayout()
-            
-            lista_templates = QListWidget()
-            for nome in templates.keys():
-                lista_templates.addItem(nome)
-            layout.addWidget(lista_templates)
-            
-            preview = QTextEdit()
-            preview.setReadOnly(True)
-            layout.addWidget(preview)
-            
-            def atualizar_preview():
-                item_atual = lista_templates.currentItem()
-                if item_atual:
-                    nome = item_atual.text()
-                    preview.setPlainText(templates[nome])
-            
-            lista_templates.itemSelectionChanged.connect(atualizar_preview)
-            
-            def usar_template():
-                item_atual = lista_templates.currentItem()
-                if item_atual:
-                    nome = item_atual.text()
-                    self.mensagem_edit.setPlainText(templates[nome])
-                    dialog.accept()
-                else:
-                    QMessageBox.warning(dialog, "Aviso", "Selecione um template primeiro.")
-            
-            # Botões do diálogo
-            botoes_layout = QHBoxLayout()
-            btn_cancelar = QPushButton("❌ Cancelar")
-            btn_usar = QPushButton("✅ Usar Template")
-            
-            btn_cancelar.clicked.connect(dialog.reject)
-            btn_usar.clicked.connect(usar_template)
-            
-            botoes_layout.addStretch()
-            botoes_layout.addWidget(btn_cancelar)
-            botoes_layout.addWidget(btn_usar)
-            layout.addLayout(botoes_layout)
-            
-            # Selecionar primeiro item por padrão
-            if lista_templates.count() > 0:
-                lista_templates.setCurrentRow(0)
-                atualizar_preview()
-            
-            dialog.exec()
+            # Abrir diálogo usando a nova classe extraída
+            TemplateDialog.abrir_dialog(callback=aplicar_template, parent=self)
             
         except Exception as e:
             from PyQt6.QtWidgets import QMessageBox
@@ -1920,7 +1902,9 @@ Naturopata | Osteopata | Medicina Quântica
             print(f"[TEMPLATE] ❌ Erro: {e}")
 
     def enviar_mensagem(self):
-        """Envia a mensagem através do email com template personalizado"""
+        """MÉTODO REFATORADO - usa ValidationService"""
+        from ficha_paciente.services import ValidationService
+        
         if not self.canal_atual or self.canal_atual != "email":
             from biodesk_dialogs import mostrar_aviso
             mostrar_aviso(self, "Canal não disponível", "Apenas o canal de email está disponível.")
@@ -1930,9 +1914,11 @@ Naturopata | Osteopata | Medicina Quântica
         mensagem = self.mensagem_edit.toPlainText()
         assunto = self.assunto_edit.text() or "Mensagem do Biodesk"
         
-        if not destinatario or not mensagem:
+        # Usar ValidationService para validar campos
+        valido, erros = ValidationService.validar_campos_email(destinatario, assunto, mensagem)
+        if not valido:
             from biodesk_dialogs import mostrar_aviso
-            mostrar_aviso(self, "Campos obrigatórios", "Preencha o destinatário e a mensagem.")
+            mostrar_aviso(self, "Campos inválidos", "\n".join(erros))
             return
         
         # Obter nome do paciente atual
@@ -2386,8 +2372,7 @@ Naturopata | Osteopata | Medicina Quântica
         # Botão de teste removido - funcionalidade obsoleta
         
         # Botão abrir módulo
-        self.btn_abrir_terapia = QPushButton("⚡ Abrir Módulo de Terapia")
-        self.btn_abrir_terapia.clicked.connect(self.abrir_terapia)
+        self.btn_abrir_terapia = ButtonManager.abrir_terapia_button(self, self.abrir_terapia)
         botoes_layout.addWidget(self.btn_abrir_terapia)
         
         botoes_layout.addStretch()
@@ -2760,9 +2745,7 @@ Naturopata | Osteopata | Medicina Quântica
         layout.addWidget(info_label)
         
         # Botão OK estilizado
-        btn_ok = QPushButton("🔙 Entendido")
-        
-        btn_ok.clicked.connect(dialog.accept)
+        btn_ok = ButtonManager.entendido_button(dialog, dialog.accept)
         
         btn_layout = QHBoxLayout()
         btn_layout.addStretch()
@@ -2939,7 +2922,7 @@ Naturopata | Osteopata | Medicina Quântica
             layout_agendados.addWidget(lista_agendados)
             
             # Botão para cancelar
-            btn_cancelar = QPushButton("❌ Cancelar Selecionado")
+            btn_cancelar = ButtonManager.cancelar_selecionado_button(dialog, None)  # callback será definido abaixo
 
             def cancelar_job():
                 item = lista_agendados.currentItem()
@@ -3042,9 +3025,7 @@ Naturopata | Osteopata | Medicina Quântica
         layout.addWidget(tab_widget)
         
         # Botão fechar
-        btn_fechar = QPushButton("🔙 Fechar")
-        
-        btn_fechar.clicked.connect(dialog.accept)
+        btn_fechar = ButtonManager.fechar_button(dialog, dialog.accept)
         layout.addWidget(btn_fechar)
         
         dialog.exec()
@@ -3287,9 +3268,13 @@ Naturopata | Osteopata | Medicina Quântica
             item_layout.setSpacing(2)
             
             # Botão principal - ESTILO IGUAL AOS TEMPLATES
-            btn = QPushButton(nome)
-            btn.setCheckable(True)
-            btn.setFixedHeight(45)  # Altura igual aos templates
+            if BIODESK_STYLES_AVAILABLE:
+                btn = BiodeskStyles.create_button(nome, ButtonType.DEFAULT)
+                btn.setCheckable(True)
+            else:
+                btn = QPushButton(nome)
+                btn.setCheckable(True)
+                btn.setFixedHeight(45)  # Altura igual aos templates
             
             btn.clicked.connect(lambda checked, t=tipo: self.selecionar_tipo_consentimento(t))
             self.botoes_consentimento[tipo] = btn
@@ -3393,53 +3378,59 @@ Naturopata | Osteopata | Medicina Quântica
         # Espaçador esquerdo
         assinaturas_layout.addStretch()
         
-        # Botão Paciente - Compacto e bem formatado
-        self.assinatura_paciente = QPushButton("📝 Paciente")
-        self.assinatura_paciente.setFixedSize(140, 45)
-        self.assinatura_paciente.setStyleSheet("""
-            QPushButton {
-                border: 2px solid #2196F3;
-                border-radius: 8px;
-                background-color: #e3f2fd;
-                font-size: 12px;
-                color: #1976d2;
-                font-weight: 600;
-                padding: 8px;
-            }
-            QPushButton:hover {
-                background-color: #bbdefb;
-                border-color: #1976d2;
-            }
-            QPushButton:pressed {
-                background-color: #90caf9;
-                border-color: #0d47a1;
-            }
-        """)
+        # Botão Paciente - usando BiodeskStyles v2.0
+        if BIODESK_STYLES_AVAILABLE:
+            self.assinatura_paciente = BiodeskStyles.create_button("📝 Paciente", ButtonType.DIALOG)
+        else:
+            self.assinatura_paciente = QPushButton("📝 Paciente")
+            self.assinatura_paciente.setFixedSize(140, 45)
+            self.assinatura_paciente.setStyleSheet("""
+                QPushButton {
+                    border: 2px solid #2196F3;
+                    border-radius: 8px;
+                    background-color: #e3f2fd;
+                    font-size: 12px;
+                    color: #1976d2;
+                    font-weight: 600;
+                    padding: 8px;
+                }
+                QPushButton:hover {
+                    background-color: #bbdefb;
+                    border-color: #1976d2;
+                }
+                QPushButton:pressed {
+                    background-color: #90caf9;
+                    border-color: #0d47a1;
+                }
+            """)
         self.assinatura_paciente.clicked.connect(self.abrir_assinatura_paciente_click)
         assinaturas_layout.addWidget(self.assinatura_paciente)
         
-        # Botão Terapeuta - Compacto e bem formatado
-        self.assinatura_terapeuta = QPushButton("👨‍⚕️ Terapeuta")
-        self.assinatura_terapeuta.setFixedSize(140, 45)
-        self.assinatura_terapeuta.setStyleSheet("""
-            QPushButton {
-                border: 2px solid #4CAF50;
-                border-radius: 8px;
-                background-color: #e8f5e8;
-                font-size: 12px;
-                color: #2e7d32;
-                font-weight: 600;
-                padding: 8px;
-            }
-            QPushButton:hover {
-                background-color: #c8e6c9;
-                border-color: #388e3c;
-            }
-            QPushButton:pressed {
-                background-color: #a5d6a7;
-                border-color: #1b5e20;
-            }
-        """)
+        # Botão Terapeuta - usando BiodeskStyles v2.0
+        if BIODESK_STYLES_AVAILABLE:
+            self.assinatura_terapeuta = BiodeskStyles.create_button("👨‍⚕️ Terapeuta", ButtonType.SAVE)
+        else:
+            self.assinatura_terapeuta = QPushButton("👨‍⚕️ Terapeuta")
+            self.assinatura_terapeuta.setFixedSize(140, 45)
+            self.assinatura_terapeuta.setStyleSheet("""
+                QPushButton {
+                    border: 2px solid #4CAF50;
+                    border-radius: 8px;
+                    background-color: #e8f5e8;
+                    font-size: 12px;
+                    color: #2e7d32;
+                    font-weight: 600;
+                    padding: 8px;
+                }
+                QPushButton:hover {
+                    background-color: #c8e6c9;
+                    border-color: #388e3c;
+                }
+                QPushButton:pressed {
+                    background-color: #a5d6a7;
+                    border-color: #1b5e20;
+                }
+            """)
         self.assinatura_terapeuta.clicked.connect(self.abrir_assinatura_terapeuta_click)
         assinaturas_layout.addWidget(self.assinatura_terapeuta)
         
@@ -3483,15 +3474,21 @@ Naturopata | Osteopata | Medicina Quântica
         botoes_linha1.setSpacing(10)
         
         # Botões de ação (mais largos devido ao espaço disponível)
-        btn_imprimir = QPushButton("🖨️\nImprimir")
-        btn_imprimir.setFixedSize(100, 60)  # Reduzir largura
-        self._style_modern_button(btn_imprimir, "#ff9800")
+        if BIODESK_STYLES_AVAILABLE:
+            btn_imprimir = BiodeskStyles.create_button("🖨️ Imprimir", ButtonType.TOOL)
+        else:
+            btn_imprimir = QPushButton("🖨️\nImprimir")
+            btn_imprimir.setFixedSize(100, 60)  # Reduzir largura
+            self._style_modern_button(btn_imprimir, "#ff9800")
         btn_imprimir.clicked.connect(self.imprimir_consentimento)
         botoes_linha1.addWidget(btn_imprimir)
         
-        btn_pdf = QPushButton("📄\nPDF")
-        btn_pdf.setFixedSize(100, 60)  # Reduzir largura
-        self._style_modern_button(btn_pdf, "#3498db")
+        if BIODESK_STYLES_AVAILABLE:
+            btn_pdf = BiodeskStyles.create_button("📄 PDF", ButtonType.TOOL)
+        else:
+            btn_pdf = QPushButton("📄\nPDF")
+            btn_pdf.setFixedSize(100, 60)  # Reduzir largura
+            self._style_modern_button(btn_pdf, "#3498db")
         btn_pdf.clicked.connect(self.gerar_pdf_consentimento)
         botoes_linha1.addWidget(btn_pdf)
         
@@ -3501,44 +3498,61 @@ Naturopata | Osteopata | Medicina Quântica
         botoes_linha2 = QHBoxLayout()
         botoes_linha2.setSpacing(10)
         
-        btn_guardar = QPushButton("💾\nGuardar")
-        btn_guardar.setFixedSize(100, 60)  # Reduzir largura
-        self._style_modern_button(btn_guardar, "#27ae60")
+        if BIODESK_STYLES_AVAILABLE:
+            btn_guardar = BiodeskStyles.create_button("💾 Guardar", ButtonType.SAVE)
+        else:
+            btn_guardar = QPushButton("💾\nGuardar")
+            btn_guardar.setFixedSize(100, 60)  # Reduzir largura
+            self._style_modern_button(btn_guardar, "#27ae60")
         btn_guardar.clicked.connect(self.guardar_consentimento)
         botoes_linha2.addWidget(btn_guardar)
         
-        btn_limpar = QPushButton("🗑️\nLimpar")
-        btn_limpar.setFixedSize(100, 60)  # Reduzir largura
-        self._style_modern_button(btn_limpar, "#e74c3c")
+        if BIODESK_STYLES_AVAILABLE:
+            btn_limpar = BiodeskStyles.create_button("🗑️ Limpar", ButtonType.DELETE)
+        else:
+            btn_limpar = QPushButton("🗑️\nLimpar")
+            btn_limpar.setFixedSize(100, 60)  # Reduzir largura
+            self._style_modern_button(btn_limpar, "#e74c3c")
         btn_limpar.clicked.connect(self.limpar_consentimento)
         botoes_linha2.addWidget(btn_limpar)
         
         acoes_layout.addLayout(botoes_linha2)
         
         # Botão de histórico centralizado
-        btn_historico = QPushButton("📋 Histórico")
-        btn_historico.setFixedSize(210, 50)  # Mais largo para ocupar as duas colunas
-        self._style_modern_button(btn_historico, "#9b59b6")
+        if BIODESK_STYLES_AVAILABLE:
+            btn_historico = BiodeskStyles.create_button("📋 Histórico", ButtonType.NAVIGATION)
+        else:
+            btn_historico = QPushButton("📋 Histórico")
+            btn_historico.setFixedSize(210, 50)  # Mais largo para ocupar as duas colunas
+            self._style_modern_button(btn_historico, "#9b59b6")
         btn_historico.clicked.connect(self.mostrar_historico_consentimentos)
         acoes_layout.addWidget(btn_historico)
-        # Botão moderno para assinatura externa
-        btn_assinatura_externa = QPushButton("📝 Assinar PDF Externamente")
-        btn_assinatura_externa.setFixedSize(210, 50)
         
+        # Botão moderno para assinatura externa
+        if BIODESK_STYLES_AVAILABLE:
+            btn_assinatura_externa = BiodeskStyles.create_button("📝 Assinar PDF Externamente", ButtonType.TOOL)
+        else:
+            btn_assinatura_externa = QPushButton("📝 Assinar PDF Externamente")
+            btn_assinatura_externa.setFixedSize(210, 50)
         btn_assinatura_externa.clicked.connect(self.gerar_pdf_para_assinatura_externa)
         acoes_layout.addWidget(btn_assinatura_externa)
         
         # Botão de importação manual (para casos onde a automação falha)
-        btn_importar_manual_consent = QPushButton("📁 Importar Assinado")
-        btn_importar_manual_consent.setFixedSize(210, 35)
-        
+        if BIODESK_STYLES_AVAILABLE:
+            btn_importar_manual_consent = BiodeskStyles.create_button("📁 Importar Assinado", ButtonType.TOOL)
+        else:
+            btn_importar_manual_consent = QPushButton("📁 Importar Assinado")
+            btn_importar_manual_consent.setFixedSize(210, 35)
         btn_importar_manual_consent.clicked.connect(self.importar_pdf_manual)
         acoes_layout.addWidget(btn_importar_manual_consent)
         
         # Botão de anular consentimento
-        self.btn_anular = QPushButton("🗑️ Anular")
-        self.btn_anular.setFixedSize(210, 50)
-        self._style_modern_button(self.btn_anular, "#6c757d")
+        if BIODESK_STYLES_AVAILABLE:
+            self.btn_anular = BiodeskStyles.create_button("🗑️ Anular", ButtonType.DELETE)
+        else:
+            self.btn_anular = QPushButton("🗑️ Anular")
+            self.btn_anular.setFixedSize(210, 50)
+            self._style_modern_button(self.btn_anular, "#6c757d")
         self.btn_anular.clicked.connect(self.anular_consentimento_click)
         self.btn_anular.setVisible(False)  # Inicialmente oculto
         acoes_layout.addWidget(self.btn_anular)
@@ -3679,29 +3693,18 @@ Naturopata | Osteopata | Medicina Quântica
             from consentimentos_manager import ConsentimentosManager
             manager = ConsentimentosManager()
             
-            # Obter o consentimento mais recente deste tipo para este paciente
+            # Obter o consentimento mais recente deste tipo para este paciente usando DatabaseService
             paciente_id = self.paciente_data['id']
             
-            import sqlite3
             try:
-                conn = sqlite3.connect("pacientes.db")
-                cursor = conn.cursor()
+                from ficha_paciente.services.database_service import DatabaseService
                 
-                cursor.execute('''
-                    SELECT id, assinatura_paciente, assinatura_terapeuta, nome_paciente, nome_terapeuta, status
-                    FROM consentimentos 
-                    WHERE paciente_id = ? AND tipo_consentimento = ? AND (status IS NULL OR status != 'anulado')
-                    ORDER BY data_assinatura DESC 
-                    LIMIT 1
-                ''', (paciente_id, tipo))
+                # Buscar consentimento usando DatabaseService
+                consentimento = DatabaseService.buscar_consentimento_recente(paciente_id, tipo)
                 
-                resultado = cursor.fetchone()
-                
-                if resultado:
-                    consentimento_id, assinatura_paciente, assinatura_terapeuta, nome_paciente, nome_terapeuta, status = resultado
-                    
+                if consentimento:
                     # Verificar se o consentimento não foi anulado
-                    if status == 'anulado':
+                    if consentimento['status'] == 'anulado':
                         # Consentimento foi anulado - resetar botões
                         self.consentimento_ativo = None
                         self.resetar_botoes_assinatura()
@@ -3709,9 +3712,10 @@ Naturopata | Osteopata | Medicina Quântica
                         return
                     
                     # Armazenar consentimento ativo para usar nas assinaturas
-                    self.consentimento_ativo = {'id': consentimento_id, 'tipo': tipo}
+                    self.consentimento_ativo = {'id': consentimento['id'], 'tipo': tipo}
                     
                     # Verificar e atualizar botão do paciente
+                    assinatura_paciente = consentimento['assinatura_paciente']
                     if assinatura_paciente and len(assinatura_paciente) > 0:
                         self.assinatura_paciente.setText("✅ Assinado")
                         self.assinatura_paciente.setStyleSheet("""
@@ -3733,6 +3737,7 @@ Naturopata | Osteopata | Medicina Quântica
                         self.resetar_botao_paciente()
                     
                     # Verificar e atualizar botão do terapeuta
+                    assinatura_terapeuta = consentimento['assinatura_terapeuta']
                     if assinatura_terapeuta and len(assinatura_terapeuta) > 0:
                         self.assinatura_terapeuta.setText("✅ Assinado")
                         self.assinatura_terapeuta.setStyleSheet("""
@@ -3752,17 +3757,19 @@ Naturopata | Osteopata | Medicina Quântica
                         print(f"[DEBUG] ✅ Assinatura do terapeuta encontrada para {tipo}")
                     else:
                         self.resetar_botao_terapeuta()
-                        
                 else:
                     # Não há consentimento deste tipo - resetar botões
                     self.consentimento_ativo = None
                     self.resetar_botoes_assinatura()
                     print(f"[DEBUG] ℹ️ Nenhum consentimento {tipo} encontrado para este paciente")
                     
-            finally:
-                if conn:
-                    conn.close()
-                    
+            except ImportError:
+                print(f"[AVISO] DatabaseService não encontrado, usando fallback")
+                self.resetar_botoes_assinatura()
+            except Exception as e:
+                print(f"[ERRO] Erro ao buscar consentimento: {e}")
+                self.resetar_botoes_assinatura()
+                
         except Exception as e:
             print(f"[ERRO] Erro ao verificar assinaturas existentes: {e}")
             self.resetar_botoes_assinatura()
@@ -4821,14 +4828,19 @@ Naturopata | Osteopata | Medicina Quântica
             botoes_layout = QHBoxLayout()
             botoes_layout.addStretch()
             
-            btn_cancelar = QPushButton("❌ Cancelar")
-            btn_cancelar.setFixedSize(120, 40)
-            
+            if BIODESK_STYLES_AVAILABLE:
+                btn_cancelar = BiodeskStyles.create_button("❌ Cancelar", ButtonType.DEFAULT)
+            else:
+                btn_cancelar = QPushButton("❌ Cancelar")
+                btn_cancelar.setFixedSize(120, 40)
             btn_cancelar.clicked.connect(dialog.reject)
             botoes_layout.addWidget(btn_cancelar)
             
-            btn_anular = QPushButton("🗑️ Anular Completamente")
-            btn_anular.setFixedSize(180, 40)
+            if BIODESK_STYLES_AVAILABLE:
+                btn_anular = BiodeskStyles.create_button("🗑️ Anular Completamente", ButtonType.DELETE)
+            else:
+                btn_anular = QPushButton("🗑️ Anular Completamente")
+                btn_anular.setFixedSize(180, 40)
 
             def confirmar_anulacao():
                 motivo = campo_motivo.toPlainText().strip()
@@ -5427,16 +5439,22 @@ Naturopata | Osteopata | Medicina Quântica
             # Botões
             botoes_layout = QHBoxLayout()
             
-            btn_fechar = QPushButton("❌ Fechar")
-            self._style_modern_button(btn_fechar, "#95a5a6")
+            if BIODESK_STYLES_AVAILABLE:
+                btn_fechar = BiodeskStyles.create_button("❌ Fechar", ButtonType.DEFAULT)
+            else:
+                btn_fechar = QPushButton("❌ Fechar")
+                self._style_modern_button(btn_fechar, "#95a5a6")
             btn_fechar.clicked.connect(dialog.close)
             botoes_layout.addWidget(btn_fechar)
             
             botoes_layout.addStretch()
             
             if historico:
-                btn_visualizar = QPushButton("👁️ Ver Selecionado")
-                self._style_modern_button(btn_visualizar, "#3498db")
+                if BIODESK_STYLES_AVAILABLE:
+                    btn_visualizar = BiodeskStyles.create_button("👁️ Ver Selecionado", ButtonType.NAVIGATION)
+                else:
+                    btn_visualizar = QPushButton("👁️ Ver Selecionado")
+                    self._style_modern_button(btn_visualizar, "#3498db")
                 btn_visualizar.clicked.connect(lambda: self._visualizar_consentimento_historico(lista, dialog))
                 botoes_layout.addWidget(btn_visualizar)
             
@@ -6219,66 +6237,41 @@ Naturopata | Osteopata | Medicina Quântica
             print(f"[ERRO] Erro na assinatura do terapeuta: {e}")
 
     def _processar_texto_pdf(self, texto):
-        """
-        Processa texto para PDF com quebras de linha adequadas e formatação otimizada
-        """
-        if not texto:
-            return ""
-        
-        # Dividir em parágrafos
-        paragrafos = texto.split('\n')
-        paragrafos_processados = []
-        
-        for paragrafo in paragrafos:
-            paragrafo = paragrafo.strip()
-            if not paragrafo:
-                continue
-                
-            # Remover quebras de linha inadequadas no meio de frases
-            paragrafo = ' '.join(paragrafo.split())
-            
-            # Adicionar quebras automáticas para linhas muito longas (mais de 80 caracteres)
-            if len(paragrafo) > 80:
-                # Tentar quebrar em pontuação natural
-                import re
-                frases = re.split(r'([.!?]\s+)', paragrafo)
-                paragrafo_quebrado = ""
-                linha_atual = ""
-                
-                for i, frase in enumerate(frases):
-                    if i % 2 == 0:  # Texto da frase
-                        if len(linha_atual + frase) > 80 and linha_atual:
-                            paragrafo_quebrado += linha_atual.strip() + "<br>"
-                            linha_atual = frase
-                        else:
-                            linha_atual += frase
-                    else:  # Pontuação
-                        linha_atual += frase
-                        
-                paragrafo_quebrado += linha_atual
-                paragrafo = paragrafo_quebrado
-            
-            paragrafos_processados.append(f"<p>{paragrafo}</p>")
-        
-        return "\n".join(paragrafos_processados)
+        """MÉTODO REFATORADO - usa TextUtils"""
+        from ficha_paciente.utils import TextUtils
+        return TextUtils.processar_texto_pdf(texto)
 
     def gerar_pdf_consentimento(self):
-        """Gera PDF do consentimento com formatação robusta e simples"""
+        """Gera PDF do consentimento com formatação robusta usando PDFService"""
         if not hasattr(self, 'tipo_consentimento_atual'):
             from biodesk_dialogs import mostrar_aviso
             mostrar_aviso(self, "Aviso", "Selecione um tipo de consentimento primeiro.")
             return
         
         try:
-            from PyQt6.QtPrintSupport import QPrinter
-            from PyQt6.QtGui import QTextDocument, QPageSize, QPageLayout
             from PyQt6.QtWidgets import QFileDialog
-            from PyQt6.QtCore import QMarginsF, QUrl
-            import os
+            from ficha_paciente.services import PDFService
             
-            # Escolher local para salvar
-            nome_paciente = self.paciente_data.get('nome', 'Paciente').replace(' ', '_')
-            nome_arquivo = f"Consentimento_{self.tipo_consentimento_atual}_{nome_paciente}.pdf"
+            # Obter conteúdo do editor
+            texto_consentimento = self.editor_consentimento.toPlainText()
+            
+            # Validar prerequisitos usando PDFService
+            valido, erro = PDFService.validar_prerequisitos_pdf(
+                self.paciente_data, 
+                self.tipo_consentimento_atual,
+                texto_consentimento
+            )
+            
+            if not valido:
+                from biodesk_dialogs import mostrar_aviso
+                mostrar_aviso(self, "Aviso", f"⚠️ {erro}")
+                return
+            
+            # Escolher local para salvar usando PDFService para nome
+            nome_arquivo = PDFService.gerar_nome_arquivo_pdf(
+                self.paciente_data, 
+                self.tipo_consentimento_atual
+            )
             
             arquivo, _ = QFileDialog.getSaveFileName(
                 self, "Guardar Consentimento PDF", nome_arquivo, "PDF files (*.pdf)"
@@ -6287,13 +6280,25 @@ Naturopata | Osteopata | Medicina Quântica
             if not arquivo:
                 return
             
-            # Configurar printer
+            # Gerar HTML completo usando PDFService
+            html_documento = PDFService.compilar_documento_html(
+                self.tipo_consentimento_atual,
+                self.paciente_data,
+                texto_consentimento,
+                incluir_assinaturas=True
+            )
+            
+            # Configurar impressão usando PDFService
+            from PyQt6.QtPrintSupport import QPrinter
+            from PyQt6.QtGui import QTextDocument, QPageSize, QPageLayout
+            from PyQt6.QtCore import QMarginsF
+            
             printer = QPrinter(QPrinter.PrinterMode.HighResolution)
             printer.setOutputFormat(QPrinter.OutputFormat.PdfFormat)
             printer.setOutputFileName(arquivo)
             printer.setPageSize(QPageSize(QPageSize.PageSizeId.A4))
             
-            # Configurar margens usando QPageLayout (método correto para PyQt6)
+            # Configurar margens
             page_layout = QPageLayout()
             page_layout.setPageSize(QPageSize(QPageSize.PageSizeId.A4))
             page_layout.setOrientation(QPageLayout.Orientation.Portrait)
@@ -6301,10 +6306,27 @@ Naturopata | Osteopata | Medicina Quântica
             page_layout.setUnits(QPageLayout.Unit.Millimeter)
             printer.setPageLayout(page_layout)
             
-            # Preparar dados
-            nome_paciente = self.paciente_data.get('nome', 'N/A')
-            data_documento = self.data_atual()
-            tipo_consentimento = self.tipo_consentimento_atual.upper()
+            # Imprimir HTML para PDF
+            document = QTextDocument()
+            document.setHtml(html_documento)
+            document.print(printer)
+            
+            # Validar resultado
+            valido, erro = PDFService.validar_pdf_gerado(arquivo)
+            
+            if valido:
+                from biodesk_dialogs import mostrar_informacao
+                mostrar_informacao(self, "Sucesso", f"✅ PDF gerado com sucesso!\n\n📄 Arquivo: {arquivo}")
+            else:
+                from biodesk_dialogs import mostrar_erro
+                mostrar_erro(self, "Erro", f"❌ PDF gerado com problemas:\n\n{erro}")
+        
+        except Exception as e:
+            print(f"[ERRO] Erro na geração de PDF: {e}")
+            import traceback
+            traceback.print_exc()
+            from biodesk_dialogs import mostrar_erro
+            mostrar_erro(self, "Erro", f"Erro ao gerar PDF:\n\n{str(e)}")
             texto_consentimento = self.editor_consentimento.toPlainText()
             
             # 🎯 LOGO - Buscar e preparar caminho correto
@@ -6850,21 +6872,106 @@ Naturopata | Osteopata | Medicina Quântica
             mostrar_erro(self, "Erro", f"Erro ao salvar consentimento:\n\n{str(e)}")
 
     def data_atual_completa(self):
-        """Retorna a data atual no formato completo para a base de dados"""
-        from datetime import datetime
-        return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        """MÉTODO REFATORADO - usa DateUtils"""
+        from ficha_paciente.utils import DateUtils
+        return DateUtils.data_atual_completa()
 
     def gerar_pdf_click(self):
-        """Gera PDF do consentimento atual"""
+        """Gera PDF do consentimento atual usando PDFService"""
         try:
             print("[DEBUG] Gerando PDF do consentimento...")
-            # Implementar lógica de geração de PDF aqui se necessário
-            from biodesk_dialogs import mostrar_informacao
-            mostrar_informacao(self, "PDF", "Funcionalidade de PDF será implementada em breve!")
+            
+            # Importar PDFService
+            from ficha_paciente.services import PDFService
+            
+            # Obter conteúdo do editor
+            conteudo_texto = self.editor_consentimento.toPlainText()
+            
+            # Validar prerequisitos usando PDFService
+            valido, erro = PDFService.validar_prerequisitos_pdf(
+                self.paciente_data, 
+                self.tipo_consentimento_atual or "Consentimento",
+                conteudo_texto
+            )
+            
+            if not valido:
+                from biodesk_dialogs import mostrar_aviso
+                mostrar_aviso(self, "Aviso", f"⚠️ {erro}")
+                return
+            
+            # Gerar HTML completo usando PDFService
+            html_documento = PDFService.compilar_documento_html(
+                self.tipo_consentimento_atual or "Consentimento",
+                self.paciente_data,
+                conteudo_texto,
+                incluir_assinaturas=True
+            )
+            
+            # Obter caminho temporário usando PDFService
+            caminho_pdf = PDFService.gerar_caminho_arquivo_temp(
+                self.tipo_consentimento_atual or "Consentimento",
+                self.paciente_data
+            )
+            
+            # Gerar PDF usando QPrinter
+            from PyQt6.QtPrintSupport import QPrinter
+            from PyQt6.QtWebEngineWidgets import QWebEngineView
+            from PyQt6.QtCore import QUrl, QTimer
+            
+            printer = QPrinter(QPrinter.PrinterMode.HighResolution)
+            printer.setOutputFormat(QPrinter.OutputFormat.PdfFormat)
+            printer.setOutputFileName(caminho_pdf)
+            printer.setPageSize(QPrinter.PageSize.A4)
+            
+            # Criar visualizador web temporário
+            web_view = QWebEngineView()
+            web_view.setHtml(html_documento)
+            
+            def imprimir_pdf():
+                web_view.page().printToPdf(caminho_pdf)
+                QTimer.singleShot(2000, lambda: self._finalizar_pdf(caminho_pdf, web_view))
+            
+            QTimer.singleShot(1000, imprimir_pdf)
+            
         except Exception as e:
             print(f"[ERRO] Erro ao gerar PDF: {e}")
             from biodesk_dialogs import mostrar_erro
             mostrar_erro(self, "Erro", f"Erro ao gerar PDF:\n\n{str(e)}")
+    
+    def _finalizar_pdf(self, caminho_pdf, web_view):
+        """Finaliza geração do PDF e valida resultado"""
+        try:
+            from ficha_paciente.services import PDFService
+            
+            # Validar PDF gerado
+            valido, erro = PDFService.validar_pdf_gerado(caminho_pdf)
+            
+            if valido:
+                from biodesk_dialogs import mostrar_informacao
+                mostrar_informacao(self, "Sucesso", f"✅ PDF gerado com sucesso!\n\n📄 Arquivo: {caminho_pdf}")
+                
+                # Abrir PDF no visualizador padrão
+                import os
+                import subprocess
+                import platform
+                
+                if platform.system() == "Windows":
+                    os.startfile(caminho_pdf)
+                elif platform.system() == "Darwin":  # macOS
+                    subprocess.run(["open", caminho_pdf])
+                else:  # Linux
+                    subprocess.run(["xdg-open", caminho_pdf])
+            else:
+                from biodesk_dialogs import mostrar_erro
+                mostrar_erro(self, "Erro", f"❌ PDF gerado com problemas:\n\n{erro}")
+            
+            # Limpar visualizador web
+            web_view.deleteLater()
+            
+        except Exception as e:
+            print(f"[ERRO] Erro ao finalizar PDF: {e}")
+            from biodesk_dialogs import mostrar_erro
+            mostrar_erro(self, "Erro", f"Erro ao finalizar PDF:\n\n{str(e)}")
 
     def gerar_pdf_para_assinatura_externa(self):
         """Gera PDF e abre automaticamente para assinatura com importação automática"""
@@ -6984,75 +7091,21 @@ Naturopata | Osteopata | Medicina Quântica
             mostrar_erro(self, "Erro", f"❌ Erro ao abrir PDF:\n\n{str(e)}")
 
     def _mostrar_dialog_assinatura_simples(self, arquivo_temp, arquivo_final):
-        """Mostra dialog simplificado para confirmar assinatura"""
+        """Mostra dialog simplificado para confirmar assinatura - REFATORADO"""
         try:
-            from PyQt6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton
-            from PyQt6.QtCore import Qt
+            from ficha_paciente.dialogs.signature_dialog import SignatureDialog
             
-            dialog = QDialog(self)
-            dialog.setWindowTitle("📝 Assinatura de Documento")
-            dialog.setFixedSize(500, 300)
-            dialog.setModal(True)
+            def callback_importacao(temp_file, final_file):
+                """Callback para execução da importação"""
+                self._executar_importacao_assinada(None, temp_file, final_file)
             
-            layout = QVBoxLayout(dialog)
-            layout.setSpacing(20)
-            
-            # Ícone e título
-            titulo = QLabel("📝 PDF ABERTO PARA ASSINATURA")
-            titulo.setStyleSheet("""
-                font-size: 18px;
-                font-weight: bold;
-                color: #2980b9;
-                padding: 15px;
-                text-align: center;
-            """)
-            titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            layout.addWidget(titulo)
-            
-            # Instruções
-            instrucoes = QLabel("""
-<div style='font-size: 14px; line-height: 1.6;'>
-<b>📋 INSTRUÇÕES SIMPLES:</b><br><br>
-1️⃣ <b>Assine</b> o documento no Adobe Reader/visualizador<br>
-2️⃣ <b>Guarde</b> o documento (Ctrl+S ou File → Save)<br>
-3️⃣ <b>Feche</b> o Adobe Reader<br>
-4️⃣ <b>Clique "✅ Importar"</b> abaixo
-</div>
-            """)
-            instrucoes.setStyleSheet("""
-                background-color: #f8f9fa;
-                padding: 20px;
-                border-radius: 8px;
-                border-left: 4px solid #2980b9;
-            """)
-            layout.addWidget(instrucoes)
-            
-            # Localização do arquivo
-            local = QLabel(f"📁 <b>Localização:</b> {arquivo_temp}")
-            local.setStyleSheet("font-size: 11px; color: #666; padding: 10px;")
-            local.setWordWrap(True)
-            layout.addWidget(local)
-            
-            # Botões
-            botoes_layout = QHBoxLayout()
-            botoes_layout.addStretch()
-            
-            btn_cancelar = QPushButton("❌ Cancelar")
-            btn_cancelar.setFixedSize(120, 40)
-            
-            btn_cancelar.clicked.connect(dialog.reject)
-            botoes_layout.addWidget(btn_cancelar)
-            
-            btn_importar = QPushButton("✅ Importar Assinado")
-            btn_importar.setFixedSize(160, 40)
-            
-            btn_importar.clicked.connect(lambda: self._executar_importacao_assinada(dialog, arquivo_temp, arquivo_final))
-            botoes_layout.addWidget(btn_importar)
-            
-            layout.addLayout(botoes_layout)
-            
-            # Mostrar dialog
-            dialog.exec()
+            # Abrir dialog usando a nova classe extraída
+            SignatureDialog.abrir_dialog(
+                arquivo_temp=arquivo_temp,
+                arquivo_final=arquivo_final,
+                callback=callback_importacao,
+                parent=self
+            )
             
         except Exception as e:
             print(f"[ERRO] Erro no dialog de assinatura: {e}")
@@ -7411,13 +7464,9 @@ Naturopata | Osteopata | Medicina Quântica
             print(f"[ERRO] Erro ao iniciar monitorização: {e}")
 
     def _arquivo_disponivel(self, caminho):
-        """Verifica se um arquivo está disponível para leitura (não sendo usado)"""
-        try:
-            with open(caminho, 'rb') as f:
-                f.read(1)
-            return True
-        except:
-            return False
+        """MÉTODO REFATORADO - usa FileManager"""
+        from ficha_paciente.utils import FileManager
+        return FileManager.arquivo_disponivel(caminho)
 
     def _processar_pdf_assinado_automatico(self, arquivo_assinado, arquivo_original):
         """Processa automaticamente o PDF assinado detectado"""
@@ -7479,70 +7528,16 @@ Naturopata | Osteopata | Medicina Quântica
             print(f"[ERRO] Erro no processamento automático: {e}")
 
     def _mostrar_dialog_importar_pdf(self, arquivo_temp):
-        """Mostra dialog para importar PDF assinado"""
+        """Mostra dialog para importar PDF assinado - REFATORADO"""
         try:
-            from PyQt6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFileDialog
+            from ficha_paciente.dialogs.import_pdf_dialog import ImportPdfDialog
             
-            dialog = QDialog(self)
-            dialog.setWindowTitle("Importar PDF Assinado")
-            dialog.setFixedSize(450, 200)
-            
-            layout = QVBoxLayout(dialog)
-            layout.setSpacing(15)
-            
-            # Informação
-            info_label = QLabel(
-                "📄 Importe o PDF assinado para finalizar o processo:\n\n"
-                "• Selecione o arquivo PDF que foi assinado\n"
-                "• O documento será guardado na pasta do paciente\n"
-                "• O consentimento ficará marcado como assinado"
-            )
-            info_label.setStyleSheet("font-size: 12px; padding: 15px; background-color: #f8f9fa; border-radius: 6px;")
-            layout.addWidget(info_label)
-            
-            # Botões
-            botoes_layout = QHBoxLayout()
-            botoes_layout.addStretch()
-            
-            btn_importar = QPushButton("📁 Selecionar PDF Assinado")
-            btn_importar.setFixedSize(180, 35)
-            
-            btn_importar.clicked.connect(lambda: self._selecionar_e_importar_pdf(dialog, arquivo_temp))
-            botoes_layout.addWidget(btn_importar)
-            
-            btn_cancelar = QPushButton("❌ Cancelar")
-            btn_cancelar.setFixedSize(100, 35)
-            
-            btn_cancelar.clicked.connect(dialog.reject)
-            botoes_layout.addWidget(btn_cancelar)
-            
-            layout.addLayout(botoes_layout)
-            
-            dialog.exec()
-            
-        except Exception as e:
-            print(f"[ERRO] Erro no dialog de importação: {e}")
-
-    def _selecionar_e_importar_pdf(self, dialog, arquivo_temp):
-        """Seleciona e importa o PDF assinado"""
-        try:
-            from PyQt6.QtWidgets import QFileDialog
-            
-            # Selecionar arquivo PDF assinado
-            arquivo_assinado, _ = QFileDialog.getOpenFileName(
-                dialog,
-                "Selecionar PDF Assinado",
-                "",
-                "PDF files (*.pdf)"
-            )
-            
-            if arquivo_assinado:
+            def callback_importacao(arquivo_assinado, arquivo_temp):
+                """Callback para processar o arquivo importado"""
                 # Guardar documento na pasta do paciente
                 sucesso = self._guardar_documento_paciente(arquivo_assinado, arquivo_temp)
                 
                 if sucesso:
-                    dialog.accept()
-                    
                     # Marcar consentimento como assinado na base de dados
                     self._marcar_consentimento_assinado()
                     
@@ -7557,47 +7552,34 @@ Naturopata | Osteopata | Medicina Quântica
                     
                     # Atualizar status visual
                     self.carregar_status_consentimentos()
-                    
+                    return True
+                return False
+            
+            # Abrir dialog usando a nova classe extraída
+            ImportPdfDialog.abrir_dialog(
+                arquivo_temp=arquivo_temp,
+                callback=callback_importacao,
+                parent=self
+            )
+            
         except Exception as e:
-            print(f"[ERRO] Erro ao importar PDF: {e}")
-            from biodesk_dialogs import mostrar_erro
-            mostrar_erro(dialog, "Erro", f"❌ Erro ao importar PDF:\n\n{str(e)}")
+            print(f"[ERRO] Erro no dialog de importação: {e}")
+
+    def _selecionar_e_importar_pdf(self, dialog, arquivo_temp):
+        """MÉTODO OBSOLETO - substituído pelo ImportPdfDialog"""
+        # Este método foi substituído pela nova classe ImportPdfDialog
+        # Mantido temporariamente para compatibilidade
+        pass
 
     def _guardar_documento_paciente(self, arquivo_assinado, arquivo_temp):
-        """Guarda o documento assinado na pasta do paciente"""
-        try:
-            import os
-            import shutil
-            from datetime import datetime
-            
-            # Criar estrutura de pastas do paciente
-            paciente_id = self.paciente_data.get('id', 'sem_id')
-            nome_paciente = self.paciente_data.get('nome', 'Paciente').replace(' ', '_')
-            
-            pasta_paciente = f"documentos/{paciente_id}_{nome_paciente}"
-            pasta_consentimentos = os.path.join(pasta_paciente, "consentimentos")
-            
-            os.makedirs(pasta_consentimentos, exist_ok=True)
-            
-            # Nome final do arquivo
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            tipo_consentimento = self.tipo_consentimento_atual
-            nome_final = f"Consentimento_{tipo_consentimento}_ASSINADO_{timestamp}.pdf"
-            caminho_final = os.path.join(pasta_consentimentos, nome_final)
-            
-            # Copiar arquivo assinado
-            shutil.copy2(arquivo_assinado, caminho_final)
-            
-            # Remover arquivo temporário
-            if os.path.exists(arquivo_temp):
-                os.remove(arquivo_temp)
-            
-            print(f"[DEBUG] ✅ Documento guardado: {caminho_final}")
-            return True
-            
-        except Exception as e:
-            print(f"[ERRO] Erro ao guardar documento: {e}")
-            return False
+        """MÉTODO REFATORADO - usa FileManager"""
+        from ficha_paciente.utils import FileManager
+        return FileManager.guardar_documento_paciente(
+            arquivo_origem=arquivo_assinado,
+            arquivo_temp=arquivo_temp,
+            paciente_data=self.paciente_data,
+            tipo_documento=getattr(self, 'tipo_consentimento_atual', 'documento')
+        )
 
     def _marcar_consentimento_assinado(self):
         """Marca o consentimento como assinado na base de dados"""
@@ -9290,7 +9272,10 @@ Naturopata | Osteopata | Medicina Quântica
             # Botões para assinatura paciente
             botoes_paciente = QHBoxLayout()
             
-            btn_limpar_paciente = QPushButton("🗑️ Limpar")
+            if BIODESK_STYLES_AVAILABLE:
+                btn_limpar_paciente = BiodeskStyles.create_button("🗑️ Limpar", ButtonType.DELETE)
+            else:
+                btn_limpar_paciente = QPushButton("🗑️ Limpar")
             # Sistema modular substituirá funcionalidade do canvas
             
             botoes_paciente.addWidget(btn_limpar_paciente)
@@ -9302,14 +9287,19 @@ Naturopata | Osteopata | Medicina Quântica
             # Botões principais
             botoes_principais = QHBoxLayout()
             
-            btn_cancelar = QPushButton("❌ Cancelar")
+            if BIODESK_STYLES_AVAILABLE:
+                btn_cancelar = BiodeskStyles.create_button("❌ Cancelar", ButtonType.DEFAULT)
+            else:
+                btn_cancelar = QPushButton("❌ Cancelar")
             btn_cancelar.clicked.connect(dialog.reject)
-            
             botoes_principais.addWidget(btn_cancelar)
             
             botoes_principais.addStretch()
             
-            btn_confirmar = QPushButton("✅ Confirmar e Finalizar")
+            if BIODESK_STYLES_AVAILABLE:
+                btn_confirmar = BiodeskStyles.create_button("✅ Confirmar e Finalizar", ButtonType.SAVE)
+            else:
+                btn_confirmar = QPushButton("✅ Confirmar e Finalizar")
 
             def confirmar_assinatura_declaracao():
                 # Usar sistema modular - esta validação será feita pelo novo sistema
@@ -9945,339 +9935,6 @@ Naturopata | Osteopata | Medicina Quântica
             }}
         """)
         return label
-
-class FollowUpDialog(QDialog):
-    """Dialog para configurar follow-ups automáticos."""
-    
-    def __init__(self, paciente_data, parent=None):
-        super().__init__(parent)
-        self.paciente_data = paciente_data
-        self.setupUI()
-        
-    def setupUI(self):
-        self.setWindowTitle("📅 Agendar Follow-up Automático")
-        self.setFixedSize(500, 650)  # Tamanho fixo maior para evitar cortes
-        self.setModal(True)
-        
-        # Centralizar a janela mais alta no ecrã
-        screen = QApplication.primaryScreen().geometry()
-        x = (screen.width() - 500) // 2
-        y = max(50, (screen.height() - 700) // 2)  # Mínimo 50px do topo
-        self.move(x, y)
-        
-        # Estilo geral do dialog
-        self.setStyleSheet("""
-            QDialog {
-                background-color: #f8f9fa;
-                border: 1px solid #dee2e6;
-                border-radius: 10px;
-            }
-        """)
-        
-        layout = QVBoxLayout(self)
-        layout.setSpacing(15)
-        layout.setContentsMargins(20, 20, 20, 20)
-        
-        # Info do paciente
-        info_label = QLabel(f"📋 Paciente: {self.paciente_data.get('nome', 'N/A')}")
-        info_label.setStyleSheet("""
-            QLabel {
-                font-size: 16px; 
-                font-weight: bold; 
-                color: #2c3e50; 
-                background-color: #ffffff;
-                padding: 10px;
-                border: 1px solid #e9ecef;
-                border-radius: 8px;
-            }
-        """)
-        layout.addWidget(info_label)
-        
-        # Tipo de follow-up
-        tipo_label = QLabel("Tipo de Follow-up:")
-        tipo_label.setStyleSheet("font-size: 14px; font-weight: 600; color: #495057; margin-top: 5px;")
-        layout.addWidget(tipo_label)
-        
-        self.combo_tipo = QComboBox()
-        self.combo_tipo.setStyleSheet("""
-            QComboBox {
-                border: 2px solid #e9ecef;
-                border-radius: 8px;
-                padding: 8px 12px;
-                font-size: 14px;
-                background-color: #ffffff;
-                color: #212529;
-                min-height: 20px;
-            }
-            QComboBox:focus {
-                border-color: #007bff;
-            }
-            QComboBox::drop-down {
-                border: none;
-                width: 20px;
-            }
-            QComboBox::down-arrow {
-                image: none;
-                border-left: 5px solid transparent;
-                border-right: 5px solid transparent;
-                border-top: 5px solid #6c757d;
-                margin-right: 5px;
-            }
-        """)
-        
-        # Adicionar itens individualmente com dados associados
-        self.combo_tipo.addItem("📧 Follow-up Padrão", "padrao")
-        self.combo_tipo.addItem("🆕 Primeira Consulta", "primeira_consulta")
-        self.combo_tipo.addItem("💊 Acompanhamento de Tratamento", "tratamento")
-        self.combo_tipo.addItem("📊 Evolução e Resultados", "resultado")
-        
-        self.combo_tipo.setCurrentIndex(0)
-        layout.addWidget(self.combo_tipo)
-        
-        # Quando enviar - opções predefinidas
-        quando_label = QLabel("Quando enviar:")
-        quando_label.setStyleSheet("font-size: 14px; font-weight: 600; color: #495057; margin-top: 15px;")
-        layout.addWidget(quando_label)
-        
-        self.radio_group = QButtonGroup()
-        self.radio_3_dias = QRadioButton("📅 Em 3 dias")
-        self.radio_7_dias = QRadioButton("📅 Em 1 semana")
-        self.radio_14_dias = QRadioButton("📅 Em 2 semanas")
-        self.radio_custom = QRadioButton("🗓️ Data/hora personalizada")
-        
-        # Estilo dos radio buttons
-        radio_style = """
-            QRadioButton {
-                font-size: 13px;
-                color: #495057;
-                padding: 5px;
-                spacing: 8px;
-            }
-            QRadioButton::indicator {
-                width: 18px;
-                height: 18px;
-            }
-            QRadioButton::indicator:unchecked {
-                border: 2px solid #6c757d;
-                border-radius: 9px;
-                background-color: #ffffff;
-            }
-            QRadioButton::indicator:checked {
-                border: 2px solid #007bff;
-                border-radius: 9px;
-                background-color: #007bff;
-            }
-            QRadioButton::indicator:checked::after {
-                content: "";
-                width: 6px;
-                height: 6px;
-                border-radius: 3px;
-                background-color: #ffffff;
-                margin: 4px;
-            }
-        """
-        
-        self.radio_3_dias.setStyleSheet(radio_style)
-        self.radio_7_dias.setStyleSheet(radio_style)
-        self.radio_14_dias.setStyleSheet(radio_style)
-        self.radio_custom.setStyleSheet(radio_style)
-        
-        self.radio_3_dias.setChecked(True)  # Default
-        
-        self.radio_group.addButton(self.radio_3_dias, 0)
-        self.radio_group.addButton(self.radio_7_dias, 1)
-        self.radio_group.addButton(self.radio_14_dias, 2)
-        self.radio_group.addButton(self.radio_custom, 3)
-        
-        layout.addWidget(self.radio_3_dias)
-        layout.addWidget(self.radio_7_dias)
-        layout.addWidget(self.radio_14_dias)
-        layout.addWidget(self.radio_custom)
-        
-        # Data/hora personalizada
-        custom_layout = QHBoxLayout()
-        self.date_edit = QDateEdit(QDate.currentDate().addDays(3))
-        self.time_edit = QTimeEdit(QTime(10, 0))  # 10:00 por default
-        
-        # Estilo para date/time edits
-        datetime_style = """
-            QDateEdit, QTimeEdit {
-                border: 2px solid #e9ecef;
-                border-radius: 6px;
-                padding: 6px 8px;
-                font-size: 13px;
-                background-color: #ffffff;
-                color: #212529;
-                min-height: 18px;
-            }
-            QDateEdit:focus, QTimeEdit:focus {
-                border-color: #007bff;
-            }
-            QDateEdit:disabled, QTimeEdit:disabled {
-                background-color: #e9ecef;
-                color: #6c757d;
-            }
-        """
-        
-        self.date_edit.setStyleSheet(datetime_style)
-        self.time_edit.setStyleSheet(datetime_style)
-        self.date_edit.setEnabled(False)
-        self.time_edit.setEnabled(False)
-        
-        data_label = QLabel("Data:")
-        data_label.setStyleSheet("font-size: 13px; color: #495057; font-weight: 500;")
-        hora_label = QLabel("Hora:")
-        hora_label.setStyleSheet("font-size: 13px; color: #495057; font-weight: 500;")
-        
-        custom_layout.addWidget(data_label)
-        custom_layout.addWidget(self.date_edit)
-        custom_layout.addWidget(hora_label)
-        custom_layout.addWidget(self.time_edit)
-        layout.addLayout(custom_layout)
-        
-        # Conectar radio button para habilitar/desabilitar campos
-        self.radio_custom.toggled.connect(self._toggle_custom_datetime)
-        
-        # Preview
-        preview_label = QLabel("👀 Preview do agendamento:")
-        preview_label.setStyleSheet("font-size: 14px; font-weight: 600; color: #495057; margin-top: 15px;")
-        layout.addWidget(preview_label)
-        
-        self.preview_label = QLabel()
-        self.preview_label.setStyleSheet("""
-            QLabel {
-                background-color: #ffffff;
-                border: 2px solid #e9ecef;
-                border-radius: 8px;
-                padding: 12px;
-                font-family: 'Segoe UI', monospace;
-                font-size: 12px;
-                color: #495057;
-                line-height: 1.4;
-            }
-        """)
-        self.preview_label.setWordWrap(True)
-        layout.addWidget(self.preview_label)
-        
-        # Conectar sinais para atualizar preview
-        self.combo_tipo.currentTextChanged.connect(self._update_preview)
-        self.radio_group.buttonClicked.connect(self._update_preview)
-        self.date_edit.dateChanged.connect(self._update_preview)
-        self.time_edit.timeChanged.connect(self._update_preview)
-        
-        # Botões
-        btn_layout = QHBoxLayout()
-        btn_layout.setSpacing(10)
-        
-        btn_cancelar = QPushButton("❌ Cancelar")
-        btn_agendar = QPushButton("✅ Agendar Follow-up")
-        
-        btn_cancelar.clicked.connect(self.reject)
-        btn_agendar.clicked.connect(self.accept)
-        
-        # Estilos dos botões modernos
-
-        btn_layout.addStretch()
-        btn_layout.addWidget(btn_cancelar)
-        btn_layout.addWidget(btn_agendar)
-        layout.addLayout(btn_layout)
-        
-        # Atualizar preview inicial
-        self._update_preview()
-        
-    def _toggle_custom_datetime(self, checked):
-        """Habilita/desabilita campos de data/hora personalizada."""
-        self.date_edit.setEnabled(checked)
-        self.time_edit.setEnabled(checked)
-        
-    def _update_preview(self):
-        """Atualiza o preview do agendamento."""
-        tipo = self.combo_tipo.currentData() or "padrao"
-        
-        # Calcular quando será enviado
-        if self.radio_3_dias.isChecked():
-            quando = datetime.now() + timedelta(days=3)
-            dias_apos = 3
-        elif self.radio_7_dias.isChecked():
-            quando = datetime.now() + timedelta(days=7)
-            dias_apos = 7
-        elif self.radio_14_dias.isChecked():
-            quando = datetime.now() + timedelta(days=14)
-            dias_apos = 14
-        else:  # custom
-            date = self.date_edit.date().toPyDate()
-            time = self.time_edit.time().toPyTime()
-            quando = datetime.combine(date, time)
-            hoje = datetime.now().date()
-            dias_apos = (date - hoje).days
-            
-        # Simular ajuste para horário comercial se não for personalizado
-        when_adjusted = quando
-        is_custom = self.radio_custom.isChecked()
-        
-        if not is_custom:
-            when_adjusted = self._simulate_business_hours_adjust(quando)
-            
-        if is_custom:
-            preview_text = f"""📧 Tipo: {tipo.replace('_', ' ').title()}
-📅 Enviar em: {quando.strftime('%d/%m/%Y às %H:%M')}
-⚡ Horário: PERSONALIZADO (mantém hora exata)
-⏱️ Daqui a: {dias_apos} dia(s)
-📋 Para: {self.paciente_data.get('email', 'Email não definido')}
-🌐 Sistema: Retry automático se sem internet"""
-        else:
-            preview_text = f"""📧 Tipo: {tipo.replace('_', ' ').title()}
-📅 Enviar em: {when_adjusted.strftime('%d/%m/%Y às %H:%M')}
-⏰ Horário: Entre 11h-17h (horário comercial)
-⏱️ Daqui a: {dias_apos} dia(s)
-📋 Para: {self.paciente_data.get('email', 'Email não definido')}
-🌐 Sistema: Retry automático se sem internet"""
-        
-        self.preview_label.setText(preview_text)
-        
-    def _simulate_business_hours_adjust(self, when_dt):
-        """Simula o ajuste para horário comercial no preview."""
-        import random
-        from datetime import time
-        target_date = when_dt.date()
-        
-        # Gerar horário aleatório entre 11h-17h para preview
-        random_hour = random.randint(11, 16)
-        random_minute = random.randint(0, 59)
-        new_time = time(random_hour, random_minute)
-        
-        return datetime.combine(target_date, new_time)
-        
-    def get_followup_data(self):
-        """Retorna os dados do follow-up configurado."""
-        # Determinar tipo usando currentData()
-        tipo = self.combo_tipo.currentData() or "padrao"
-        is_custom = self.radio_custom.isChecked()
-            
-        # Calcular quando
-        if self.radio_3_dias.isChecked():
-            quando = datetime.now() + timedelta(days=3)
-            dias_apos = 3
-        elif self.radio_7_dias.isChecked():
-            quando = datetime.now() + timedelta(days=7)
-            dias_apos = 7
-        elif self.radio_14_dias.isChecked():
-            quando = datetime.now() + timedelta(days=14)
-            dias_apos = 14
-        else:  # custom
-            from datetime import time
-            date = self.date_edit.date().toPyDate()
-            time_selected = self.time_edit.time().toPyTime()
-            quando = datetime.combine(date, time_selected)
-            hoje = datetime.now().date()
-            dias_apos = (date - hoje).days
-            
-        return {
-            'tipo': tipo,
-            'quando': quando,
-            'dias_apos': dias_apos,
-            'is_custom': is_custom
-        }
 
 # NOTA: Este módulo deve ser importado pelo main_window.py
 # Não executa aplicação independente para evitar conflitos

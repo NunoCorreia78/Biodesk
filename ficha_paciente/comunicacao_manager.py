@@ -26,6 +26,16 @@ from PyQt6.QtWidgets import *
 from PyQt6.QtCore import *
 from PyQt6.QtGui import *
 
+# ✅ SISTEMA NOVO: BiodeskStyles v2.0 - Estilos centralizados
+try:
+    from biodesk_styles import BiodeskStyles, DialogStyles, ButtonType
+    BIODESK_STYLES_AVAILABLE = True
+    print("✅ BiodeskStyles v2.0 carregado no comunicacao_manager.py")
+except ImportError as e:
+    BIODESK_STYLES_AVAILABLE = False
+    print(f"⚠️ BiodeskStyles não disponível: {e}")
+
+# Sistema legado mantido como fallback
 from biodesk_ui_kit import BiodeskUIKit
 from data_cache import DataCache
 from biodesk_dialogs import BiodeskMessageBox
@@ -115,24 +125,33 @@ class ComunicacaoManagerWidget(QWidget):
     def criar_botoes_linha_para(self, parent_layout):
         """Cria botões na linha Para"""
         
-        # Botão Follow-up
-        btn_followup = BiodeskUIKit.create_primary_button("📅 Follow-up")
+        # Botão Follow-up - usando BiodeskStyles v2.0
+        if BIODESK_STYLES_AVAILABLE:
+            btn_followup = BiodeskStyles.create_button("📅 Follow-up", ButtonType.SAVE)
+        else:
+            btn_followup = BiodeskUIKit.create_primary_button("📅 Follow-up")
         btn_followup.setFixedHeight(45)
         btn_followup.setFixedWidth(120)
         btn_followup.clicked.connect(self.schedule_followup_consulta)
         parent_layout.addWidget(btn_followup)
         
-        # Botão Templates  
-        btn_template = BiodeskUIKit.create_secondary_button("📄 Templates")
+        # Botão Templates - usando BiodeskStyles v2.0
+        if BIODESK_STYLES_AVAILABLE:
+            btn_template = BiodeskStyles.create_button("📄 Templates", ButtonType.TOOL)
+        else:
+            btn_template = BiodeskUIKit.create_secondary_button("📄 Templates")
         btn_template.setFixedHeight(45)
         btn_template.setFixedWidth(120)
         btn_template.clicked.connect(self.abrir_templates_mensagem)
         parent_layout.addWidget(btn_template)
         
         # Botão Lista
-        btn_listar = QPushButton("📋 Lista")
-        btn_listar.setFixedHeight(45)
-        btn_listar.setFixedWidth(120)
+        if BIODESK_STYLES_AVAILABLE:
+            btn_listar = BiodeskStyles.create_button("📋 Lista", ButtonType.NAVIGATION)
+        else:
+            btn_listar = QPushButton("📋 Lista")
+            btn_listar.setFixedHeight(45)
+            btn_listar.setFixedWidth(120)
         
         btn_listar.clicked.connect(self.listar_followups_agendados)
         parent_layout.addWidget(btn_listar)
@@ -225,8 +244,10 @@ Digite aqui a sua mensagem...
         botoes_layout.addWidget(btn_guardar)
         
         # Botão Limpar
-        btn_limpar = QPushButton("🗑️ Limpar")
-        
+        if BIODESK_STYLES_AVAILABLE:
+            btn_limpar = BiodeskStyles.create_button("🗑️ Limpar", ButtonType.DELETE)
+        else:
+            btn_limpar = QPushButton("🗑️ Limpar")
         btn_limpar.clicked.connect(self.limpar_campos)
         botoes_layout.addWidget(btn_limpar)
         

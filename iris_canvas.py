@@ -1,24 +1,28 @@
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QPushButton, QGraphicsView, QGraphicsScene,
-    QGraphicsEllipseItem, QGraphicsPolygonItem, QGraphicsTextItem,
-    QApplication, QFileDialog, QMessageBox, QDialog, QHBoxLayout,
-    QLabel, QTextEdit, QComboBox, QGroupBox, QFrame, QScrollArea,
-    QDialogButtonBox, QSizePolicy, QGraphicsItem
+    QGraphicsEllipseItem, QGraphicsPolygonItem, QDialog, QHBoxLayout,
+    QLabel, QTextEdit, QComboBox, QGroupBox, QFrame, QSizePolicy, QGraphicsItem
 )
 from PyQt6.QtGui import QPixmap, QPolygonF, QBrush, QPen, QColor, QWheelEvent, QMouseEvent
-from PyQt6.QtCore import Qt, QPointF, QEvent, pyqtSignal
+from PyQt6.QtCore import Qt, QPointF, pyqtSignal
 import json
 import math
 import os
 from iris_overlay_manager import IrisOverlayManager
 from biodesk_dialogs import BiodeskMessageBox
 
+# 🎨 SISTEMA DE ESTILOS CENTRALIZADO
+try:
+    from biodesk_styles import BiodeskStyles, ButtonType
+    STYLES_AVAILABLE = True
+except ImportError:
+    STYLES_AVAILABLE = False
+
 try:
     from iris_analysis_config import IrisAnalysisConfig
 except ImportError:
     IrisAnalysisConfig = None
 
-from biodesk_ui_kit import BiodeskUIKit
 
 # --- Função de morphing para converter pontos polares normalizados em coordenadas no canvas ---
 def pontos_para_polygon(pontos_polares, cx, cy, raio_pupila, raio_anel):
@@ -153,7 +157,11 @@ class SinalAnalysisPopup(QDialog):
         # Botões
         button_layout = QHBoxLayout()
         
-        self.close_button = QPushButton("Fechar")
+        # 🎨 Aplicar sistema centralizado
+        if STYLES_AVAILABLE:
+            self.close_button = BiodeskStyles.create_button("Fechar", ButtonType.DEFAULT)
+        else:
+            self.close_button = QPushButton("Fechar")
         # ✨ Estilo aplicado automaticamente pelo BiodeskStyleManager
         self.close_button.clicked.connect(self.close)
         button_layout.addWidget(self.close_button)
@@ -710,41 +718,53 @@ class IrisCanvas(QWidget):
             toolbar_layout.setSpacing(8)  # Espaçamento reduzido
 
             # Botão para calibração - INFO (azul) detectado automaticamente
-            self.btn_calibracao = QPushButton("Calibração: OFF")
+            if STYLES_AVAILABLE:
+                self.btn_calibracao = BiodeskStyles.create_button("Calibrar", ButtonType.TOOL)
+            else:
+                self.btn_calibracao = QPushButton("Calibrar")
             self.btn_calibracao.setCheckable(True)
             self.btn_calibracao.setChecked(False)
-            # ✨ Estilo aplicado automaticamente pelo BiodeskStyleManager (tema INFO)
             self.btn_calibracao.setToolTip("Ativar/desativar modo de calibração para ajustar centro e raios da íris")
             toolbar_layout.addWidget(self.btn_calibracao)
 
             # Botão para ajuste fino (morphing) - PRIMARY (cor principal) detectado automaticamente  
-            self.btn_ajuste_fino = QPushButton("Ajuste Fino: OFF")
+            if STYLES_AVAILABLE:
+                self.btn_ajuste_fino = BiodeskStyles.create_button("Ajustar", ButtonType.TOOL)
+            else:
+                self.btn_ajuste_fino = QPushButton("Ajustar")
             self.btn_ajuste_fino.setCheckable(True)
             self.btn_ajuste_fino.setChecked(False)
-            # ✨ Estilo aplicado automaticamente pelo BiodeskStyleManager (tema PRIMARY)
             self.btn_ajuste_fino.setToolTip("Ativar/desativar ajuste fino (morphing) para deformar íris e pupila")
             toolbar_layout.addWidget(self.btn_ajuste_fino)
 
             # Botões de zoom - WARNING (amarelo) detectado automaticamente
-            self.btn_zoom_in = QPushButton("🔍+")
+            if STYLES_AVAILABLE:
+                self.btn_zoom_in = BiodeskStyles.create_button("🔍+", ButtonType.TOOL)
+            else:
+                self.btn_zoom_in = QPushButton("🔍+")
             self.btn_zoom_in.setToolTip("Ampliar imagem")
-            # ✨ Estilo aplicado automaticamente pelo BiodeskStyleManager (tema WARNING)
             toolbar_layout.addWidget(self.btn_zoom_in)
 
-            self.btn_zoom_out = QPushButton("🔍-")
+            if STYLES_AVAILABLE:
+                self.btn_zoom_out = BiodeskStyles.create_button("🔍-", ButtonType.TOOL)
+            else:
+                self.btn_zoom_out = QPushButton("🔍-")
             self.btn_zoom_out.setToolTip("Reduzir imagem")
-            # ✨ Estilo aplicado automaticamente pelo BiodeskStyleManager (tema WARNING)
             toolbar_layout.addWidget(self.btn_zoom_out)
 
-            self.btn_zoom_fit = QPushButton("📐")
+            if STYLES_AVAILABLE:
+                self.btn_zoom_fit = BiodeskStyles.create_button("📐", ButtonType.TOOL)
+            else:
+                self.btn_zoom_fit = QPushButton("📐")
             self.btn_zoom_fit.setToolTip("Ajustar imagem à janela")
-            # ✨ Estilo aplicado automaticamente pelo BiodeskStyleManager (tema PURPLE)
             toolbar_layout.addWidget(self.btn_zoom_fit)
 
             # Botão para ocultar/mostrar mapa - SECONDARY (cinza) detectado automaticamente
-            self.btn_ocultar_mapa = QPushButton("👁️ Ocultar Mapa")
+            if STYLES_AVAILABLE:
+                self.btn_ocultar_mapa = BiodeskStyles.create_button("👁️ Mapa", ButtonType.NAVIGATION)
+            else:
+                self.btn_ocultar_mapa = QPushButton("👁️ Mapa")
             self.btn_ocultar_mapa.setToolTip("Ocultar/mostrar o mapa da íris e todos os overlays")
-            # ✨ Estilo aplicado automaticamente pelo BiodeskStyleManager (tema SECONDARY)
             toolbar_layout.addWidget(self.btn_ocultar_mapa)
 
             # Espaço flexível à direita
@@ -1479,14 +1499,14 @@ class IrisCanvas(QWidget):
         """Atualiza o texto e estado do botão de calibração"""
         if hasattr(self, 'btn_calibracao'):
             self.btn_calibracao.setChecked(ativo)
-            self.btn_calibracao.setText(f"Calibração: {'ON' if ativo else 'OFF'}")
+            self.btn_calibracao.setText("✓ Calibrar" if ativo else "Calibrar")
             print(f"🎯 Botão calibração atualizado: {'ON' if ativo else 'OFF'}")
 
     def atualizar_botao_ajuste_fino(self, ativo):
         """Atualiza o texto e estado do botão de ajuste fino"""
         if hasattr(self, 'btn_ajuste_fino'):
             self.btn_ajuste_fino.setChecked(ativo)
-            self.btn_ajuste_fino.setText(f"Ajuste Fino: {'ON' if ativo else 'OFF'}")
+            self.btn_ajuste_fino.setText("✓ Ajustar" if ativo else "Ajustar")
             print(f"🔍 Botão ajuste fino atualizado: {'ON' if ativo else 'OFF'}")
 
     def atualizar_botao_mapa(self, visivel):
