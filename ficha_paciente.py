@@ -1,5 +1,5 @@
 
-# ⚡ IMPORTS OTIMIZADOS - APENAS O ESSENCIAL NO STARTUP
+# Imports essenciais para startup
 from pathlib import Path
 
 # PyQt6 - APENAS o básico para definir classes
@@ -11,26 +11,19 @@ from PyQt6.QtGui import QShortcut, QKeySequence
 try:
     from biodesk_styles import BiodeskStyles, DialogStyles, ButtonType
     BIODESK_STYLES_AVAILABLE = True
-    print("✅ BiodeskStyles v2.0 carregado no ficha_paciente.py")
 except ImportError as e:
     BIODESK_STYLES_AVAILABLE = False
-    print(f"⚠️ BiodeskStyles não disponível: {e}")
 
 # Imports essenciais para a classe principal
 from db_manager import DBManager
 from sistema_assinatura import abrir_dialogo_assinatura
 
-# LAZY IMPORTS para módulos especializados com CACHE OTIMIZADO
+# LAZY IMPORTS para módulos especializados
 _modulos_cache = {}
-_import_stats = {'hits': 0, 'misses': 0, 'tempo_total': 0}
 
 def importar_modulos_especializados():
-    """Importa módulos especializados apenas quando necessário - COM CACHE OTIMIZADO"""
-    import time
-    start_time = time.time()
-    
+    """Importa módulos especializados apenas quando necessário"""
     if not _modulos_cache:
-        _import_stats['misses'] += 1
         try:
             from ficha_paciente.dados_pessoais import DadosPessoaisWidget
             from ficha_paciente.historico_clinico import HistoricoClinicoWidget  
@@ -38,7 +31,6 @@ def importar_modulos_especializados():
             from ficha_paciente.comunicacao_manager import ComunicacaoManagerWidget
             from ficha_paciente.gestao_documentos import GestaoDocumentosWidget
             from ficha_paciente.declaracao_saude import DeclaracaoSaudeWidget
-            # Consentimentos integrados na declaração de saúde - módulo separado não necessário
             from ficha_paciente.pesquisa_pacientes import PesquisaPacientesManager
             
             _modulos_cache.update({
@@ -48,35 +40,19 @@ def importar_modulos_especializados():
                 'comunicacao_manager': ComunicacaoManagerWidget,
                 'gestao_documentos': GestaoDocumentosWidget,
                 'declaracao_saude': DeclaracaoSaudeWidget,
-                # 'consentimentos': ConsentimentosWidget,  # Não necessário - integrado na declaração
                 'pesquisa_pacientes': PesquisaPacientesManager
             })
-            import_time = time.time() - start_time
-            _import_stats['tempo_total'] += import_time
-            print(f"✅ Módulos especializados carregados no cache em {import_time:.3f}s")
-        except ImportError as e:
-            print(f"⚠️ Erro ao carregar módulo: {e}")
-    else:
-        _import_stats['hits'] += 1
+        except ImportError:
+            pass
         
     return (_modulos_cache.get('dados_pessoais'), _modulos_cache.get('historico_clinico'), 
             _modulos_cache.get('templates_manager'), _modulos_cache.get('comunicacao_manager'),
             _modulos_cache.get('gestao_documentos'), _modulos_cache.get('declaracao_saude'),
-            None, _modulos_cache.get('pesquisa_pacientes'))  # consentimentos=None (integrado)
-
-def obter_estatisticas_cache():
-    """Retorna estatísticas do cache de módulos"""
-    return {
-        'modulos_em_cache': len(_modulos_cache),
-        'cache_hits': _import_stats['hits'],
-        'cache_misses': _import_stats['misses'],
-        'tempo_total_imports': _import_stats['tempo_total'],
-        'eficiencia_cache': (_import_stats['hits'] / max(1, _import_stats['hits'] + _import_stats['misses'])) * 100
-    }
+            None, _modulos_cache.get('pesquisa_pacientes'))
 
 class FichaPaciente(QMainWindow):
     def __init__(self, paciente_data=None, parent=None):
-        # 🚫 RADICAL ANTI-FLICKERING: Inicialização MÍNIMA
+        # Inicialização mínima
         super().__init__(parent)
         
         # APENAS o essencial durante __init__
@@ -84,7 +60,7 @@ class FichaPaciente(QMainWindow):
         self.paciente_data = paciente_data or {}
         self.dirty = False
         
-        # ✅ USAR SINGLETON DO DBMANAGER para melhor performance
+        # Usar singleton do DBManager
         self.db = DBManager.get_instance()
         
         # Flags de controle para lazy loading
@@ -158,10 +134,8 @@ class FichaPaciente(QMainWindow):
             # 🔄 CARREGAR DADOS NOS WIDGETS JÁ INICIALIZADOS
             self._atualizar_widgets_com_dados()
             
-            print(f"✅ Dados básicos carregados para: {nome}")
-            
         except Exception as e:
-            print(f"❌ Erro ao carregar dados: {e}")
+            pass
         finally:
             # Limpar flag de carregamento
             self._carregando_dados = False
@@ -171,7 +145,10 @@ class FichaPaciente(QMainWindow):
         try:
             # Atualizar dados pessoais se já carregado
             if hasattr(self, 'dados_pessoais_widget') and self.dados_pessoais_widget:
-                self.dados_pessoais_widget.set_paciente_data(self.paciente_data)
+                if hasattr(self.dados_pessoais_widget, 'set_paciente_data'):
+                    self.dados_pessoais_widget.set_paciente_data(self.paciente_data)
+                elif hasattr(self.dados_pessoais_widget, 'carregar_dados_paciente'):
+                    self.dados_pessoais_widget.carregar_dados_paciente(self.paciente_data)
             
             # Atualizar histórico clínico se já carregado
             if hasattr(self, 'historico_widget') and self.historico_widget:
@@ -197,32 +174,22 @@ class FichaPaciente(QMainWindow):
         # Marcar inicialização como completa
         self._initialized = True
         
-        # Gerar relatório de startup
-        relatorio = self.obter_relatorio_performance()
-        
-        print("🎯 === RELATÓRIO DE STARTUP OTIMIZADO ===")
-        print(f"📊 Lazy Loading: {relatorio['lazy_loading']['tabs_carregados']} tabs carregados")
-        print(f"💾 Cache Eficiência: {relatorio['cache_modulos']['eficiencia_cache']:.1f}%")
-        print(f"🔒 Locks Ativos: {relatorio['lazy_loading']['locks_ativos']}")
-        print(f"🚀 Sistema pronto para uso em alta performance!")
-        print("=" * 45)
-    
     # ====== CALLBACKS PARA MÓDULOS ESPECIALIZADOS ======
     def on_template_selecionado(self, template_data):
         """Callback quando template é selecionado no módulo especializado"""
-        print(f"📄 Template selecionado: {template_data.get('nome', 'N/A')}")
+        pass
     
     def on_followup_agendado(self, tipo_followup, dias):
         """Callback quando follow-up é agendado no módulo de comunicação"""
-        print(f"📅 Follow-up agendado: {tipo_followup} em {dias} dias")
+        pass
     
     def on_protocolo_adicionado(self, protocolo):
         """Callback quando protocolo é adicionado no módulo de templates"""
-        print(f"📋 Protocolo adicionado: {protocolo}")
+        pass
     
     def on_template_gerado(self, template_data):
         """Callback quando template é gerado no módulo de templates"""
-        print(f"📄 Template gerado: {template_data.get('nome', 'N/A')}")
+        pass
     
     def data_atual(self):
         """MÉTODO REFATORADO - usa DateUtils"""
@@ -289,12 +256,11 @@ class FichaPaciente(QMainWindow):
                             break
                     
                     if mudou:
-                        print(f"🔄 [DATA] Atualizando dados do paciente: {dados_atualizados.get('nome')}")
                         self.paciente_data = dados_atualizados
                         self.update_ui_with_new_data()
                         
         except Exception as e:
-            print(f"⚠️ [DATA] Erro na atualização automática: {e}")
+            pass
 
     def update_ui_with_new_data(self):
         """Atualiza interface com novos dados do paciente"""
@@ -311,36 +277,8 @@ class FichaPaciente(QMainWindow):
             if self.paciente_data.get('nome'):
                 self.setWindowTitle(f"📋 Ficha do Paciente - {self.paciente_data.get('nome')}")
             
-            print("✅ [DATA] Interface atualizada com novos dados")
-            
         except Exception as e:
-            print(f"❌ [DATA] Erro ao atualizar interface: {e}")
-    
-    def obter_relatorio_performance(self):
-        """Gera relatório detalhado de performance do sistema lazy loading"""
-        try:
-            stats = obter_estatisticas_cache()
-            tabs_carregados = sum(1 for loaded in self._tabs_loaded.values() if loaded)
-            total_tabs = len(self._tabs_loaded)
-            
-            relatorio = {
-                'lazy_loading': {
-                    'tabs_carregados': f"{tabs_carregados}/{total_tabs}",
-                    'percentual_nao_carregado': f"{((total_tabs - tabs_carregados) / total_tabs) * 100:.1f}%",
-                    'locks_ativos': len(self._loading_locks),
-                    'estado_tabs': self._tabs_loaded.copy()
-                },
-                'cache_modulos': stats,
-                'memoria': {
-                    'singleton_db': hasattr(self, 'db') and self.db is not None,
-                    'flags_carregamento': bool(getattr(self, '_carregando_dados', False))
-                }
-            }
-            
-            return relatorio
-            
-        except Exception as e:
-            return {'erro': f"Erro ao gerar relatório: {e}"}
+            pass
     
     def resetar_tabs_para_teste(self):
         """MÉTODO DE DESENVOLVIMENTO: Reseta flags para testar lazy loading"""
@@ -382,7 +320,7 @@ class FichaPaciente(QMainWindow):
         
         main_layout.addWidget(self.tabs)
         
-    # ====== LAZY LOADING CALLBACKS OTIMIZADOS ======
+    # ====== LAZY LOADING CALLBACKS ======
     def _on_main_tab_changed(self, index):
         """Carrega tabs principais sob demanda com medição de performance"""
         import time
@@ -2078,19 +2016,23 @@ Naturopata | Osteopata | Medicina Quântica
             self.declaracao_saude_widget.dados_atualizados.connect(self.on_declaracao_dados_atualizados)
             
             # Layout para o widget modular
-            layout = QVBoxLayout(self.sub_declaracao_saude)
-            layout.setContentsMargins(0, 0, 0, 0)
-            layout.addWidget(self.declaracao_saude_widget)
+            if not self.sub_declaracao_saude.layout():
+                layout = QVBoxLayout(self.sub_declaracao_saude)
+                layout.setContentsMargins(0, 0, 0, 0)
+                layout.addWidget(self.declaracao_saude_widget)
+            else:
+                self.sub_declaracao_saude.layout().addWidget(self.declaracao_saude_widget)
             
             # Carregar dados do paciente se disponível
             if hasattr(self, 'paciente_data') and self.paciente_data:
-                self.declaracao_saude_widget.set_paciente_data(self.paciente_data)
+                if hasattr(self.declaracao_saude_widget, 'set_paciente_data'):
+                    self.declaracao_saude_widget.set_paciente_data(self.paciente_data)
+                elif hasattr(self.declaracao_saude_widget, 'carregar_dados_paciente'):
+                    self.declaracao_saude_widget.carregar_dados_paciente(self.paciente_data)
             
-            print("✅ Módulo DeclaracaoSaudeWidget carregado com sucesso")
             return True
             
         except Exception as e:
-            print(f"❌ Erro ao carregar módulo DeclaracaoSaudeWidget: {e}")
             return self.init_sub_declaracao_saude_fallback()
     
     def init_sub_declaracao_saude_fallback(self):

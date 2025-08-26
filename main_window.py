@@ -49,8 +49,8 @@ class MainWindow(QMainWindow):
         # 🔒 JANELA SEMPRE MAXIMIZADA - NÃO PODE SER REDIMENSIONADA
         self.setWindowFlags(
             Qt.WindowType.Window |
-            Qt.WindowType.WindowMaximizeButtonHint |
             Qt.WindowType.WindowMinimizeButtonHint |
+            Qt.WindowType.WindowMaximizeButtonHint |
             Qt.WindowType.WindowCloseButtonHint
         )
         
