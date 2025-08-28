@@ -133,9 +133,6 @@
             <div id="signStatus" style="font-size: 9px; color: #6B7280; margin-top: 2px;">Carregando assinatura...</div>
           </div>
         </div>
-        <div class="no-print">
-          <button id="close" class="btn" type="button">Fechar</button>
-        </div>
       </footer>
     </section>
   </div>
@@ -145,7 +142,6 @@
     const qs = s => document.querySelector(s);
     const tbody = qs('#tbody');
     const addBtn = qs('#add');
-    const closeBtn = qs('#close');
     const nameInput = qs('#nome');
     const dateInput = qs('#data');
     const signImg = qs('#signImg');
@@ -208,7 +204,6 @@
       adjustLayout();
       window.addEventListener('resize', adjustLayout);
       addBtn.addEventListener('click', ()=> addRow());
-      closeBtn.addEventListener('click', ()=> alert('No BioDesk este botão fecha o pop-up. Aqui é apenas demonstração.'));
     }
 
     init();
