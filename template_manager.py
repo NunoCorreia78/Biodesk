@@ -17,7 +17,7 @@ class BiodeskTemplateManager:
     
     def ensure_directories(self):
         """Garante que os diretórios de templates existem"""
-        categories = ["exercicios", "dietas", "alongamentos", "suplementos", "orientacoes"]
+        categories = ["exercicios", "dietas", "alongamentos", "prescricao", "orientacoes"]
         
         for category in categories:
             category_path = os.path.join(self.templates_dir, category)
@@ -116,7 +116,7 @@ class BiodeskTemplateManager:
             'exercicios': '🏃',
             'dietas': '🥗',
             'alongamentos': '🧘',
-            'suplementos': '💊',
+            'prescricao': '🩺',
             'orientacoes': '📝'
         }
         

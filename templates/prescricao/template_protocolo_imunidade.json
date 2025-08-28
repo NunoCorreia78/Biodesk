@@ -1,0 +1,36 @@
+{
+  "nome": "Protocolo Imunidade",
+  "descricao": "Protocolo completo para fortalecimento do sistema imunitário",
+  "prescricoes": [
+    {
+      "suplemento": "Vitamina C",
+      "apresentacao": "Comprimidos 1000mg",
+      "posologia": "1 comp 2x/dia",
+      "opcoes": ["depois"],
+      "tempo": ""
+    },
+    {
+      "suplemento": "Zinco",
+      "apresentacao": "Comprimidos 15mg",
+      "posologia": "1 comp 1x/dia",
+      "opcoes": ["depois"],
+      "tempo": ""
+    },
+    {
+      "suplemento": "Vitamina D3",
+      "apresentacao": "Gotas 2000UI/ml",
+      "posologia": "15 gotas 1x/dia",
+      "opcoes": ["antes"],
+      "tempo": "30 min"
+    },
+    {
+      "suplemento": "Probiótico",
+      "apresentacao": "Cápsulas 10 biliões",
+      "posologia": "1 cáps 1x/dia",
+      "opcoes": ["fora"],
+      "tempo": "2h após refeições"
+    }
+  ],
+  "duracao": "60 dias",
+  "observacoes": "Protocolo de fortalecimento imunitário. Reavaliar após 30 dias. Aumentar ingestão de água e manter alimentação equilibrada."
+}

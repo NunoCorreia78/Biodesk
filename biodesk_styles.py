@@ -192,13 +192,43 @@ class BiodeskStyles:
             print(f"⚠️ Aviso: Não foi possível aplicar sombra: {e}")
     
     @classmethod
+    def _clean_css_for_qt(cls, css_string: str) -> str:
+        """
+        Limpa CSS removendo caracteres problemáticos para o Qt
+        """
+        import re
+        
+        # Remover caracteres nulos e de substituição
+        css_string = css_string.replace('\x00', '').replace('\ufffd', '')
+        
+        # Remover ou substituir caracteres não-ASCII problemáticos
+        # Manter apenas caracteres ASCII básicos para CSS
+        try:
+            # Tentar encoding/decoding para limpar
+            css_string = css_string.encode('ascii', errors='ignore').decode('ascii')
+        except:
+            pass
+        
+        # Remover múltiplas linhas vazias
+        css_string = re.sub(r'\n\s*\n\s*\n', '\n\n', css_string)
+        
+        # Verificar se ainda há caracteres problemáticos
+        try:
+            css_string.encode('ascii')
+        except UnicodeEncodeError:
+            # Ainda há problemas, fazer limpeza mais agressiva
+            css_string = ''.join(char for char in css_string if ord(char) < 128)
+        
+        return css_string.strip()
+
+    @classmethod
     def apply_global_qss(cls):
         """Aplica QSS global com cores hover específicas por tipo de botão"""
         from PyQt6.QtWidgets import QApplication
         
         # QSS base para todos os botões
         base_qss = """
-        /* 🎨 ESTILO GLOBAL PARA TODOS OS BOTÕES */
+        /* ESTILO GLOBAL PARA TODOS OS BOTOES */
         QPushButton {
             font-family: "Segoe UI", "Inter", Roboto, sans-serif !important;
             font-size: 14px !important;
@@ -353,13 +383,31 @@ class BiodeskStyles:
         # Combinar todos os estilos
         full_qss = base_qss + generic_hover + specific_qss + emoji_rules
         
+        # ⚠️ CORREÇÃO: Limpar CSS antes de aplicar
+        full_qss = cls._clean_css_for_qt(full_qss)
+        
         app = QApplication.instance()
         if app:
-            app.setStyleSheet(full_qss)
-            print("✅ QSS global INTELIGENTE aplicado - cores hover por categoria!")
-            print("✅ Suporte para: SAVE(verde), DELETE(vermelho), NAVIGATION(amarelo), TOOL(cinza)")
-            print("✅ Suporte para emojis: 💾✅➕(verde), 🗑️❌✖(vermelho), 🔍👁️📋(amarelo), 🖨️📄📧🔄(cinza)")
-            print("✅ QToolButton grandes do main window também com hover verde!")
+            try:
+                # ⚠️ CORREÇÃO: Validar CSS antes de aplicar
+                if not full_qss.strip():
+                    print("⚠️ CSS vazio após limpeza, pulando aplicação")
+                    return
+                
+                app.setStyleSheet(full_qss)
+                print("🎨 CSS global aplicado com sucesso (caracteres problemáticos removidos)")
+                # print("✅ QSS global INTELIGENTE aplicado - cores hover por categoria!")
+                # print("✅ Suporte para: SAVE(verde), DELETE(vermelho), NAVIGATION(amarelo), TOOL(cinza)")
+                # print("✅ Suporte para emojis: 💾✅➕(verde), 🗑️❌✖(vermelho), 🔍👁️📋(amarelo), 🖨️📄📧🔄(cinza)")
+                # print("✅ QToolButton grandes do main window também com hover verde!")
+            except Exception as e:
+                print(f"⚠️ Erro ao aplicar stylesheet global: {e}")
+                print(f"⚠️ Tamanho do CSS: {len(full_qss)} caracteres")
+                # Tentar aplicar um CSS básico como fallback
+                try:
+                    app.setStyleSheet("/* Fallback CSS */")
+                except:
+                    pass
 
     @classmethod
     def apply_to_existing_button(cls, button: QPushButton, button_type: Optional[ButtonType] = None):
@@ -527,4 +575,4 @@ __version__ = "2.0.0"
 __author__ = "Biodesk Team"
 __date__ = "Janeiro 2025"
 
-print(f"✅ BiodeskStyles v{__version__} carregado com sucesso!")
+# print(f"✅ BiodeskStyles v{__version__} carregado com sucesso!")

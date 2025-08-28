@@ -9,7 +9,7 @@ from PyQt6.QtGui import QFont, QPixmap, QIcon
 try:
     from biodesk_styles import BiodeskStyles, DialogStyles, ButtonType
     BIODESK_STYLES_AVAILABLE = True
-    print("✅ BiodeskStyles v2.0 carregado no biodesk_dialogs.py")
+    # print("✅ BiodeskStyles v2.0 carregado no biodesk_dialogs.py")
 except ImportError as e:
     BIODESK_STYLES_AVAILABLE = False
     print(f"⚠️ BiodeskStyles não disponível: {e}")

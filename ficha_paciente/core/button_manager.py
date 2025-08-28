@@ -23,7 +23,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 try:
     from biodesk_styles import BiodeskStyles, ButtonType
     BIODESK_STYLES_AVAILABLE = True
-    print("✅ ButtonManager usando BiodeskStyles v2.0")
+    # print("✅ ButtonManager usando BiodeskStyles v2.0")
 except ImportError:
     print("⚠️ BiodeskStyles não disponível, usando sistema legado")
     from biodesk_ui_kit import BiodeskUIKit

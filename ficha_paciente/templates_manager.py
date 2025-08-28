@@ -30,7 +30,7 @@ from PyQt6.QtGui import *
 try:
     from biodesk_styles import BiodeskStyles, DialogStyles, ButtonType
     BIODESK_STYLES_AVAILABLE = True
-    print("✅ BiodeskStyles v2.0 carregado no templates_manager.py")
+    # print("✅ BiodeskStyles v2.0 carregado no templates_manager.py")
 except ImportError as e:
     BIODESK_STYLES_AVAILABLE = False
     print(f"⚠️ BiodeskStyles não disponível: {e}")
@@ -39,6 +39,14 @@ except ImportError as e:
 from biodesk_ui_kit import BiodeskUIKit
 from data_cache import DataCache
 from biodesk_dialogs import BiodeskMessageBox
+
+# Import do novo sistema de prescrições
+try:
+    from prescricao_medica_widget import PrescricaoMedicaWidget
+    PRESCRICAO_WIDGET_AVAILABLE = True
+except ImportError:
+    PRESCRICAO_WIDGET_AVAILABLE = False
+    print("⚠️ Widget de Prescrição Médica não disponível")
 
 class TemplatesManagerWidget(QWidget):
     """Widget especializado para gestão de templates e prescrições"""
@@ -133,7 +141,7 @@ class TemplatesManagerWidget(QWidget):
             ("🏃", "Alongamentos", "alongamentos", "#ffeaa7"),
             ("💪", "Exercícios", "exercicios", "#ffecb3"),
             ("🥗", "Nutrição", "dietas", "#a8e6cf"),
-            ("💊", "Suplementos", "suplementos", "#ffd3e1"),
+            ("🩺", "Prescrição", "prescricao", "#ffd3e1"),
             ("📋", "Autocuidado", "orientacoes", "#e6d7ff"),
             ("📚", "Educativos", "educativos", "#e1f5fe"),
             ("🎯", "Por Condição", "condicoes", "#f3e5f5")
@@ -375,6 +383,11 @@ Selecione um template à esquerda para visualizar:
         
     def toggle_categoria_templates(self, categoria):
         """Alterna visibilidade dos templates de uma categoria"""
+        # Tratar prescrição de forma especial - abrir diretamente o editor
+        if categoria == "prescricao":
+            self.abrir_editor_prescricao()
+            return
+            
         templates_area = self.templates_areas.get(categoria)
         if not templates_area:
             return
@@ -425,6 +438,7 @@ Selecione um template à esquerda para visualizar:
                 'Probióticos',
                 'Antioxidantes'
             ],
+            'prescricao': [],  # Categoria especial - sem subcategorias
             'orientacoes': [
                 'Higiene do Sono',
                 'Gestão do Stress',
@@ -833,3 +847,52 @@ Selecione um template à esquerda para visualizar:
         self.protocolos_selecionados.clear()
         self.protocolos_lista.clear()
         self.btn_remover_protocolo.setEnabled(False)
+    
+    def abrir_editor_prescricao(self):
+        """Abre o editor de prescrição médica"""
+        if not PRESCRICAO_WIDGET_AVAILABLE:
+            BiodeskMessageBox.critical(
+                self,
+                "Erro",
+                "Sistema de Prescrição Médica não disponível.\n\nVerifique se o arquivo prescricao_medica_widget.py está presente."
+            )
+            return
+        
+        try:
+            # Criar diálogo para o editor de prescrição
+            dialog = QDialog(self)
+            dialog.setWindowTitle("🩺 Prescrição Médica")
+            dialog.setModal(True)
+            dialog.resize(1200, 900)
+            
+            # Layout principal
+            layout = QVBoxLayout(dialog)
+            layout.setContentsMargins(0, 0, 0, 0)
+            
+            # Widget de prescrição
+            prescricao_widget = PrescricaoMedicaWidget(dialog, self.paciente_data)
+            layout.addWidget(prescricao_widget)
+            
+            # Botões
+            botoes_layout = QHBoxLayout()
+            
+            if BIODESK_STYLES_AVAILABLE:
+                btn_fechar = BiodeskStyles.create_button("❌ Fechar", ButtonType.DEFAULT)
+            else:
+                btn_fechar = QPushButton("❌ Fechar")
+            
+            btn_fechar.clicked.connect(dialog.close)
+            
+            botoes_layout.addStretch()
+            botoes_layout.addWidget(btn_fechar)
+            layout.addLayout(botoes_layout)
+            
+            # Mostrar diálogo
+            dialog.exec()
+            
+        except Exception as e:
+            BiodeskMessageBox.critical(
+                self,
+                "Erro",
+                f"Erro ao abrir editor de prescrição:\n\n{str(e)}"
+            )

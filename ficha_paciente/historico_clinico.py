@@ -341,7 +341,7 @@ class HistoricoClinicoWidget(QWidget):
         self.historico_edit.setTextCursor(cursor)
         self.historico_edit.setFocus()
         
-        print(f"✅ Nova sessão inserida no topo: {data_atual}")
+        # print(f"✅ Nova sessão inserida no topo: {data_atual}")
     
     def carregar_historico(self):
         """Carrega histórico no editor"""

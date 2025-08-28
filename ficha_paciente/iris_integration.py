@@ -34,7 +34,7 @@ from biodesk_dialogs import BiodeskMessageBox
 try:
     from biodesk_styles import BiodeskStyles, ButtonType
     BIODESK_STYLES_AVAILABLE = True
-    print("✅ BiodeskStyles v2.0 carregado no iris_integration.py")
+    # print("✅ BiodeskStyles v2.0 carregado no iris_integration.py")
 except ImportError as e:
     BIODESK_STYLES_AVAILABLE = False
     print(f"⚠️ BiodeskStyles não disponível em iris_integration.py: {e}")

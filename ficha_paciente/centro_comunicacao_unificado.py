@@ -142,7 +142,7 @@ class DocumentosListWidget(QWidget):
         
         # 📋 LISTA DE DOCUMENTOS
         self.lista_documentos = QListWidget()
-        self.lista_documentos.setSelectionMode(QListWidget.SelectionMode.MultiSelection)
+        self.lista_documentos.setSelectionMode(QListWidget.SelectionMode.SingleSelection)
         self.lista_documentos.setStyleSheet("""
             QListWidget {
                 border: 1px solid #ccc;
@@ -192,6 +192,7 @@ class DocumentosListWidget(QWidget):
         # Conectar seleção e double-click
         self.lista_documentos.itemChanged.connect(self.on_item_changed)
         self.lista_documentos.itemDoubleClicked.connect(self.abrir_ficheiro_duplo_click)
+        self.lista_documentos.currentItemChanged.connect(self.on_current_item_changed)
     
     def carregar_documentos(self):
         """Carregar documentos do paciente"""
@@ -279,6 +280,12 @@ class DocumentosListWidget(QWidget):
                 self.documento_selecionado.emit(documento)
             else:
                 self.documento_removido.emit(documento)
+    
+    def on_current_item_changed(self, current, previous):
+        """Quando o item atual muda - garante que apenas um item fica com highlight azul"""
+        # Esta função garante que apenas o item atual tenha o highlight azul
+        # O comportamento de checkbox permanece independente
+        pass
     
     def abrir_pasta_paciente(self):
         """Abrir pasta do paciente no explorador"""

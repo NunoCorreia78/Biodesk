@@ -661,22 +661,19 @@ class FichaPaciente(QMainWindow):
             dialog.setWindowTitle("💊 Nova Prescrição Médica")
             dialog.setModal(True)
             
-            # Configurar para maximizar corretamente sem ultrapassar a barra de tarefas
+            # Configurar para maximizar como as outras janelas
             from PyQt6.QtCore import Qt
             from PyQt6.QtGui import QScreen
             
-            # Obter geometria da tela principal (área disponível, excluindo barra de tarefas)
+            # Maximizar a janela para ocupar toda a tela disponível (excluindo barra de tarefas)
             screen = QApplication.primaryScreen()
-            screen_geometry = screen.availableGeometry()  # Esta já exclui barra de tarefas
+            screen_geometry = screen.availableGeometry()
             
-            # Definir tamanho ligeiramente menor que a tela para garantir visibilidade
-            margin = 10  # Margem de segurança
-            dialog.setGeometry(
-                screen_geometry.x() + margin,
-                screen_geometry.y() + margin,
-                screen_geometry.width() - (margin * 2),
-                screen_geometry.height() - (margin * 2)
-            )
+            # Definir tamanho exato da área disponível da tela
+            dialog.setGeometry(screen_geometry)
+            
+            # Garantir que a janela está no estado maximizado
+            dialog.setWindowState(Qt.WindowState.WindowMaximized)
             
             # Layout otimizado
             layout = QVBoxLayout(dialog)

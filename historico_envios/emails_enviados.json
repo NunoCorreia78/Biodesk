@@ -1,0 +1,12 @@
+[
+  {
+    "id": 1,
+    "destinatario": "nfjpcorreia@gmail.com",
+    "assunto": "Prescrição Médica - Paciente",
+    "mensagem": "Prezado(a) Sr(a) Paciente,\n\nSegue em anexo a prescrição médica conforme orientado durante a consulta.\n\nPor favor, siga rigorosamente as orientações de uso dos medicamentos prescritos.\n\nEm caso de dúvidas ou reações adversas, entre em contato imediatamente.\n\nAtenciosamente,\nClínica Biodesk",
+    "anexos": [],
+    "data_envio": "2025-08-27T14:08:26.277814",
+    "paciente_nome": "Não informado",
+    "status": "simulado"
+  }
+]

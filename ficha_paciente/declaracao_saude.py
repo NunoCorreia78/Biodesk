@@ -31,7 +31,7 @@ from biodesk_dialogs import BiodeskMessageBox
 try:
     from biodesk_styles import BiodeskStyles, ButtonType
     BIODESK_STYLES_AVAILABLE = True
-    print("✅ BiodeskStyles v2.0 carregado no declaracao_saude.py")
+    # print("✅ BiodeskStyles v2.0 carregado no declaracao_saude.py")
 except ImportError as e:
     BIODESK_STYLES_AVAILABLE = False
     print(f"⚠️ BiodeskStyles não disponível em declaracao_saude.py: {e}")
@@ -77,6 +77,58 @@ class DeclaracaoSaudeWidget(QWidget):
         
         self.init_ui()
         # self._conectar_sinais_alteracao()  # TODO: Implementar se necessário
+    
+    def set_paciente_data(self, dados_paciente):
+        """
+        Define os dados do paciente e preenche automaticamente os campos
+        """
+        self.paciente_data = dados_paciente
+        if dados_paciente:
+            self._preencher_campos_automaticos()
+    
+    def _preencher_campos_automaticos(self):
+        """
+        Preenche automaticamente os campos da declaração com os dados do paciente
+        """
+        if not self.paciente_data:
+            return
+            
+        try:
+            # Preencher nome
+            if hasattr(self, 'nome_edit'):
+                nome = self.paciente_data.get('nome', '')
+                self.nome_edit.setText(nome)
+            
+            # Preencher data de nascimento
+            if hasattr(self, 'data_nasc_edit'):
+                data_nasc = self.paciente_data.get('data_nascimento', '')
+                self.data_nasc_edit.setText(data_nasc)
+            
+            # Preencher contacto (telemóvel)
+            if hasattr(self, 'contacto_telem'):
+                contacto = self.paciente_data.get('contacto', '') or self.paciente_data.get('telemovel', '')
+                self.contacto_telem.setText(contacto)
+            
+            # Preencher email
+            if hasattr(self, 'email'):
+                email = self.paciente_data.get('email', '')
+                self.email.setText(email)
+            
+            # Preencher profissão
+            if hasattr(self, 'profissao_edit'):
+                profissao = self.paciente_data.get('profissao', '')
+                self.profissao_edit.setText(profissao)
+                
+            print(f"🔄 Campos preenchidos automaticamente para: {self.paciente_data.get('nome', 'Paciente')}")
+            
+        except Exception as e:
+            print(f"⚠️ Erro ao preencher campos automaticamente: {e}")
+        
+    def get_paciente_data(self):
+        """
+        Retorna os dados do paciente atual
+        """
+        return self.paciente_data
         
     def init_ui(self):
         """Interface profissional com design limpo e compacto"""

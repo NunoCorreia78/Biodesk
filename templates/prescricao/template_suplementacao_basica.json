@@ -1,0 +1,29 @@
+{
+  "nome": "Suplementação Básica Vitaminas",
+  "descricao": "Template básico para suplementação vitamínica",
+  "prescricoes": [
+    {
+      "suplemento": "Vitamina D3",
+      "apresentacao": "Gotas 1000UI/ml",
+      "posologia": "10 gotas 1x/dia",
+      "opcoes": ["antes"],
+      "tempo": "30 min"
+    },
+    {
+      "suplemento": "Complexo B",
+      "apresentacao": "Cápsulas",
+      "posologia": "1 cáps 1x/dia",
+      "opcoes": ["antes"],
+      "tempo": "30 min"
+    },
+    {
+      "suplemento": "Ómega 3",
+      "apresentacao": "Cápsulas 1000mg",
+      "posologia": "1 cáps 2x/dia",
+      "opcoes": ["depois"],
+      "tempo": ""
+    }
+  ],
+  "duracao": "30 dias",
+  "observacoes": "Tomar com bastante água. Avaliar tolerância nos primeiros dias."
+}

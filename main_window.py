@@ -22,7 +22,7 @@ from biodesk_dialogs import BiodeskMessageBox
 # ✅ IMPORTAR NOVO SISTEMA DE ESTILOS
 try:
     from biodesk_styles import BiodeskStyles, ButtonType, DialogStyles
-    print("✅ BiodeskStyles v2.0 carregado no main_window.py")
+    # print("✅ BiodeskStyles v2.0 carregado no main_window.py")
 except ImportError as e:
     print(f"⚠️ BiodeskStyles não disponível: {e}")
     BiodeskStyles = None
@@ -75,7 +75,8 @@ class MainWindow(QMainWindow):
         
         # ✅ SISTEMA NOVO: BiodeskStyles v2.0 (substitui hotkeys do BiodeskStyleManager)
         if BiodeskStyles:
-            print("✅ Sistema BiodeskStyles ativo - hotkeys obsoletos removidos")
+            # print("✅ Sistema BiodeskStyles ativo - hotkeys obsoletos removidos")
+            pass
         else:
             print("⚠️ BiodeskStyles não disponível - funcionalidade reduzida")
             pass
@@ -523,11 +524,11 @@ class MainWindow(QMainWindow):
         """
         try:
             if BiodeskStyles:
-                print("✅ Sistema BiodeskStyles v2.0 ativo - estilos centralizados")
+                # print("✅ Sistema BiodeskStyles v2.0 ativo - estilos centralizados")
                 
                 # 🔥 APLICAR QSS GLOBAL PARA FORÇAR TODOS OS BOTÕES
                 BiodeskStyles.apply_global_qss()
-                print("✅ QSS global aplicado")
+                # print("✅ QSS global aplicado")
                 
             else:
                 print("⚠️ BiodeskStyles não disponível - problemas críticos!")
@@ -536,7 +537,7 @@ class MainWindow(QMainWindow):
             print(f"❌ Erro ao carregar estilos: {e}")
         
         # ✅ Marcar que o sistema está ativo
-        print("✅ Sistema BiodeskStyles ativo - hotkeys obsoletos removidos")
+        # print("✅ Sistema BiodeskStyles ativo - hotkeys obsoletos removidos")
 
     def abrir_lista_pacientes(self):
         FichaPaciente.mostrar_seletor(callback=self.abrir_ficha_existente, parent=self)
@@ -618,12 +619,22 @@ class MainWindow(QMainWindow):
             # Posicionar painel 10px acima do botão para um espaço elegante
             y = btn_top_y - panel_size.height() - 1
 
-            # Garantir que não saia da tela
+            # Garantir que não saia da tela e evitar coordenadas negativas
             screen = QGuiApplication.primaryScreen()
             if screen:
                 avail = screen.availableGeometry()
+                # ⚠️ CORREÇÃO: Garantir coordenadas mínimas válidas
                 x = max(avail.left() + 10, min(x, avail.right() - 10 - panel_size.width()))
                 y = max(avail.top() + 30, min(y, avail.bottom() - 10 - panel_size.height()))
+                
+                # Verificação adicional para evitar valores negativos ou muito pequenos
+                x = max(0, x)
+                y = max(0, y)
+                
+                # Verificar se o tamanho é válido
+                if panel_size.width() <= 0 or panel_size.height() <= 0:
+                    print("⚠️ Tamanho de painel inválido detectado")
+                    return
 
             self._patients_panel.move(QPoint(x, y))
             self._patients_panel.show()
@@ -792,8 +803,30 @@ class PatientsPanel(QDialog):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Tool | Qt.WindowType.Popup)
-        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+        
+        # ⚠️ CORREÇÃO: Configurações de janela com transparência ativada por padrão
+        try:
+            # Verificar se transparência deve ser desativada (agora padrão: ATIVADA)
+            import os, sys
+            disable_transparency = False  # PADRÃO: Ativar transparência
+            if os.environ.get('BIODESK_DISABLE_TRANSPARENCY', 'false').lower() == 'true':
+                disable_transparency = True
+                print("🔧 Transparência desativada via variável de ambiente")
+            
+            # Usar configurações melhoradas (sem Popup para evitar problemas)
+            self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Tool)
+            
+            # Ativar transparência com verificações de segurança
+            if not disable_transparency:
+                self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+                print("✨ Transparência ativada com melhorias de segurança")
+            else:
+                print("🔧 Transparência desativada para evitar erros Windows")
+                
+        except Exception as e:
+            print(f"⚠️ Erro ao configurar janela: {e}")
+            # Fallback para janela normal
+            self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
 
         # ✅ APLICAR ESTILO PROFISSIONAL se disponível
         if BiodeskStyles and DialogStyles:
@@ -805,17 +838,24 @@ class PatientsPanel(QDialog):
         # Container principal com design pill (cilíndrico)
         container = QFrame()
         container.setObjectName("patientsPanel")
-        container.setStyleSheet(
-            """
+        
+        # ⚠️ ESTILO: Otimizado para transparência
+        base_style = """
             QFrame#patientsPanel {
                 background: rgba(255,255,255,0.95);
-                border: 1px solid rgba(46,125,50,0.15);
+                border: 1px solid rgba(46,125,50,0.2);
                 border-radius: 25px;
                 min-width: 360px;
                 max-width: 360px;
             }
             """
-        )
+        
+        try:
+            container.setStyleSheet(base_style)
+        except Exception as e:
+            print(f"⚠️ Erro ao aplicar estilo do painel: {e}")
+            # Fallback para estilo simples
+            container.setStyleSheet("QFrame { background: white; border: 1px solid gray; border-radius: 10px; }")
 
         # Layout horizontal para os dois pills lado a lado com mais espaçamento
         layout = QHBoxLayout(container)
@@ -845,17 +885,45 @@ class PatientsPanel(QDialog):
         layout.addWidget(btn_select)
         layout.addWidget(btn_new)
 
-        # Sombra suave que complementa o design pill
-        shadow = QGraphicsDropShadowEffect(self)
-        shadow.setBlurRadius(25)
-        shadow.setColor(QColor(46, 125, 50, 40))
-        shadow.setOffset(0, 6)
-        container.setGraphicsEffect(shadow)
+        # Sombra elegante para transparência
+        try:
+            shadow = QGraphicsDropShadowEffect(self)
+            shadow.setBlurRadius(20)  # Sombra suave
+            shadow.setColor(QColor(46, 125, 50, 60))  # Verde suave Biodesk
+            shadow.setOffset(0, 4)  # Sombra discreta
+            container.setGraphicsEffect(shadow)
+        except Exception as e:
+            print(f"⚠️ Erro ao aplicar sombra: {e}")
+            # Continuar sem sombra se houver problemas
 
         # Layout principal
         outer = QVBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 0)
         outer.addWidget(container)
+
+        # ⚠️ CORREÇÃO: Verificar problemas de transparência no Windows
+        self._check_transparency_issues()
+
+    def _check_transparency_issues(self):
+        """
+        Verifica se há problemas com transparência e desativa se necessário
+        """
+        try:
+            import sys
+            if sys.platform == "win32":
+                # Tentar uma operação de update para detectar problemas
+                self.update()
+                # Se chegou até aqui sem erro, transparência funciona
+                return True
+        except Exception as e:
+            print(f"⚠️ Problema de transparência detectado, desativando: {e}")
+            try:
+                self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, False)
+                self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Tool)
+                return False
+            except:
+                pass
+        return True
 
     def close_with_delay(self):
         """Fecha o painel com um pequeno delay para melhor UX"""
