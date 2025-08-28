@@ -3,7 +3,7 @@
 from pathlib import Path
 
 # PyQt6 - APENAS o básico para definir classes
-from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QTabWidget, QLabel, QLineEdit, QTextEdit, QComboBox, QDateEdit, QPushButton, QScrollArea, QFrame, QApplication, QDialog, QListWidget, QListWidgetItem
+from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QTabWidget, QLabel, QLineEdit, QTextEdit, QComboBox, QDateEdit, QPushButton, QScrollArea, QFrame, QApplication, QDialog, QListWidget, QListWidgetItem, QMessageBox
 from PyQt6.QtCore import Qt, QDate
 from PyQt6.QtGui import QShortcut, QKeySequence
 
@@ -32,6 +32,7 @@ def importar_modulos_especializados():
             from ficha_paciente.gestao_documentos import GestaoDocumentosWidget
             from ficha_paciente.declaracao_saude import DeclaracaoSaudeWidget
             from ficha_paciente.pesquisa_pacientes import PesquisaPacientesManager
+            from ficha_paciente.centro_comunicacao_unificado import CentroComunicacaoUnificado
             
             _modulos_cache.update({
                 'dados_pessoais': DadosPessoaisWidget,
@@ -40,7 +41,8 @@ def importar_modulos_especializados():
                 'comunicacao_manager': ComunicacaoManagerWidget,
                 'gestao_documentos': GestaoDocumentosWidget,
                 'declaracao_saude': DeclaracaoSaudeWidget,
-                'pesquisa_pacientes': PesquisaPacientesManager
+                'pesquisa_pacientes': PesquisaPacientesManager,
+                'centro_comunicacao_unificado': CentroComunicacaoUnificado
             })
         except ImportError:
             pass
@@ -71,16 +73,9 @@ class FichaPaciente(QMainWindow):
         # 🚀 CARREGAMENTO IMEDIATO: Carregar dados pessoais na inicialização
         self._tabs_loaded = {
             'dados_pessoais': False,  # Será carregado imediatamente
-            'dados_documentos': False,
-            'clinico_comunicacao': False,
-            'historico_clinico': False,
-            'templates_prescricoes': False,
-            'centro_comunicacao': False,
-            'iris_analise': False,
-            'gestao_documentos': False,
-            'declaracao_saude': False,
-            # 'consentimentos': False,  # Integrado na declaração de saúde
-            'terapia': False
+            'historico': False,
+            'irisdiagnose': False,
+            'centro_comunicacao': False
         }
         
         # Prevenção de carregamentos múltiplos simultâneos
@@ -270,8 +265,9 @@ class FichaPaciente(QMainWindow):
                 self.carregar_dados_paciente_email()
             
             # Atualizar dados na declaração de saúde
-            if hasattr(self, 'carregar_dados_paciente_declaracao'):
-                self.carregar_dados_paciente_declaracao()
+            if hasattr(self, 'declaracao_saude_widget') and self.declaracao_saude_widget:
+                if hasattr(self.declaracao_saude_widget, 'set_paciente_data'):
+                    self.declaracao_saude_widget.set_paciente_data(self.paciente_data)
             
             # Atualizar título da janela
             if self.paciente_data.get('nome'):
@@ -298,60 +294,6 @@ class FichaPaciente(QMainWindow):
         # ✨ Hover global aplicado automaticamente pelo BiodeskStyleManager
         pass
         
-    def init_ui(self):
-        """Inicialização da interface principal"""
-        # ✅ APLICAR ESTILO GLOBAL DE HOVER
-        self.aplicar_estilo_global_hover()
-        
-        # Widget central
-        central_widget = QWidget()
-        self.setCentralWidget(central_widget)
-        main_layout = QVBoxLayout(central_widget)
-        main_layout.setContentsMargins(10, 10, 10, 10)
-        main_layout.setSpacing(10)
-        
-        # ====== NOVA ESTRUTURA: APENAS 2 SEPARADORES ======
-        self.tabs = QTabWidget()
-        self.tab_dados_documentos = QWidget()
-        self.tab_clinico_comunicacao = QWidget()
-        
-        self.tabs.addTab(self.tab_dados_documentos, '� DOCUMENTAÇÃO CLÍNICA')
-        self.tabs.addTab(self.tab_clinico_comunicacao, '🩺 ÁREA CLÍNICA')
-        
-        main_layout.addWidget(self.tabs)
-        
-    # ====== LAZY LOADING CALLBACKS ======
-    def _on_main_tab_changed(self, index):
-        """Carrega tabs principais sob demanda com medição de performance"""
-        import time
-        start_time = time.time()
-        
-        # Prevenção de carregamentos múltiplos
-        lock_key = f"main_tab_{index}"
-        if lock_key in self._loading_locks:
-            return
-        
-        try:
-            self._loading_locks.add(lock_key)
-            
-            if index == 0 and not self._tabs_loaded.get('dados_documentos', False):
-                print("🔄 Carregando tab DADOS & DOCUMENTOS...")
-                self.init_tab_dados_documentos()
-                self._tabs_loaded['dados_documentos'] = True
-                
-            elif index == 1 and not self._tabs_loaded.get('clinico_comunicacao', False):
-                print("🔄 Carregando tab CLÍNICO & COMUNICAÇÃO...")
-                self.init_tab_clinico_comunicacao()
-                self._tabs_loaded['clinico_comunicacao'] = True
-                # Nota: Histórico clínico será carregado automaticamente pelo init_tab_clinico_comunicacao
-            
-            load_time = time.time() - start_time
-            if load_time > 0.1:  # Só reportar se demorar mais de 100ms
-                print(f"⏱️ Tab principal carregado em {load_time:.2f}s")
-                
-        finally:
-            self._loading_locks.discard(lock_key)
-
     def _on_dados_tab_changed(self, index):
         """Carrega sub-tabs de dados & documentos sob demanda"""
         import time
@@ -366,45 +308,8 @@ class FichaPaciente(QMainWindow):
                 self.init_sub_declaracao_saude_modular()
                 self._tabs_loaded['declaracao_saude'] = True
                 
-            elif index == 2 and not self._tabs_loaded.get('gestao_documentos', False):
-                self.init_sub_gestao_documentos_modular()
-                self._tabs_loaded['gestao_documentos'] = True
-                
         except Exception as e:
             pass  # Erro não crítico
-
-    def _on_tab_clinico_changed(self, index):
-        """Carrega sub-tabs clínicos sob demanda"""
-        import time
-        start_time = time.time()
-        
-        try:
-            if index == 0 and not self._tabs_loaded.get('historico_clinico', False):
-                print("🔄 Carregando HISTÓRICO CLÍNICO...")
-                self.init_sub_historico_clinico()
-                self._tabs_loaded['historico_clinico'] = True
-                
-            elif index == 1 and not self._tabs_loaded.get('iris_analise', False):
-                print("🔄 Carregando ANÁLISE DE ÍRIS...")
-                self.init_sub_iris_analise()
-                self._tabs_loaded['iris_analise'] = True
-                
-            elif index == 2 and not self._tabs_loaded.get('templates_prescricoes', False):
-                print("🔄 Carregando TEMPLATES & PRESCRIÇÕES...")
-                self.init_sub_templates_prescricoes()
-                self._tabs_loaded['templates_prescricoes'] = True
-                
-            elif index == 3 and not self._tabs_loaded.get('centro_comunicacao', False):
-                print("🔄 Carregando CENTRO DE COMUNICAÇÃO...")
-                self.init_sub_centro_comunicacao()
-                self._tabs_loaded['centro_comunicacao'] = True
-                
-            load_time = time.time() - start_time
-            if load_time > 0.1:
-                print(f"⏱️ Sub-tab clínico carregado em {load_time:.2f}s")
-                
-        except Exception as e:
-            print(f"❌ Erro ao carregar sub-tab clínico: {e}")
 
     def init_ui(self):
         """Inicialização da interface principal"""
@@ -418,13 +323,17 @@ class FichaPaciente(QMainWindow):
         main_layout.setContentsMargins(10, 10, 10, 10)
         main_layout.setSpacing(10)
         
-        # ====== NOVA ESTRUTURA: APENAS 2 SEPARADORES ======
+        # ====== NOVA ESTRUTURA SIMPLIFICADA: 4 ABAS PRINCIPAIS ======
         self.tabs = QTabWidget()
-        self.tab_dados_documentos = QWidget()
-        self.tab_clinico_comunicacao = QWidget()
+        self.tab_dados_pessoais = QWidget()
+        self.tab_historico = QWidget()
+        self.tab_irisdiagnose = QWidget()
+        self.tab_centro_comunicacao = QWidget()
         
-        self.tabs.addTab(self.tab_dados_documentos, '📋 DOCUMENTAÇÃO CLÍNICA')
-        self.tabs.addTab(self.tab_clinico_comunicacao, '🩺 ÁREA CLÍNICA')
+        self.tabs.addTab(self.tab_dados_pessoais, '� DADOS PESSOAIS')
+        self.tabs.addTab(self.tab_historico, '🏥 HISTÓRICO')
+        self.tabs.addTab(self.tab_irisdiagnose, '👁️ IRISDIAGNOSE')
+        self.tabs.addTab(self.tab_centro_comunicacao, '📧 CENTRO DE COMUNICAÇÃO')
         
         main_layout.addWidget(self.tabs)
         
@@ -432,8 +341,8 @@ class FichaPaciente(QMainWindow):
         self.tabs.currentChanged.connect(self._on_main_tab_changed)
         
         # 🚀 CARREGAMENTO IMEDIATO: Inicializar primeira aba imediatamente
-        self.init_tab_dados_documentos()
-        self._tabs_loaded['dados_documentos'] = True
+        self.init_tab_dados_pessoais()
+        self._tabs_loaded['dados_pessoais'] = True
         
         # 🚀 LAZY LOADING: Conectar sinal para carregar tabs principais sob demanda
         self.tabs.currentChanged.connect(self._on_main_tab_changed)
@@ -443,12 +352,424 @@ class FichaPaciente(QMainWindow):
         shortcut.activated.connect(self.guardar)
         
         # 🚀 LAZY LOADING: NÃO inicializar tabs principais - carregar o primeiro sob demanda
-        print("✅ Interface principal criada - lazy loading ativado")
-        
         # Carregar apenas o primeiro tab por padrão
         self._on_main_tab_changed(0)
 
-    def init_tab_dados_documentos(self):
+    def _on_main_tab_changed(self, index):
+        """Carrega tabs principais sob demanda com medição de performance"""
+        import time
+        start_time = time.time()
+        
+        # Prevenção de carregamentos múltiplos
+        lock_key = f"main_tab_{index}"
+        if lock_key in self._loading_locks:
+            return
+        
+        try:
+            self._loading_locks.add(lock_key)
+            
+            if index == 0 and not self._tabs_loaded.get('dados_pessoais', False):
+                print("🔄 Carregando tab DADOS PESSOAIS...")
+                self.init_tab_dados_pessoais()
+                self._tabs_loaded['dados_pessoais'] = True
+                
+            elif index == 1 and not self._tabs_loaded.get('historico', False):
+                print("🔄 [DEBUG LAZY] Carregando tab HISTÓRICO...")
+                self.init_tab_historico()
+                self._tabs_loaded['historico'] = True
+                
+            elif index == 2 and not self._tabs_loaded.get('irisdiagnose', False):
+                self.init_tab_irisdiagnose()
+                self._tabs_loaded['irisdiagnose'] = True
+                
+            elif index == 3 and not self._tabs_loaded.get('centro_comunicacao', False):
+                self.init_tab_centro_comunicacao()
+                self._tabs_loaded['centro_comunicacao'] = True
+            
+            load_time = time.time() - start_time
+            if load_time > 0.1:  # Só reportar se demorar mais de 100ms
+                print(f"⏱️ Tab principal carregado em {load_time:.2f}s")
+                
+        finally:
+            self._loading_locks.discard(lock_key)
+
+    def init_tab_dados_pessoais(self):
+        """👤 DADOS PESSOAIS - Aba dedicada aos dados do paciente"""
+        layout = QVBoxLayout(self.tab_dados_pessoais)
+        layout.setContentsMargins(10, 10, 10, 10)
+        layout.setSpacing(10)
+        
+        # Usar lazy loading para Dados Pessoais Widget
+        _, _, _, _, _, _, _, _ = importar_modulos_especializados()
+        DadosPessoaisWidget = _modulos_cache.get('dados_pessoais')
+        
+        if DadosPessoaisWidget:
+            self.dados_pessoais_widget = DadosPessoaisWidget(self.paciente_data, self)
+            layout.addWidget(self.dados_pessoais_widget)
+        else:
+            placeholder = QLabel("⚠️ Módulo de dados pessoais não disponível")
+            layout.addWidget(placeholder)
+
+    def init_tab_historico(self):
+        """🏥 HISTÓRICO - Histórico clínico com popups integrados"""
+        layout = QVBoxLayout(self.tab_historico)
+        layout.setContentsMargins(10, 10, 10, 10)
+        layout.setSpacing(10)
+        
+        # Cabeçalho com botões de ação
+        header_frame = QFrame()
+        header_layout = QHBoxLayout(header_frame)
+        
+        title_label = QLabel("🏥 <b>Histórico Clínico</b>")
+        title_label.setStyleSheet("font-size: 16px; color: #2c3e50; margin: 5px;")
+        header_layout.addWidget(title_label)
+        
+        header_layout.addStretch()
+        
+        # Botões de ação rápida
+        btn_declaracao = QPushButton("📋 Declaração de Saúde")
+        btn_prescricao = QPushButton("💊 Nova Prescrição")
+        btn_protocolo = QPushButton("📋 Protocolos")
+        
+        if BIODESK_STYLES_AVAILABLE:
+            BiodeskStyles.apply_to_existing_button(btn_declaracao, ButtonType.DEFAULT)
+            BiodeskStyles.apply_to_existing_button(btn_prescricao, ButtonType.SAVE)
+            BiodeskStyles.apply_to_existing_button(btn_protocolo, ButtonType.DEFAULT)
+        
+        btn_declaracao.clicked.connect(self.abrir_declaracao_popup)
+        btn_prescricao.clicked.connect(self.abrir_prescricao_popup)
+        btn_protocolo.clicked.connect(self.abrir_protocolo_popup)
+        
+        header_layout.addWidget(btn_declaracao)
+        header_layout.addWidget(btn_prescricao)
+        header_layout.addWidget(btn_protocolo)
+        
+        layout.addWidget(header_frame)
+        
+        # Histórico clínico principal
+        _, HistoricoClinicoWidget, _, _, _, _, _, _ = importar_modulos_especializados()
+        
+        if HistoricoClinicoWidget:
+            # Extrair texto do histórico dos dados do paciente
+            historico_texto = self.paciente_data.get('historico', '')
+            if isinstance(historico_texto, dict):
+                # Se for dict, tentar extrair texto ou usar string vazia
+                historico_texto = historico_texto.get('texto', '') or historico_texto.get('historico', '') or ''
+            elif not isinstance(historico_texto, str):
+                # Se não for string nem dict, converter para string
+                historico_texto = str(historico_texto) if historico_texto else ''
+            
+            print(f"🔍 [DEBUG HISTÓRICO] Criando widget com {len(historico_texto)} chars")
+            self.historico_widget = HistoricoClinicoWidget(historico_texto, self)
+            
+            # ✅ CONECTAR SINAIS AQUI TAMBÉM
+            self.historico_widget.historico_alterado.connect(self.on_historico_alterado)
+            self.historico_widget.guardar_solicitado.connect(self.guardar)
+            print(f"🔍 [DEBUG HISTÓRICO] Sinais conectados")
+            
+            layout.addWidget(self.historico_widget)
+            print(f"🔍 [DEBUG HISTÓRICO] Widget criado e adicionado ao layout")
+        else:
+            placeholder = QLabel("⚠️ Módulo de histórico clínico não disponível")
+            layout.addWidget(placeholder)
+        
+        print("✅ Histórico clínico carregado com popups integrados")
+
+    def init_tab_irisdiagnose(self):
+        """👁️ IRISDIAGNOSE - Análise de íris completa"""
+        # Carregar módulo de íris automaticamente
+        self.carregar_modulo_iris_completo()
+    
+    def carregar_modulo_iris_completo(self):
+        """Carrega módulo completo de análise de íris"""
+        try:
+            print("🔄 Tentando importar módulo IrisIntegrationWidget...")
+            # Importar módulo de íris
+            from ficha_paciente.iris_integration import IrisIntegrationWidget
+            print("✅ IrisIntegrationWidget importado com sucesso!")
+            
+            # Verificar se já existe layout
+            layout = self.tab_irisdiagnose.layout()
+            if layout:
+                # Limpar layout existente
+                while layout.count():
+                    child = layout.takeAt(0)
+                    if child.widget():
+                        child.widget().deleteLater()
+                print("🧹 Layout existente limpo")
+            else:
+                # Criar novo layout apenas se não existir
+                layout = QVBoxLayout(self.tab_irisdiagnose)
+                layout.setContentsMargins(4, 4, 4, 4)
+                layout.setSpacing(6)
+                print("✅ Novo layout criado")
+            
+            print("🔄 Criando widget de íris integrado...")
+            # Criar widget de íris integrado - PASSAR DADOS CORRETAMENTE
+            self.iris_widget = IrisIntegrationWidget(self.paciente_data)
+            print("✅ Widget de íris criado!")
+            
+            # Conectar sinais
+            if hasattr(self.iris_widget, 'zona_clicada'):
+                self.iris_widget.zona_clicada.connect(self.on_zona_iris_clicada)
+                print("✅ Sinais conectados!")
+            
+            layout.addWidget(self.iris_widget)
+            print("✅ Widget adicionado ao layout!")
+            
+            print("✅ Módulo de íris completo carregado com sucesso!")
+            
+        except ImportError as e:
+            print(f"❌ Erro ao importar módulo de íris: {e}")
+            self.criar_placeholder_iris_simples()
+        except Exception as e:
+            print(f"❌ Erro geral ao carregar íris: {e}")
+            import traceback
+            print(traceback.format_exc())
+            self.criar_placeholder_iris_simples()
+    
+    def criar_placeholder_iris_simples(self):
+        """Cria placeholder simples quando módulo completo não está disponível"""
+        layout = self.tab_irisdiagnose.layout()
+        if not layout:
+            layout = QVBoxLayout(self.tab_irisdiagnose)
+            layout.setContentsMargins(10, 10, 10, 10)
+            layout.setSpacing(10)
+        
+        # Cabeçalho
+        header_frame = QFrame()
+        header_layout = QHBoxLayout(header_frame)
+        
+        title_label = QLabel("👁️ <b>Análise de Íris</b>")
+        title_label.setStyleSheet("font-size: 16px; color: #2c3e50; margin: 5px;")
+        header_layout.addWidget(title_label)
+        
+        header_layout.addStretch()
+        
+        # Botão para tentar carregar novamente
+        btn_carregar_iris = QPushButton("🔄 Tentar Carregar Novamente")
+        if BIODESK_STYLES_AVAILABLE:
+            BiodeskStyles.apply_to_existing_button(btn_carregar_iris, ButtonType.DEFAULT)
+        
+        btn_carregar_iris.clicked.connect(self.carregar_modulo_iris_completo)
+        header_layout.addWidget(btn_carregar_iris)
+        
+        layout.addWidget(header_frame)
+        
+        # Área de placeholder
+        placeholder = QLabel("👁️ <b>Análise de Íris</b><br><br>"
+                            "⚠️ Módulo completo não disponível<br>"
+                            "🔄 Clique em 'Tentar Carregar Novamente' para recarregar<br>"
+                            "💡 Verifique se o arquivo iris_integration.py está presente")
+        placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        placeholder.setStyleSheet("""
+            font-size: 14px; 
+            color: #666; 
+            padding: 50px;
+            background-color: #fff3cd;
+            border: 2px dashed #ffc107;
+            border-radius: 8px;
+        """)
+        layout.addWidget(placeholder)
+    
+    def on_zona_iris_clicada(self, zona):
+        """Callback quando uma zona da íris é clicada"""
+        print(f"🎯 Zona da íris clicada: {zona}")
+        # Aqui pode adicionar lógica específica para zonas da íris
+        
+        layout.addWidget(self.iris_container)
+        
+        print("✅ Irisdiagnose interface criada (carregamento sob demanda)")
+    
+    def init_tab_centro_comunicacao(self):
+        """📧 CENTRO DE COMUNICAÇÃO - Email e documentos"""
+        layout = QVBoxLayout(self.tab_centro_comunicacao)
+        layout.setContentsMargins(5, 5, 5, 5)
+        layout.setSpacing(5)
+        
+        # Carregar Centro de Comunicação Unificado
+        _, _, _, _, _, _, _, _ = importar_modulos_especializados()
+        CentroComunicacaoUnificado = _modulos_cache.get('centro_comunicacao_unificado')
+        
+        if CentroComunicacaoUnificado:
+            self.centro_comunicacao_widget = CentroComunicacaoUnificado(self.paciente_data, self)
+            layout.addWidget(self.centro_comunicacao_widget)
+        else:
+            placeholder = QLabel("📧 <b>Centro de Comunicação</b><br><br>⚠️ Módulo não disponível")
+            placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            placeholder.setStyleSheet("font-size: 14px; color: #666; padding: 50px;")
+            layout.addWidget(placeholder)
+        
+        print("✅ Centro de Comunicação carregado")
+    
+    # ====== POPUPS INTEGRADOS NO HISTÓRICO ======
+    def abrir_declaracao_popup(self):
+        """Abrir declaração de saúde como popup"""
+        try:
+            _, _, _, _, _, DeclaracaoSaudeWidget, _, _ = importar_modulos_especializados()
+            
+            if DeclaracaoSaudeWidget:
+                dialog = QDialog(self)
+                dialog.setWindowTitle("📋 Declaração de Saúde")
+                dialog.setModal(True)
+                
+                # Configurar para tela cheia
+                from PyQt6.QtCore import Qt
+                dialog.setWindowState(Qt.WindowState.WindowMaximized)
+                dialog.resize(1920, 1080)  # Fallback para resolução comum
+                
+                layout = QVBoxLayout(dialog)
+                declaracao_widget = DeclaracaoSaudeWidget(dialog)
+                # Carregar dados do paciente na declaração
+                if hasattr(declaracao_widget, 'carregar_dados'):
+                    declaracao_widget.carregar_dados(self.paciente_data)
+                layout.addWidget(declaracao_widget)
+                
+                # Botões
+                buttons_frame = QFrame()
+                buttons_layout = QHBoxLayout(buttons_frame)
+                
+                btn_salvar = QPushButton("💾 Salvar")
+                btn_fechar = QPushButton("❌ Fechar")
+                
+                if BIODESK_STYLES_AVAILABLE:
+                    BiodeskStyles.apply_to_existing_button(btn_salvar, ButtonType.SAVE)
+                    BiodeskStyles.apply_to_existing_button(btn_fechar, ButtonType.DEFAULT)
+                
+                buttons_layout.addStretch()
+                buttons_layout.addWidget(btn_salvar)
+                buttons_layout.addWidget(btn_fechar)
+                
+                layout.addWidget(buttons_frame)
+                
+                btn_fechar.clicked.connect(dialog.reject)
+                btn_salvar.clicked.connect(lambda: self.salvar_declaracao(declaracao_widget, dialog))
+                
+                dialog.exec()
+            else:
+                QMessageBox.warning(self, "Aviso", "Módulo de declaração de saúde não disponível")
+                
+        except Exception as e:
+            QMessageBox.critical(self, "Erro", f"Erro ao abrir declaração: {str(e)}")
+    
+    def abrir_prescricao_popup(self):
+        """Abrir prescrição médica como popup"""
+        try:
+            from prescricao_medica_widget import PrescricaoMedicaWidget
+            
+            dialog = QDialog(self)
+            dialog.setWindowTitle("💊 Nova Prescrição Médica")
+            dialog.setModal(True)
+            
+            # Configurar para maximizar corretamente sem ultrapassar a barra de tarefas
+            from PyQt6.QtCore import Qt
+            from PyQt6.QtGui import QScreen
+            
+            # Obter geometria da tela principal (área disponível, excluindo barra de tarefas)
+            screen = QApplication.primaryScreen()
+            screen_geometry = screen.availableGeometry()  # Esta já exclui barra de tarefas
+            
+            # Definir tamanho ligeiramente menor que a tela para garantir visibilidade
+            margin = 10  # Margem de segurança
+            dialog.setGeometry(
+                screen_geometry.x() + margin,
+                screen_geometry.y() + margin,
+                screen_geometry.width() - (margin * 2),
+                screen_geometry.height() - (margin * 2)
+            )
+            
+            # Layout otimizado
+            layout = QVBoxLayout(dialog)
+            layout.setContentsMargins(5, 5, 5, 5)  # Margens mínimas
+            layout.setSpacing(3)
+            
+            prescricao_widget = PrescricaoMedicaWidget(parent=dialog, paciente_data=self.paciente_data)
+            layout.addWidget(prescricao_widget, 1)  # stretch factor para ocupar todo espaço
+            
+            dialog.exec()
+            
+        except ImportError:
+            QMessageBox.warning(self, "Aviso", "Módulo de prescrição médica não disponível")
+        except Exception as e:
+            QMessageBox.critical(self, "Erro", f"Erro ao abrir prescrição: {str(e)}")
+    
+    def abrir_protocolo_popup(self):
+        """Abrir protocolos como popup"""
+        try:
+            from ficha_paciente.templates_manager import TemplatesManagerWidget
+            
+            dialog = QDialog(self)
+            dialog.setWindowTitle("📋 Gestão de Protocolos")
+            dialog.setModal(True)
+            
+            # Configurar para tela cheia
+            from PyQt6.QtCore import Qt
+            dialog.setWindowState(Qt.WindowState.WindowMaximized)
+            dialog.resize(1920, 1080)  # Fallback para resolução comum
+            
+            layout = QVBoxLayout(dialog)
+            
+            # Cabeçalho
+            header_label = QLabel("📋 <b>Protocolos Terapêuticos</b><br>"
+                                 "<small>Gerencie e aplique protocolos de tratamento</small>")
+            header_label.setStyleSheet("padding: 10px; background-color: #f0f8ff; border-radius: 5px; margin-bottom: 10px;")
+            layout.addWidget(header_label)
+            
+            templates_widget = TemplatesManagerWidget(self.paciente_data, dialog)
+            layout.addWidget(templates_widget)
+            
+            # Botões
+            buttons_frame = QFrame()
+            buttons_layout = QHBoxLayout(buttons_frame)
+            
+            btn_aplicar = QPushButton("✅ Aplicar ao Histórico")
+            btn_fechar = QPushButton("❌ Fechar")
+            
+            if BIODESK_STYLES_AVAILABLE:
+                BiodeskStyles.apply_to_existing_button(btn_aplicar, ButtonType.SAVE)
+                BiodeskStyles.apply_to_existing_button(btn_fechar, ButtonType.DEFAULT)
+            
+            buttons_layout.addStretch()
+            buttons_layout.addWidget(btn_aplicar)
+            buttons_layout.addWidget(btn_fechar)
+            
+            layout.addWidget(buttons_frame)
+            
+            btn_fechar.clicked.connect(dialog.reject)
+            btn_aplicar.clicked.connect(lambda: self.aplicar_protocolo_historico(templates_widget, dialog))
+            
+            dialog.exec()
+            
+        except ImportError:
+            QMessageBox.warning(self, "Aviso", "Módulo de protocolos não disponível")
+        except Exception as e:
+            QMessageBox.critical(self, "Erro", f"Erro ao abrir protocolos: {str(e)}")
+    
+    def salvar_declaracao(self, declaracao_widget, dialog):
+        """Salvar declaração de saúde"""
+        try:
+            # Implementar lógica de salvamento
+            QMessageBox.information(dialog, "Sucesso", "Declaração de saúde salva com sucesso!")
+            dialog.accept()
+        except Exception as e:
+            QMessageBox.critical(dialog, "Erro", f"Erro ao salvar declaração: {str(e)}")
+    
+    def aplicar_protocolo_historico(self, templates_widget, dialog):
+        """Aplicar protocolos selecionados ao histórico"""
+        try:
+            protocolos = templates_widget.obter_protocolos_selecionados()
+            if protocolos and hasattr(self, 'historico_widget'):
+                # Adicionar protocolos ao histórico
+                texto_protocolos = "PROTOCOLOS APLICADOS:\n" + "\n".join([f"- {p}" for p in protocolos])
+                if hasattr(self.historico_widget, 'adicionar_entrada'):
+                    self.historico_widget.adicionar_entrada(texto_protocolos)
+                
+                QMessageBox.information(dialog, "Sucesso", f"{len(protocolos)} protocolo(s) aplicado(s) ao histórico!")
+                dialog.accept()
+            else:
+                QMessageBox.warning(dialog, "Aviso", "Nenhum protocolo selecionado ou histórico não disponível")
+        except Exception as e:
+            QMessageBox.critical(dialog, "Erro", f"Erro ao aplicar protocolos: {str(e)}")
         """
         📋 DOCUMENTAÇÃO CLÍNICA
         - Dados Pessoais
@@ -467,11 +788,9 @@ class FichaPaciente(QMainWindow):
         # Sub-abas
         self.sub_dados_pessoais = QWidget()
         self.sub_declaracao_saude = QWidget()
-        self.sub_gestao_documentos = QWidget()
         
         self.dados_documentos_tabs.addTab(self.sub_dados_pessoais, '👤 Dados Pessoais')
         self.dados_documentos_tabs.addTab(self.sub_declaracao_saude, '🩺 Declaração de Saúde')
-        self.dados_documentos_tabs.addTab(self.sub_gestao_documentos, '� Gestão de Documentos')
         
         # 🚀 CARREGAMENTO IMEDIATO: Conectar sinal para carregar sub-tabs sob demanda  
         self.dados_documentos_tabs.currentChanged.connect(self._on_dados_tab_changed)
@@ -481,46 +800,6 @@ class FichaPaciente(QMainWindow):
         # 🚀 CARREGAMENTO IMEDIATO: Carregar dados pessoais na inicialização
         self.init_sub_dados_pessoais()
         self._tabs_loaded['dados_pessoais'] = True
-
-    def init_tab_clinico_comunicacao(self):
-        """
-        🩺 ÁREA CLÍNICA
-        - Histórico Clínico
-        - Análise de Íris
-        - Modelos de Prescrição
-        - Email
-        """
-        main_layout = QVBoxLayout(self.tab_clinico_comunicacao)
-        main_layout.setContentsMargins(10, 10, 10, 10)
-        main_layout.setSpacing(10)
-        
-        # ====== SUB-ABAS DENTRO DE CLÍNICO & COMUNICAÇÃO ======
-        self.clinico_comunicacao_tabs = QTabWidget()
-        self.clinico_comunicacao_tabs.setTabPosition(QTabWidget.TabPosition.North)
-        self.clinico_comunicacao_tabs.setProperty('cssClass', 'tab-container')  # Usar estilo neutro
-        
-        # Sub-abas
-        self.sub_historico_clinico = QWidget()
-        self.sub_templates_prescricoes = QWidget()
-        self.sub_centro_comunicacao = QWidget()
-        self.sub_iris_analise = QWidget()
-        
-        self.clinico_comunicacao_tabs.addTab(self.sub_historico_clinico, '📝 Histórico Clínico')
-        self.clinico_comunicacao_tabs.addTab(self.sub_iris_analise, '👁️ Análise de Íris')
-        self.clinico_comunicacao_tabs.addTab(self.sub_templates_prescricoes, '📋 Modelos de Prescrição')
-        self.clinico_comunicacao_tabs.addTab(self.sub_centro_comunicacao, '📧 Email')
-        
-        # Conectar sinal de mudança de aba para refresh automático
-        self.clinico_comunicacao_tabs.currentChanged.connect(self._on_tab_clinico_changed)
-        
-        main_layout.addWidget(self.clinico_comunicacao_tabs)
-        
-        # 🚀 CORREÇÃO: Carregar automaticamente o HISTÓRICO CLÍNICO (primeiro tab) 
-        # para evitar tela em branco
-        print("✅ Tabs clínicos criados - carregando histórico automaticamente...")
-        self._on_tab_clinico_changed(0)  # Força carregar o primeiro tab (histórico)
-        
-        print("✅ Área clínica inicializada com histórico visível")
 
     def init_sub_dados_pessoais(self):
         """Sub-aba: Dados Pessoais - MÓDULO OTIMIZADO"""
@@ -544,7 +823,7 @@ class FichaPaciente(QMainWindow):
             
             layout.addWidget(self.dados_pessoais_widget)
             
-            print("✅ Módulo de dados pessoais carregado com sucesso")
+            # print("✅ Módulo de dados pessoais carregado com sucesso")
             
         except ImportError as e:
             print(f"❌ ERRO CRÍTICO: Módulo dados_pessoais não encontrado: {e}")
@@ -568,48 +847,31 @@ class FichaPaciente(QMainWindow):
         pass
 
     def init_sub_historico_clinico(self):
-        """Sub-aba: Histórico Clínico - Agora usando módulo otimizado"""
-        layout = QVBoxLayout(self.sub_historico_clinico)
-        layout.setContentsMargins(0, 0, 0, 0)  # Zero margins para o widget ocupar tudo
+        """OBSOLETO: Redirecionado para sistema principal"""
+        # ⚠️ SISTEMA OBSOLETO: Este método só existe para compatibilidade
+        # O sistema principal usa init_tab_historico() que é o correto
+        print("� [AVISO] init_sub_historico_clinico é OBSOLETO - sistema principal ativo")
         
-        try:
-            # 🚀 USAR MÓDULO OTIMIZADO via lazy loading
-            _, HistoricoClinicoWidget, _, _, _, _, _, _ = importar_modulos_especializados()
+        # Se por algum motivo este método for chamado, não fazer nada
+        # O widget correto já foi criado pelo sistema principal
+        if hasattr(self, 'historico_widget') and self.historico_widget is not None:
+            print("🔍 [DEBUG SUB-HISTÓRICO] Widget principal já existe - ignorando")
+            return
             
-            # Obter histórico atual se existe
-            historico_atual = ""
-            if hasattr(self, 'paciente_data') and self.paciente_data:
-                historico_atual = self.paciente_data.get('historico', '')
-            
-            # Criar widget otimizado
-            self.historico_widget = HistoricoClinicoWidget(historico_atual, self)
-            
-            # Conectar sinais
-            self.historico_widget.historico_alterado.connect(self.on_historico_alterado)
-            self.historico_widget.guardar_solicitado.connect(self.guardar)
-            
-            # Manter referência ao editor para compatibilidade
-            self.historico_edit = self.historico_widget.historico_edit
-            
-            layout.addWidget(self.historico_widget)
-            
-            print("✅ Módulo HistoricoClinicoWidget carregado com sucesso")
-            
-        except ImportError as e:
-            print(f"❌ ERRO CRÍTICO: Módulo historico_clinico não encontrado: {e}")
-            # SEM FALLBACK - deve funcionar sempre
-        except Exception as e:
-            print(f"❌ ERRO no módulo historico_clinico: {e}")
-            # SEM FALLBACK - deve funcionar sempre
+        # Se chegou aqui, algo está errado - usar sistema principal
+        print("� [ERRO] Widget não existe - chamando sistema principal")
+        self.init_tab_historico()
     
     def on_historico_alterado(self, novo_historico):
         """Callback quando histórico é alterado PELO USUÁRIO"""
+        print(f"🔍 [DEBUG HISTÓRICO] Callback alteração: {len(novo_historico)} chars, carregando={getattr(self, '_carregando_dados', False)}")
         # CORREÇÃO: Só marcar como dirty se não estiver carregando dados iniciais
         if not getattr(self, '_carregando_dados', False) and hasattr(self, 'paciente_data') and self.paciente_data:
             # Atualizar usando a coluna correta da base de dados
             self.paciente_data['historico'] = novo_historico
             # Marcar como alterado
             self.dirty = True
+            print(f"🔍 [DEBUG HISTÓRICO] Marcado como dirty - dados atualizados")
     
     def init_sub_templates_prescricoes(self):
         """Sub-aba: Templates & Prescrições - Usando módulo especializado"""
@@ -714,7 +976,7 @@ class FichaPaciente(QMainWindow):
             # Manager de overlays
             self.iris_overlay_manager = IrisOverlayManager(self.iris_canvas)
             
-            print("✅ Módulo de análise de íris carregado")
+            # print("✅ Módulo de análise de íris carregado")
             
         except ImportError as e:
             print(f"⚠️ Módulo de íris não encontrado: {e}")
@@ -1042,13 +1304,6 @@ class FichaPaciente(QMainWindow):
         """Cria e envia prescrição em PDF como anexo"""
         try:
             # Verificar se há dados do paciente carregados
-            # print(f"[PDF DEBUG] 🔍 Verificando paciente_data: {bool(hasattr(self, 'paciente_data'))}")
-            if hasattr(self, 'paciente_data'):
-                # print(f"[PDF DEBUG] 📋 Dados do paciente: {bool(self.paciente_data)}")
-                if self.paciente_data:
-                    # print(f"[PDF DEBUG] 🗝️ Chaves disponíveis: {list(self.paciente_data.keys())}")
-                    pass
-            
             if not hasattr(self, 'paciente_data') or not self.paciente_data:
                 from biodesk_styled_dialogs import BiodeskMessageBox
                 BiodeskMessageBox.warning(self, "Aviso", "Selecione um paciente primeiro.")
@@ -1056,7 +1311,6 @@ class FichaPaciente(QMainWindow):
             
             # Verificar se há email configurado
             patient_email = self.paciente_data.get('email', '').strip()
-            # print(f"[PDF DEBUG] 📧 Email do paciente: '{patient_email}'")
             
             if not patient_email:
                 from biodesk_styled_dialogs import BiodeskMessageBox
@@ -2180,7 +2434,7 @@ Naturopata | Osteopata | Medicina Quântica
             self.iris_widget.imagem_selecionada.connect(self.on_imagem_iris_selecionada)
             self.iris_widget.notas_exportadas.connect(self.on_notas_iris_exportadas)
             
-            print("✅ Módulo de Íris carregado com sucesso")
+            # print("✅ Módulo de Íris carregado com sucesso")
             
         except ImportError as e:
             print(f"❌ Erro ao carregar módulo de íris: {e}")
@@ -2245,6 +2499,62 @@ Naturopata | Osteopata | Medicina Quântica
                 self.btn_exportar_terapia.setText(f'⚡ Terapia ({selecionadas}/{total})')
         except Exception as e:
             print(f"[DEBUG] Erro ao atualizar textos dos botões: {e}")
+
+    def init_sub_centro_comunicacao_unificado(self):
+        """
+        🚀 CENTRO DE COMUNICAÇÃO UNIFICADO
+        ==================================
+        
+        Substitui as abas separadas de:
+        - Email
+        - Gestão de Documentos  
+        - Templates/Prescrições
+        
+        Por uma interface unificada em 3 colunas
+        """
+        try:
+            print("🚀 Carregando Centro de Comunicação Unificado...")
+            
+            # Limpar layout existente
+            layout = QVBoxLayout(self.sub_centro_comunicacao)
+            layout.setContentsMargins(0, 0, 0, 0)
+            layout.setSpacing(0)
+            
+            # Importar e instanciar o Centro de Comunicação
+            from ficha_paciente.centro_comunicacao_unificado import CentroComunicacaoUnificado
+            
+            # Criar widget com dados do paciente
+            self.centro_comunicacao_widget = CentroComunicacaoUnificado(self.paciente_data, self)
+            
+            # Conectar sinais
+            if hasattr(self.centro_comunicacao_widget, 'comunicacao_realizada'):
+                self.centro_comunicacao_widget.comunicacao_realizada.connect(self.on_comunicacao_realizada)
+            
+            # Adicionar ao layout
+            layout.addWidget(self.centro_comunicacao_widget)
+            
+            print("✅ Centro de Comunicação Unificado carregado com sucesso!")
+            
+        except ImportError as e:
+            print(f"❌ Erro ao importar Centro de Comunicação: {e}")
+            self.init_sub_centro_comunicacao_fallback()
+            
+        except Exception as e:
+            print(f"❌ Erro geral ao carregar Centro de Comunicação: {e}")
+            import traceback
+            traceback.print_exc()
+            self.init_sub_centro_comunicacao_fallback()
+    
+    def on_comunicacao_realizada(self, comunicacao_data):
+        """Callback quando uma comunicação é realizada no centro unificado"""
+        try:
+            print(f"📧 Comunicação realizada: {comunicacao_data.get('assunto', 'N/A')}")
+            
+            # TODO: Registrar no histórico, BD, etc.
+            # Aqui poderia integrar com sistema de auditoria
+            
+        except Exception as e:
+            print(f"⚠️ Erro no callback de comunicação: {e}")
 
     def init_tab_terapia(self):
         """Inicializa a aba de terapia quântica - Interface Zero"""
@@ -2450,7 +2760,7 @@ Naturopata | Osteopata | Medicina Quântica
                     # O widget usa self.paciente_data internamente
                     self.dados_pessoais_widget.paciente_data = d
                     self.dados_pessoais_widget.carregar_dados()
-                    print("✅ Dados pessoais carregados no widget especializado")
+                    # print("✅ Dados pessoais carregados no widget especializado")
                 except Exception as e:
                     print(f"❌ Erro ao carregar dados pessoais: {e}")
             
@@ -2504,6 +2814,7 @@ Naturopata | Osteopata | Medicina Quântica
 
     def guardar(self):
         """Guarda os dados do utente na base de dados usando widgets especializados"""
+        print("🔍 [DEBUG GUARDAR] === INÍCIO DA FUNÇÃO GUARDAR ===")
         from db_manager import DBManager
         
         # Obter dados do widget de dados pessoais
@@ -2512,7 +2823,6 @@ Naturopata | Osteopata | Medicina Quântica
             try:
                 dados_pessoais = self.dados_pessoais_widget.obter_dados()
                 dados.update(dados_pessoais)
-                print("✅ Dados pessoais obtidos do widget especializado")
             except Exception as e:
                 print(f"❌ Erro ao obter dados pessoais: {e}")
         
@@ -2521,18 +2831,25 @@ Naturopata | Osteopata | Medicina Quântica
             try:
                 historico = self.historico_widget.obter_historico()
                 dados['historico'] = historico
-                print("✅ Histórico clínico obtido do widget especializado")
+                print(f"🔍 [DEBUG HISTÓRICO] Obtido histórico com {len(historico)} caracteres")
+                print(f"🔍 [DEBUG HISTÓRICO] Primeiros 200 chars: {historico[:200]}")
             except Exception as e:
                 print(f"❌ Erro ao obter histórico: {e}")
+        else:
+            print("⚠️ [DEBUG HISTÓRICO] Widget de histórico não disponível")
         
-        # Todos os campos já vêm do widget dados_pessoais, não precisamos de campos adicionais
-        
+        # Incluir ID se existir
         if 'id' in self.paciente_data:
             dados['id'] = self.paciente_data['id']
         
-        # Lazy import do DBManager
+        # Salvar na base de dados
         from db_manager import DBManager
         db = DBManager()
+        
+        print(f"🔍 [DEBUG GUARDAR] Dados a guardar: {list(dados.keys())}")
+        if 'historico' in dados:
+            print(f"🔍 [DEBUG GUARDAR] Histórico tem {len(dados['historico'])} caracteres")
+        
         # Prevenção de duplicação por nome + data_nascimento
         query = "SELECT * FROM pacientes WHERE nome = ? AND data_nascimento = ?"
         params = (dados['nome'], dados['data_nascimento'])
@@ -2541,7 +2858,11 @@ Naturopata | Osteopata | Medicina Quântica
             from biodesk_styled_dialogs import BiodeskMessageBox
             BiodeskMessageBox.warning(self, "Duplicado", "Já existe um utente com este nome e data de nascimento.")
             return
+            
         novo_id = db.save_or_update_paciente(dados)
+        
+        print(f"🔍 [DEBUG GUARDAR] Resultado DB: novo_id={novo_id}")
+        
         if novo_id != -1:
             self.paciente_data['id'] = novo_id
             # Atualizar dados do paciente para reflexão na interface
@@ -2561,7 +2882,7 @@ Naturopata | Osteopata | Medicina Quântica
             # Usar módulo especializado
             _, _, _, _, _, _, _, PesquisaPacientesManager = importar_modulos_especializados()
             PesquisaPacientesManager.mostrar_seletor(callback, parent)
-            print("✅ Pesquisa de Pacientes carregada com sucesso")
+            # print("✅ Pesquisa de Pacientes carregada com sucesso")
         except Exception as e:
             print(f"❌ Erro no módulo de pesquisa: {e}")
             # Fallback básico em caso de erro

@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BioDesk · Receita</title>
+  <style>
+    :root{
+      --ink:#1F2937;
+      --muted:#6B7280;
+      --line:#E5E7EB;
+      --bg:#FFFFFF;
+      --radius:12px;
+      --shadow:0 8px 20px rgba(0,0,0,.06);
+    }
+
+    body{margin:0;font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);min-height:100vh;overflow-x:hidden;}    
+    .page{max-width:880px;margin:20px auto;padding:0 20px;min-height:calc(100vh - 40px);}
+    .card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;border:1px solid #F3F4F6;min-height:calc(100vh - 80px);}
+
+    /* HEADER minimal premium */
+    .hdr{padding:24px 40px;display:flex;flex-direction:column;align-items:center;text-align:center;background:#fff;}
+    .hdr .name{font-size:28px;font-weight:900;color:#111827;margin:0;font-family:'Playfair Display',serif;}
+    .hdr .subtitle{font-size:14px;font-weight:500;color:#374151;margin-top:4px;}
+    .hdr .divider{width:50px;height:2px;background:#111827;margin:12px 0;border-radius:2px;}
+    .hdr .contacts{font-size:13px;color:#4B5563;line-height:1.4;}
+    .hdr .contacts strong{font-weight:700;}
+
+    .inputs{margin-top:32px; /* aumentado afastamento */ display:flex;gap:16px;justify-content:center;align-items:center;}
+    .fg{display:flex;flex-direction:row;align-items:center;gap:6px;}
+    .fg label{font-size:12px;color:var(--muted);white-space:nowrap;}
+    .txt,.date{font:inherit;color:inherit;border:1px solid var(--line);background:#fff;border-radius:6px;padding:2px 6px;outline:none;transition:box-shadow .15s,border-color .15s;height:22px;line-height:1.2;}
+    .txt{text-align:center;flex:2;min-width:420px;}
+    .date{text-align:center;width:100px;}
+    .txt:focus,.date:focus{border-color:#111827;box-shadow:0 0 0 2px rgba(17,24,39,.15);}    
+    .date.readonly{background:#F9FAFB;cursor:default;}
+
+    /* BODY */
+    .body{padding:20px;display:flex;flex-direction:column;gap:12px;}
+    .table-wrap{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;}
+    table{width:100%;border-collapse:collapse;table-layout:fixed;}
+    thead th{background:#F9FAFB;color:#111827;border-bottom:1px solid var(--line);text-align:left;padding:6px;font-size:12px;font-weight:700;}
+    tbody td{border-top:1px solid var(--line);padding:0;vertical-align:top;background:#fff;}
+    tbody tr:nth-child(even) td{background:#FCFCFC;}
+    .col-a,.col-b{width:50%;}
+    .col-act{width:48px;text-align:center;}
+
+    textarea.cell{width:100%;min-height:44px;resize:none;border:0;padding:6px;line-height:1.25;font-size:13px;background:transparent;text-align:left;}
+    textarea.cell::placeholder{color:#9aa4b2;}
+
+    .actions{display:flex;gap:12px;justify-content:flex-end;}
+    .btn{border:1px solid #d1d5db;background:#fff;padding:8px 14px;border-radius:999px;cursor:pointer;transition:all .15s;font-size:13px;}
+    .btn:hover{box-shadow:0 4px 10px rgba(0,0,0,.05);} 
+    .btn:active{transform:translateY(1px);}   
+
+    .icon-btn{border:none;background:transparent;padding:4px;cursor:pointer;border-radius:6px;font-size:14px;}
+    .icon-btn:hover{background:#F3F4F6;}
+
+    /* FOOTER */
+    .ftr{display:flex;gap:20px;justify-content:space-between;align-items:center;padding:16px 20px;border-top:1px solid var(--line);background:#FAFBFC;}    
+    .sign{display:flex;align-items:flex-end;gap:12px;}
+    .sign-pad{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:200px;padding:12px;background:#fff;border-radius:8px;border:1px solid var(--line);}
+    .sign-img{max-width:200px;max-height:60px;object-fit:contain;filter:contrast(1.1);}
+    .sign-line{width:100%;height:2px;background:#374151;margin-top:4px;}
+    .sign-name{font-size:11px;color:#374151;font-weight:500;text-align:center;margin-top:4px;}
+
+    @media print{
+      @page{size:A4;margin:12mm;}
+      body{background:#fff;}
+      .page{margin:0;padding:0;}
+      .card{box-shadow:none;border:0;}
+      .no-print{display:none !important;}
+    }
+
+    /* Melhorar responsividade */
+    @media screen and (max-height: 700px) {
+      .page{margin:10px auto;}
+      .hdr{padding:16px 24px;}
+      .body{padding:15px;}
+    }
+
+    @media screen and (max-height: 600px) {
+      .page{margin:5px auto;}
+      .hdr{padding:12px 20px;}
+      .body{padding:10px;}
+      .hdr .name{font-size:24px;}
+    }
+
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="card">
+      <header class="hdr">
+        <h1 class="name">Nuno Correia</h1>
+        <div class="subtitle">naturopatia · osteopatia · medicina quântica</div>
+        <div class="divider"></div>
+        <div class="contacts">
+          <div>Cédula Profissional: <strong>0300450</strong></div>
+          <div>Telem.: <strong>964 860 387</strong> · Email: <strong>nunocorreiaterapiasnaturais@gmail.com</strong></div>
+          <div>Instagram: <strong>@nunocorreia.naturopata</strong> · Facebook: <strong>@NunoCorreiaTerapiasNaturais</strong></div>
+        </div>
+        <div class="inputs">
+          <div class="fg" style="flex:2"><label for="nome">Nome do paciente</label><input id="nome" class="txt" type="text" placeholder="Nome do paciente" autocomplete="name"></div>
+          <div class="fg"><label for="data">Data</label><input id="data" class="date readonly" type="text" readonly></div>
+        </div>
+      </header>
+
+      <main class="body">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th class="col-a">Prescrição</th>
+                <th class="col-b">Posologia</th>
+                <th class="col-act no-print">&nbsp;</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+        <div class="actions no-print">
+          <button id="add" class="btn" type="button">+ Adicionar linha</button>
+        </div>
+      </main>
+
+      <footer class="ftr">
+        <div class="sign">
+          <div class="sign-pad">
+            <img id="signImg" class="sign-img" alt="Assinatura do terapeuta" style="opacity: 0.3;" />
+            <div class="sign-line"></div>
+            <div class="sign-name">Nuno Filipe de Jesus Possante Correia — Cédula 0300450</div>
+            <div id="signStatus" style="font-size: 9px; color: #6B7280; margin-top: 2px;">Carregando assinatura...</div>
+          </div>
+        </div>
+        <div class="no-print">
+          <button id="close" class="btn" type="button">Fechar</button>
+        </div>
+      </footer>
+    </section>
+  </div>
+
+  <script>
+  (function(){
+    const qs = s => document.querySelector(s);
+    const tbody = qs('#tbody');
+    const addBtn = qs('#add');
+    const closeBtn = qs('#close');
+    const nameInput = qs('#nome');
+    const dateInput = qs('#data');
+    const signImg = qs('#signImg');
+
+    function autoResize(ta){ ta.style.height='auto'; ta.style.height=(ta.scrollHeight+2)+'px'; }
+
+    function row(p='', g=''){
+      const tr = document.createElement('tr');
+      const td1 = document.createElement('td');
+      const td2 = document.createElement('td');
+      const td3 = document.createElement('td');
+      td3.className = 'no-print col-act';
+      const ta1 = document.createElement('textarea'); ta1.className='cell'; ta1.placeholder='Indicação, produto, dose unidade…'; ta1.value=p; ta1.addEventListener('input',()=>autoResize(ta1));
+      const ta2 = document.createElement('textarea'); ta2.className='cell'; ta2.placeholder='Ex.: 1 cápsula 2×/dia após refeição, 7 dias'; ta2.value=g; ta2.addEventListener('input',()=>autoResize(ta2));
+      const del = document.createElement('button'); del.className='icon-btn'; del.type='button'; del.innerHTML='🗑️'; del.addEventListener('click',()=>{ tr.remove(); if(!tbody.querySelector('tr')) addRow(); adjustLayout(); });
+      td1.appendChild(ta1); td2.appendChild(ta2); td3.appendChild(del);
+      tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(td3);
+      tbody.appendChild(tr);
+      autoResize(ta1); autoResize(ta2); adjustLayout();
+    }
+
+    function addRow(p='',g=''){ row(p,g); }
+
+    function init(){
+      // Data automática (dd/mm/aaaa)
+      const now = new Date();
+      const dd = String(now.getDate()).padStart(2,'0');
+      const mm = String(now.getMonth()+1).padStart(2,'0');
+      const yyyy = now.getFullYear();
+      dateInput.value = `${dd}/${mm}/${yyyy}`;
+
+      try{ const n = localStorage.getItem('nomePaciente'); if(n) nameInput.value = n; }catch(e){}
+      nameInput.addEventListener('input',()=>{ try{ localStorage.setItem('nomePaciente', nameInput.value||''); }catch(e){} });
+
+      // Assinatura em Base64 (padrão - será substituída se disponível)
+      window.__ASSINATURA_BASE64__ = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHkAAABUCAYAAACmyJihAAAACXBIWXMAAA7DAAAOwwHHb6hkAAABGklEQVR4nO3TMQGAMAwEQfT/ZGQjO9a8KzYpQ3CExlP0a7wIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADwS2c6wZsV7x3bI7p+0yqgQhZyP6v8v1p8bJY9t8f9b0t8bJtSg4a2w2w8gQf3s8lQwqA1y0o9mQ4u9GJ0p6eQ2lq0bq3rM9J8l3V7v8k0b7xk9nq0b7eE4qk9t7b0j7b3v2Kf5l0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADguwFAx5T2m0l5mAAAAABJRU5ErkJggg==";
+      
+      // Configurar assinatura padrão inicialmente
+      signImg.src = window.__ASSINATURA_BASE64__;
+      
+      // Função para atualizar status da assinatura
+      window.updateSignatureStatus = function(status, isReal = false) {
+        const signStatus = document.getElementById('signStatus');
+        const signImg = document.getElementById('signImg');
+        
+        if (signStatus) {
+          signStatus.textContent = status;
+          signStatus.style.color = isReal ? '#059669' : '#6B7280';
+        }
+        
+        if (signImg) {
+          signImg.style.opacity = isReal ? '1' : '0.6';
+        }
+      };
+      
+      // Status inicial
+      window.updateSignatureStatus('Assinatura padrão', false);
+
+      addRow();
+      adjustLayout();
+      window.addEventListener('resize', adjustLayout);
+      addBtn.addEventListener('click', ()=> addRow());
+      closeBtn.addEventListener('click', ()=> alert('No BioDesk este botão fecha o pop-up. Aqui é apenas demonstração.'));
+    }
+
+    init();
+  })();
+  // Centralização proporcional: alinhamento inteligente baseado no nº de linhas
+  function adjustLayout(){
+    const header = document.querySelector('.hdr');
+    const body = document.querySelector('.body');
+    const footer = document.querySelector('.ftr');
+    const rows = document.querySelectorAll('#tbody tr').length;
+    
+    // Calcular espaço disponível
+    const headerHeight = header ? header.offsetHeight : 0;
+    const footerHeight = footer ? footer.offsetHeight : 0;
+    const available = window.innerHeight - headerHeight - footerHeight - 100; // respiro maior
+    
+    // Garantir um mínimo para scroll se necessário
+    const minHeight = Math.max(available, 250);
+    
+    // Alinhamento inteligente baseado no número de linhas
+    let justifyContent = 'flex-start'; // Padrão
+    
+    if (rows === 1) {
+      // 1 linha: centralizar completamente
+      justifyContent = 'center';
+    } else if (rows === 2) {
+      // 2 linhas: ligeiramente acima do centro
+      justifyContent = 'center';
+      body.style.paddingTop = '20px';
+    } else if (rows <= 4) {
+      // 3-4 linhas: início com espaçamento
+      justifyContent = 'flex-start';
+      body.style.paddingTop = '40px';
+    } else {
+      // 5+ linhas: início normal
+      justifyContent = 'flex-start';
+      body.style.paddingTop = '20px';
+    }
+    
+    body.style.minHeight = minHeight + 'px';
+    body.style.display = 'flex';
+    body.style.flexDirection = 'column';
+    body.style.justifyContent = justifyContent;
+    
+    console.log(`Layout ajustado: ${rows} linhas, justifyContent: ${justifyContent}`);
+  }
+  </script>
+</body>
+</html>
