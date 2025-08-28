@@ -28,7 +28,7 @@ from PyQt6.QtWidgets import (
     QMessageBox, QApplication, QDialog
 )
 from PyQt6.QtCore import Qt, pyqtSignal, QTimer, QThread, pyqtSlot
-from PyQt6.QtGui import QFont, QPixmap, QIcon
+from PyQt6.QtGui import QFont, QPixmap, QIcon, QColor
 
 # ✅ IMPORTAR SISTEMA DE ESTILOS
 try:
@@ -615,12 +615,18 @@ class EmailWidget(QWidget):
         if STYLES_AVAILABLE:
             BiodeskStyles.apply_to_existing_button(self.btn_salvar_rascunho, ButtonType.DRAFT)
         
+        self.btn_historico = QPushButton("📋 Histórico")
+        self.btn_historico.clicked.connect(self.mostrar_historico_emails)
+        if STYLES_AVAILABLE:
+            BiodeskStyles.apply_to_existing_button(self.btn_historico, ButtonType.TOOL)
+        
         self.btn_enviar = QPushButton("📧 ENVIAR EMAIL")
         self.btn_enviar.clicked.connect(self.enviar_email)
         if STYLES_AVAILABLE:
             BiodeskStyles.apply_to_existing_button(self.btn_enviar, ButtonType.SAVE)
         
         acoes_layout.addWidget(self.btn_salvar_rascunho)
+        acoes_layout.addWidget(self.btn_historico)
         acoes_layout.addWidget(self.btn_enviar)
         layout.addWidget(acoes_frame)
         
@@ -633,11 +639,11 @@ class EmailWidget(QWidget):
         """Carregar templates disponíveis"""
         templates_basicos = [
             "🔧 Selecionar template...",
-            "📄 Envio de Documentação",
-            "💊 Envio de Prescrição",
-            "📋 Resultados de Exame", 
-            "📞 Agendamento de Consulta",
-            "💬 Comunicação Geral"
+            "� Envio da Prescrição",
+            "� Envio da Declaração de Saúde e Consentimentos",
+            "� Follow-up (Acompanhamento)",
+            "✅ Confirmação de Presença",
+            "� Marcação de Consulta"
         ]
         
         self.combo_template.addItems(templates_basicos)
@@ -650,70 +656,70 @@ class EmailWidget(QWidget):
         nome_paciente = self.paciente_data.get('nome', 'Paciente')
         
         templates = {
-            "📄 Envio de Documentação": {
-                "assunto": f"Documentação Clínica - {nome_paciente}",
-                "mensagem": f"""Prezado(a) Sr(a) {nome_paciente},
+            "� Envio da Prescrição": {
+                "assunto": "Prescrição após consulta",
+                "mensagem": f"""Caro(a) {nome_paciente},
 
-Espero que este email o(a) encontre bem.
+Segue em anexo a prescrição indicada na nossa consulta.
+Peço-lhe que siga atentamente as orientações descritas.
 
-Conforme solicitado, segue em anexo a documentação clínica referente ao seu atendimento.
+Em caso de dúvida ou reação inesperada, estou disponível para o(a) apoiar.
 
-Caso tenha alguma dúvida, não hesite em entrar em contato.
-
-Atenciosamente,
-Clínica Biodesk"""
+Com os melhores cumprimentos,
+Nuno Correia"""
             },
-            "💊 Envio de Prescrição": {
-                "assunto": f"Prescrição Médica - {nome_paciente}",
-                "mensagem": f"""Prezado(a) Sr(a) {nome_paciente},
+            "� Envio da Declaração de Saúde e Consentimentos": {
+                "assunto": "Declaração de saúde e consentimentos",
+                "mensagem": f"""Caro(a) {nome_paciente},
 
-Segue em anexo a prescrição médica conforme orientado durante a consulta.
+Em anexo envio a sua Declaração de Saúde e os formulários de consentimento relativos às terapias propostas.
+Peço-lhe que leia com atenção e confirme o preenchimento/assinatura antes da próxima sessão.
 
-Por favor, siga rigorosamente as orientações de uso dos medicamentos prescritos.
+Estou à disposição para qualquer esclarecimento adicional.
 
-Em caso de dúvidas ou reações adversas, entre em contato imediatamente.
-
-Atenciosamente,
-Clínica Biodesk"""
+Com os melhores cumprimentos,
+Nuno Correia"""
             },
-            "📋 Resultados de Exame": {
-                "assunto": f"Resultados de Exame - {nome_paciente}",
-                "mensagem": f"""Prezado(a) Sr(a) {nome_paciente},
+            "� Follow-up (Acompanhamento)": {
+                "assunto": "Acompanhamento após consulta",
+                "mensagem": f"""Caro(a) {nome_paciente},
 
-Seus resultados de exame estão prontos e seguem em anexo.
+Gostaria de saber como tem evoluído desde a nossa última consulta.
+Tem conseguido cumprir as orientações indicadas? Notou melhorias ou alguma dificuldade?
 
-Recomendamos o agendamento de uma consulta para discussão detalhada dos resultados.
+O seu feedback é importante para adequarmos o acompanhamento.
 
-Para marcar sua consulta, entre em contato conosco.
-
-Atenciosamente,
-Clínica Biodesk"""
+Com os melhores cumprimentos,
+Nuno Correia"""
             },
-            "📞 Agendamento de Consulta": {
-                "assunto": f"Agendamento de Consulta - {nome_paciente}",
-                "mensagem": f"""Prezado(a) Sr(a) {nome_paciente},
+            "✅ Confirmação de Presença": {
+                "assunto": "Confirmação de consulta",
+                "mensagem": f"""Caro(a) {nome_paciente},
 
-Gostaríamos de agendar uma consulta de seguimento.
+Confirmo a sua consulta marcada para:
+📅 Data: [data]
+🕒 Hora: [hora]
+📍 Local: [local]
 
-Por favor, verifique sua disponibilidade e nos informe os melhores horários.
+Peço a sua confirmação de presença.
 
-Segue em anexo documentação relevante para a consulta.
-
-Atenciosamente,
-Clínica Biodesk"""
+Com os melhores cumprimentos,
+Nuno Correia"""
             },
-            "💬 Comunicação Geral": {
-                "assunto": f"Comunicação - {nome_paciente}",
-                "mensagem": f"""Prezado(a) Sr(a) {nome_paciente},
+            "� Marcação de Consulta": {
+                "assunto": "Agendamento de consulta",
+                "mensagem": f"""Caro(a) {nome_paciente},
 
-Espero que este email o(a) encontre bem.
+Disponibilizo os seguintes horários para marcação da sua próxima consulta:
 
-Segue em anexo a documentação solicitada.
+[Opção 1 – data/hora]
+[Opção 2 – data/hora]
+[Opção 3 – data/hora]
 
-Estamos à disposição para quaisquer esclarecimentos.
+Aguardo a sua escolha para confirmar o agendamento.
 
-Atenciosamente,
-Clínica Biodesk"""
+Com os melhores cumprimentos,
+Nuno Correia"""
             }
         }
         
@@ -1142,6 +1148,9 @@ Clínica Biodesk"""
                     if resultado:
                         QMessageBox.information(self, "Sucesso", "✅ Email enviado com sucesso!")
                         print(f"✅ EMAIL ENVIADO: {destinatario}")
+                        
+                        # Registrar no histórico
+                        self.registrar_email_historico(destinatario, assunto, mensagem, self.anexos_caminhos, True)
                     else:
                         QMessageBox.warning(self, "Erro", "❌ Falha no envio do email.")
                         return
@@ -1160,6 +1169,8 @@ Clínica Biodesk"""
                 # Salvar localmente para histórico
                 try:
                     self.salvar_email_local(destinatario, assunto, mensagem, self.anexos_caminhos)
+                    # Registrar no histórico
+                    self.registrar_email_historico(destinatario, assunto, mensagem, self.anexos_caminhos, False)
                     QMessageBox.information(self, "Email Simulado", 
                                           "📧 Email simulado com sucesso!\n\n"
                                           "💡 Configure o sistema de email para envio real.\n"
@@ -1201,6 +1212,148 @@ Clínica Biodesk"""
         self.campo_assunto.clear()
         self.campo_mensagem.clear()
         self.combo_template.setCurrentIndex(0)
+    
+    def registrar_email_historico(self, destinatario: str, assunto: str, mensagem: str, anexos: List[str], enviado_real: bool):
+        """Registrar email no histórico"""
+        try:
+            import json
+            from datetime import datetime
+            
+            # Criar entrada do histórico
+            entrada = {
+                "data_envio": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "paciente_id": self.paciente_data.get('id', '999'),
+                "paciente_nome": self.paciente_data.get('nome', 'Desconhecido'),
+                "destinatario": destinatario,
+                "assunto": assunto,
+                "num_anexos": len(anexos),
+                "enviado_real": enviado_real,
+                "status": "Enviado" if enviado_real else "Simulado"
+            }
+            
+            # Arquivo de histórico
+            historico_file = "historico_envios/emails_enviados.json"
+            
+            # Criar diretório se não existir
+            os.makedirs("historico_envios", exist_ok=True)
+            
+            # Carregar histórico existente
+            historico = []
+            if os.path.exists(historico_file):
+                try:
+                    with open(historico_file, 'r', encoding='utf-8') as f:
+                        historico = json.load(f)
+                except:
+                    historico = []
+            
+            # Adicionar nova entrada
+            historico.append(entrada)
+            
+            # Manter apenas os últimos 1000 registos
+            if len(historico) > 1000:
+                historico = historico[-1000:]
+            
+            # Salvar histórico
+            with open(historico_file, 'w', encoding='utf-8') as f:
+                json.dump(historico, f, indent=2, ensure_ascii=False)
+            
+            print(f"✅ Email registrado no histórico: {assunto}")
+            
+        except Exception as e:
+            print(f"❌ Erro ao registrar email no histórico: {e}")
+    
+    def mostrar_historico_emails(self):
+        """Mostrar histórico de emails enviados"""
+        try:
+            import json
+            from PyQt6.QtWidgets import QDialog, QVBoxLayout, QTableWidget, QTableWidgetItem, QHeaderView
+            
+            # Criar janela do histórico
+            dialog = QDialog(self)
+            dialog.setWindowTitle("📧 Histórico de Emails")
+            dialog.resize(800, 600)
+            
+            layout = QVBoxLayout(dialog)
+            
+            # Criar tabela
+            tabela = QTableWidget()
+            tabela.setColumnCount(6)
+            tabela.setHorizontalHeaderLabels([
+                "Data/Hora", "Paciente", "Destinatário", "Assunto", "Anexos", "Status"
+            ])
+            
+            # Configurar tabela
+            header = tabela.horizontalHeader()
+            header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)  # Data
+            header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)  # Paciente
+            header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)  # Email
+            header.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)           # Assunto
+            header.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)  # Anexos
+            header.setSectionResizeMode(5, QHeaderView.ResizeMode.ResizeToContents)  # Status
+            
+            # Carregar dados do histórico
+            historico_file = "historico_envios/emails_enviados.json"
+            historico = []
+            
+            if os.path.exists(historico_file):
+                try:
+                    with open(historico_file, 'r', encoding='utf-8') as f:
+                        historico = json.load(f)
+                except:
+                    pass
+            
+            # Filtrar por paciente atual
+            paciente_id = self.paciente_data.get('id', '999')
+            historico_paciente = [h for h in historico if h.get('paciente_id') == paciente_id]
+            
+            # Ordenar por data (mais recente primeiro)
+            historico_paciente.sort(key=lambda x: x.get('data_envio', ''), reverse=True)
+            
+            # Preencher tabela
+            tabela.setRowCount(len(historico_paciente))
+            
+            for i, email in enumerate(historico_paciente):
+                # Data
+                item_data = QTableWidgetItem(email.get('data_envio', ''))
+                tabela.setItem(i, 0, item_data)
+                
+                # Paciente
+                item_paciente = QTableWidgetItem(email.get('paciente_nome', ''))
+                tabela.setItem(i, 1, item_paciente)
+                
+                # Destinatário
+                item_destinatario = QTableWidgetItem(email.get('destinatario', ''))
+                tabela.setItem(i, 2, item_destinatario)
+                
+                # Assunto
+                item_assunto = QTableWidgetItem(email.get('assunto', ''))
+                tabela.setItem(i, 3, item_assunto)
+                
+                # Anexos
+                num_anexos = email.get('num_anexos', 0)
+                item_anexos = QTableWidgetItem(f"{num_anexos}")
+                tabela.setItem(i, 4, item_anexos)
+                
+                # Status
+                status = email.get('status', 'Desconhecido')
+                item_status = QTableWidgetItem(status)
+                if status == "Enviado":
+                    item_status.setBackground(QColor(200, 255, 200))  # Verde claro
+                else:
+                    item_status.setBackground(QColor(255, 255, 200))  # Amarelo claro
+                tabela.setItem(i, 5, item_status)
+            
+            layout.addWidget(tabela)
+            
+            # Info no rodapé
+            info_label = QLabel(f"📊 Total de emails deste paciente: {len(historico_paciente)}")
+            info_label.setStyleSheet("padding: 5px; background-color: #f0f0f0; border-radius: 3px;")
+            layout.addWidget(info_label)
+            
+            dialog.exec()
+            
+        except Exception as e:
+            QMessageBox.critical(self, "Erro", f"Erro ao mostrar histórico:\n{e}")
 
 
 class CentroComunicacaoUnificado(QWidget):
