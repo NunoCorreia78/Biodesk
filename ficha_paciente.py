@@ -330,7 +330,7 @@ class FichaPaciente(QMainWindow):
         self.tab_irisdiagnose = QWidget()
         self.tab_centro_comunicacao = QWidget()
         
-        self.tabs.addTab(self.tab_dados_pessoais, '� DADOS PESSOAIS')
+        self.tabs.addTab(self.tab_dados_pessoais, '👤 DADOS PESSOAIS')
         self.tabs.addTab(self.tab_historico, '🏥 HISTÓRICO')
         self.tabs.addTab(self.tab_irisdiagnose, '👁️ IRISDIAGNOSE')
         self.tabs.addTab(self.tab_centro_comunicacao, '📧 CENTRO DE COMUNICAÇÃO')

@@ -1,0 +1,168 @@
+[
+  {
+    "id": "1756389403.532904",
+    "data_criacao": "2025-08-28 14:56:43",
+    "data_envio": "2025-08-29 09:00:00",
+    "paciente_id": 117,
+    "paciente_nome": "Teste do Testes",
+    "destinatario": "nfjpcorreia@gmail.com",
+    "assunto": "Declaração de saúde e consentimentos",
+    "mensagem": "Caro(a) Teste do Testes,\n\nEm anexo envio a sua Declaração de Saúde e os formulários de consentimento relativos às terapias propostas.\nPeço-lhe que leia com atenção e confirme o preenchimento/assinatura antes da próxima sessão.\n\nEstou à disposição para qualquer esclarecimento adicional.\n\nCom os melhores cumprimentos,\nNuno Correia",
+    "anexos": [],
+    "status": "agendado"
+  },
+  {
+    "id": "teste_001",
+    "data_envio": "2024-12-28 15:30",
+    "destinatario": "paciente@exemplo.com",
+    "assunto": "Consulta de Retorno",
+    "anexos": [
+      "exame_sangue.pdf",
+      "prescrição.pdf"
+    ],
+    "status": "cancelado",
+    "data_criacao": "2024-12-28 10:00"
+  },
+  {
+    "id": "teste_002",
+    "data_envio": "2024-12-29 09:00",
+    "destinatario": "familia@exemplo.com",
+    "assunto": "Resultados de Exames",
+    "anexos": [
+      "raio_x.jpg"
+    ],
+    "status": "cancelado",
+    "data_criacao": "2024-12-28 11:30"
+  },
+  {
+    "id": "teste_003",
+    "data_envio": "2024-12-27 14:00",
+    "destinatario": "medico@exemplo.com",
+    "assunto": "Encaminhamento Urgente",
+    "anexos": [],
+    "status": "cancelado",
+    "data_criacao": "2024-12-27 13:00"
+  },
+  {
+    "id": "1756502063.016228",
+    "data_criacao": "2025-08-29 22:14:23",
+    "data_envio": "2025-08-29 22:16:23",
+    "paciente_id": "teste_123",
+    "paciente_nome": "Paciente Teste",
+    "destinatario": "teste@exemplo.com",
+    "assunto": "Teste de Agendamento",
+    "mensagem": "Este é um email de teste do sistema de agendamento.",
+    "anexos": [],
+    "status": "enviado",
+    "data_envio_real": "2025-08-29 22:16:52"
+  },
+  {
+    "id": "1756502210.174101",
+    "data_criacao": "2025-08-29 22:16:50",
+    "data_envio": "2025-08-29 22:18:50",
+    "paciente_id": "teste_123",
+    "paciente_nome": "Paciente Teste",
+    "destinatario": "teste@exemplo.com",
+    "assunto": "Teste de Agendamento",
+    "mensagem": "Este é um email de teste do sistema de agendamento.",
+    "anexos": [],
+    "status": "enviado",
+    "data_envio_real": "2025-08-29 22:19:06"
+  },
+  {
+    "id": "1756502274.816157",
+    "data_criacao": "2025-08-29 22:17:54",
+    "data_envio": "2025-08-29 22:19:54",
+    "paciente_id": "teste_123",
+    "paciente_nome": "Paciente Teste",
+    "destinatario": "teste@exemplo.com",
+    "assunto": "Teste de Agendamento",
+    "mensagem": "Este é um email de teste do sistema de agendamento.",
+    "anexos": [],
+    "status": "enviado",
+    "data_envio_real": "2025-08-29 22:20:06"
+  },
+  {
+    "id": "1756505138.40233",
+    "data_criacao": "2025-08-29 23:05:38",
+    "data_envio": "2025-09-01 23:05:38",
+    "paciente_id": 117,
+    "paciente_nome": "Teste do Testes",
+    "destinatario": "nfjpcorreia@gmail.com",
+    "assunto": "Acompanhamento após consulta",
+    "mensagem": "Caro(a) Teste do Testes,\n\nGostaria de saber como tem evoluído desde a nossa última consulta.\nTem conseguido cumprir as orientações indicadas? Notou melhorias ou alguma dificuldade?\n\nO seu feedback é importante para adequarmos o acompanhamento.\n\nCom os melhores cumprimentos,\nNuno Correia",
+    "anexos": [],
+    "status": "agendado"
+  },
+  {
+    "id": "1756505203.749129",
+    "data_criacao": "2025-08-29 23:06:43",
+    "data_envio": "2025-09-12 23:06:43",
+    "paciente_id": 117,
+    "paciente_nome": "Teste do Testes",
+    "destinatario": "nfjpcorreia@gmail.com",
+    "assunto": "Acompanhamento após consulta",
+    "mensagem": "Caro(a) Teste do Testes,\n\nGostaria de saber como tem evoluído desde a nossa última consulta.\nTem conseguido cumprir as orientações indicadas? Notou melhorias ou alguma dificuldade?\n\nO seu feedback é importante para adequarmos o acompanhamento.\n\nCom os melhores cumprimentos,\nNuno Correia",
+    "anexos": [],
+    "status": "cancelado",
+    "data_cancelamento": "2025-08-29 23:11:58"
+  },
+  {
+    "id": "1756505393.244794",
+    "data_criacao": "2025-08-29 23:09:53",
+    "data_envio": "2025-09-01 23:09:53",
+    "paciente_id": 117,
+    "paciente_nome": "Teste do Testes",
+    "destinatario": "nfjpcorreia@gmail.com",
+    "assunto": "Declaração de saúde e consentimentos",
+    "mensagem": "Caro(a) Teste do Testes,\n\nEm anexo envio a sua Declaração de Saúde e os formulários de consentimento relativos às terapias propostas.\nPeço-lhe que leia com atenção e confirme o preenchimento/assinatura antes da próxima sessão.\n\nEstou à disposição para qualquer esclarecimento adicional.\n\nCom os melhores cumprimentos,\nNuno Correia",
+    "anexos": [],
+    "status": "cancelado",
+    "data_cancelamento": "2025-08-29 23:52:09"
+  },
+  {
+    "id": "1756505449.434951",
+    "data_criacao": "2025-08-29 23:10:49",
+    "data_envio": "2025-09-12 23:10:49",
+    "paciente_id": 117,
+    "paciente_nome": "Teste do Testes",
+    "destinatario": "nfjpcorreia@gmail.com",
+    "assunto": "Acompanhamento após consulta",
+    "mensagem": "Caro(a) Teste do Testes,\n\nGostaria de saber como tem evoluído desde a nossa última consulta.\nTem conseguido cumprir as orientações indicadas? Notou melhorias ou alguma dificuldade?\n\nO seu feedback é importante para adequarmos o acompanhamento.\n\nCom os melhores cumprimentos,\nNuno Correia",
+    "anexos": [
+      "Documentos_Pacientes\\117\\pdfs\\prescricao_20250827_173752.pdf"
+    ],
+    "status": "agendado"
+  },
+  {
+    "id": "1756505543.302226",
+    "data_criacao": "2025-08-29 23:12:23",
+    "data_envio": "2025-09-05 23:12:23",
+    "paciente_id": 117,
+    "paciente_nome": "Teste do Testes",
+    "destinatario": "nfjpcorreia@gmail.com",
+    "assunto": "Prescrição após consulta",
+    "mensagem": "Caro(a) Teste do Testes,\n\nSegue em anexo a prescrição indicada na nossa consulta.\nPeço-lhe que siga atentamente as orientações descritas.\n\nEm caso de dúvida ou reação inesperada, estou disponível para o(a) apoiar.\n\nCom os melhores cumprimentos,\nNuno Correia",
+    "anexos": [
+      "Documentos_Pacientes\\117\\pdfs\\prescricao_20250827_173752.pdf",
+      "Documentos_Pacientes\\117\\pdfs\\prescricao_20250827_165306.pdf"
+    ],
+    "status": "agendado"
+  },
+  {
+    "id": "1756505735.397126",
+    "data_criacao": "2025-08-29 23:15:35",
+    "data_envio": "2025-09-12 23:15:35",
+    "paciente_id": 117,
+    "paciente_nome": "Teste do Testes",
+    "destinatario": "nfjpcorreia@gmail.com",
+    "assunto": "Prescrição após consulta",
+    "mensagem": "Caro(a) Teste do Testes,\n\nSegue em anexo a prescrição indicada na nossa consulta.\nPeço-lhe que siga atentamente as orientações descritas.\n\nEm caso de dúvida ou reação inesperada, estou disponível para o(a) apoiar.\n\nCom os melhores cumprimentos,\nNuno Correia",
+    "anexos": [
+      "Documentos_Pacientes\\117\\pdfs\\prescricao_20250827_164815.pdf",
+      "Documentos_Pacientes\\117\\pdfs\\prescricao_20250827_165306.pdf",
+      "Documentos_Pacientes\\117\\pdfs\\prescricao_20250827_173752.pdf"
+    ],
+    "status": "agendado"
+  }
+]

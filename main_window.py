@@ -40,6 +40,15 @@ except Exception as e:
     traceback.print_exc()
     IrisAnonimaCanvas = None
 
+# 📧 Importar sistema de agendamento de emails
+try:
+    from email_scheduler import get_email_scheduler
+    from emails_agendados_manager import EmailsAgendadosWindow
+    email_scheduler_disponivel = True
+except ImportError as e:
+    print(f"⚠️ Sistema de agendamento de emails não disponível: {e}")
+    email_scheduler_disponivel = False
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -80,6 +89,9 @@ class MainWindow(QMainWindow):
         else:
             print("⚠️ BiodeskStyles não disponível - funcionalidade reduzida")
             pass
+            
+        # 📧 Inicializar sistema de agendamento de emails
+        self.inicializar_sistema_emails()
     
     def showEvent(self, event):
         """Garantir que a janela fica sempre maximizada quando mostrada"""
@@ -183,32 +195,38 @@ class MainWindow(QMainWindow):
     
     def update_datetime(self):
         """Atualiza os labels de data e hora em português"""
-        current_datetime = QDateTime.currentDateTime()
-        
-        # Dicionários para tradução manual
-        dias_semana = {
-            1: "Segunda-feira", 2: "Terça-feira", 3: "Quarta-feira", 
-            4: "Quinta-feira", 5: "Sexta-feira", 6: "Sábado", 7: "Domingo"
-        }
-        
-        meses = {
-            1: "Janeiro", 2: "Fevereiro", 3: "Março", 4: "Abril",
-            5: "Maio", 6: "Junho", 7: "Julho", 8: "Agosto",
-            9: "Setembro", 10: "Outubro", 11: "Novembro", 12: "Dezembro"
-        }
-        
-        # Obter componentes da data
-        dia_semana = dias_semana[current_datetime.date().dayOfWeek()]
-        dia = current_datetime.date().day()
-        mes = meses[current_datetime.date().month()]
-        
-        # Formatar data em português (ex: "Domingo, 18 de Agosto")
-        date_text = f"{dia_semana}, {dia} de {mes}"
-        self.date_label.setText(date_text)
-        
-        # Formatar hora (ex: "09:50:30")
-        time_text = current_datetime.toString("hh:mm:ss")
-        self.time_label.setText(time_text)
+        try:
+            current_datetime = QDateTime.currentDateTime()
+            
+            # Dicionários para tradução manual
+            dias_semana = {
+                1: "Segunda-feira", 2: "Terça-feira", 3: "Quarta-feira", 
+                4: "Quinta-feira", 5: "Sexta-feira", 6: "Sábado", 7: "Domingo"
+            }
+            
+            meses = {
+                1: "Janeiro", 2: "Fevereiro", 3: "Março", 4: "Abril",
+                5: "Maio", 6: "Junho", 7: "Julho", 8: "Agosto",
+                9: "Setembro", 10: "Outubro", 11: "Novembro", 12: "Dezembro"
+            }
+            
+            # Obter componentes da data
+            dia_semana = dias_semana[current_datetime.date().dayOfWeek()]
+            dia = current_datetime.date().day()
+            mes = meses[current_datetime.date().month()]
+            
+            # Formatar data em português (ex: "Domingo, 18 de Agosto")
+            date_text = f"{dia_semana}, {dia} de {mes}"
+            self.date_label.setText(date_text)
+            
+            # Formatar hora (ex: "09:50:30")
+            time_text = current_datetime.toString("hh:mm:ss")
+            self.time_label.setText(time_text)
+            
+        except Exception as e:
+            # Em caso de erro, apenas continue sem crashar
+            print(f"⚠️ Erro no timer de data/hora: {e}")
+            pass
 
     def mousePressEvent(self, event):
         """Fecha o painel de pacientes se clicar em qualquer lugar da janela principal"""
@@ -593,6 +611,42 @@ class MainWindow(QMainWindow):
                 self,
                 "Erro",
                 f"Erro ao abrir lista de tarefas:\n\n{str(e)}"
+            )
+    
+    def inicializar_sistema_emails(self):
+        """Inicializar sistema de agendamento de emails"""
+        try:
+            if email_scheduler_disponivel:
+                self.email_scheduler = get_email_scheduler()
+                self.email_scheduler.iniciar()
+                print("✅ Sistema de agendamento de emails iniciado")
+            else:
+                self.email_scheduler = None
+                print("⚠️ Sistema de agendamento de emails não disponível")
+        except Exception as e:
+            print(f"❌ Erro ao inicializar sistema de emails: {e}")
+            self.email_scheduler = None
+    
+    def abrir_gestao_emails_agendados(self):
+        """Abrir janela de gestão de emails agendados"""
+        try:
+            if not email_scheduler_disponivel:
+                BiodeskMessageBox.warning(
+                    self,
+                    "Sistema Indisponível",
+                    "📧 Sistema de agendamento de emails não está disponível."
+                )
+                return
+            
+            from emails_agendados_manager import EmailsAgendadosWindow
+            self.emails_window = EmailsAgendadosWindow(self)
+            self.emails_window.show()
+            
+        except Exception as e:
+            BiodeskMessageBox.critical(
+                self,
+                "Erro",
+                f"Erro ao abrir gestão de emails:\n\n{str(e)}"
             )
 
     def show_pacientes_panel(self, anchor_btn: QToolButton):

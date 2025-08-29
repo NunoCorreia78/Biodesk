@@ -125,6 +125,9 @@ class PesquisaPacientesWidget(QDialog):
         self.tabela.setColumnCount(4)
         self.tabela.setHorizontalHeaderLabels(['👤 Nome', '📅 Nasc.', '📞 Contacto', '📧 Email'])
         
+        # Ocultar cabeçalho da tabela para visual mais limpo
+        self.tabela.horizontalHeader().setVisible(False)
+        
         # Configurar tabela
         header = self.tabela.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)  # Nome expandível
@@ -145,16 +148,18 @@ class PesquisaPacientesWidget(QDialog):
                 selection-color: white;
             }
             QTableWidget::item {
-                padding: 8px;
-                border: none;
-            }
-            QHeaderView::section {
-                background-color: #f1f3f4;
-                color: #2c3e50;
-                font-weight: bold;
                 padding: 12px 8px;
                 border: none;
-                border-bottom: 2px solid #dee2e6;
+                font-size: 13px;
+            }
+            QTableWidget::item:selected {
+                background-color: #007bff;
+                color: white;
+                font-weight: bold;
+            }
+            QTableWidget::item:hover {
+                background-color: #e3f2fd;
+                color: #1976d2;
             }
         """)
         

@@ -8,5 +8,65 @@
     "data_envio": "2025-08-27T14:08:26.277814",
     "paciente_nome": "Não informado",
     "status": "simulado"
+  },
+  {
+    "data_envio": "2025-08-29 21:49:20",
+    "paciente_id": 117,
+    "paciente_nome": "Teste do Testes",
+    "destinatario": "nfjpcorreia@gmail.com",
+    "assunto": "Declaração de saúde e consentimentos",
+    "num_anexos": 1,
+    "enviado_real": true,
+    "status": "Enviado"
+  },
+  {
+    "data_envio": "2025-08-29 22:16:52",
+    "paciente_id": "teste_123",
+    "paciente_nome": "Paciente Teste",
+    "destinatario": "teste@exemplo.com",
+    "assunto": "Teste de Agendamento",
+    "num_anexos": 0,
+    "enviado_real": true,
+    "status": "Enviado via Scheduler"
+  },
+  {
+    "data_envio": "2025-08-29 22:19:06",
+    "paciente_id": "teste_123",
+    "paciente_nome": "Paciente Teste",
+    "destinatario": "teste@exemplo.com",
+    "assunto": "Teste de Agendamento",
+    "num_anexos": 0,
+    "enviado_real": true,
+    "status": "Enviado via Scheduler"
+  },
+  {
+    "data_envio": "2025-08-29 22:20:06",
+    "paciente_id": "teste_123",
+    "paciente_nome": "Paciente Teste",
+    "destinatario": "teste@exemplo.com",
+    "assunto": "Teste de Agendamento",
+    "num_anexos": 0,
+    "enviado_real": true,
+    "status": "Enviado via Scheduler"
+  },
+  {
+    "data_envio": "2025-08-29 23:04:48",
+    "paciente_id": 117,
+    "paciente_nome": "Teste do Testes",
+    "destinatario": "nfjpcorreia@gmail.com",
+    "assunto": "Prescrição após consulta",
+    "num_anexos": 1,
+    "enviado_real": true,
+    "status": "Enviado"
+  },
+  {
+    "data_envio": "2025-08-29 23:23:31",
+    "paciente_id": 117,
+    "paciente_nome": "Teste do Testes",
+    "destinatario": "nfjpcorreia@gmail.com",
+    "assunto": "Declaração de saúde e consentimentos",
+    "num_anexos": 0,
+    "enviado_real": true,
+    "status": "Enviado"
   }
 ]

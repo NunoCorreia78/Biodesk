@@ -25,9 +25,10 @@ from PyQt6.QtWidgets import (
     QLabel, QLineEdit, QTextEdit, QComboBox, QPushButton,
     QListWidget, QListWidgetItem, QCheckBox, QGroupBox,
     QScrollArea, QFrame, QProgressBar, QFileDialog,
-    QMessageBox, QApplication, QDialog
+    QMessageBox, QApplication, QDialog, QRadioButton, 
+    QDateTimeEdit, QButtonGroup
 )
-from PyQt6.QtCore import Qt, pyqtSignal, QTimer, QThread, pyqtSlot
+from PyQt6.QtCore import Qt, pyqtSignal, QTimer, QThread, pyqtSlot, QDateTime
 from PyQt6.QtGui import QFont, QPixmap, QIcon, QColor
 
 # ✅ IMPORTAR SISTEMA DE ESTILOS
@@ -180,7 +181,7 @@ class DocumentosListWidget(QWidget):
         if STYLES_AVAILABLE:
             BiodeskStyles.apply_to_existing_button(self.btn_atualizar, ButtonType.UPDATE)
         
-        self.btn_abrir_pasta = QPushButton("� Abrir Ficheiro")
+        self.btn_abrir_pasta = QPushButton("📁 Abrir Ficheiro")
         self.btn_abrir_pasta.clicked.connect(self.abrir_ficheiro_selecionado)
         if STYLES_AVAILABLE:
             BiodeskStyles.apply_to_existing_button(self.btn_abrir_pasta, ButtonType.TOOL)
@@ -592,7 +593,7 @@ class EmailWidget(QWidget):
         
         self.campo_mensagem = QTextEdit()
         self.campo_mensagem.setPlaceholderText("💬 Mensagem: Digite sua mensagem aqui...")
-        self.campo_mensagem.setMaximumHeight(150)
+        self.campo_mensagem.setMaximumHeight(120)  # Reduzido para fazer espaço para radio buttons
         self.campo_mensagem.setStyleSheet("""
             QTextEdit {
                 padding: 6px;
@@ -602,6 +603,39 @@ class EmailWidget(QWidget):
             }
         """)
         mensagem_layout.addWidget(self.campo_mensagem)
+        
+        # 🕒 OPÇÕES DE AGENDAMENTO - Radio Buttons (sem "Enviar Agora")
+        agendamento_group = QGroupBox("🕒 Agendar envio para:")
+        agendamento_group.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                font-size: 12px;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                margin-top: 5px;
+                padding-top: 10px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px 0 5px;
+            }
+        """)
+        agendamento_layout = QHBoxLayout(agendamento_group)
+        
+        # Radio buttons para agendamento (sem "Enviar Agora")
+        self.radio_3dias = QRadioButton("📅 Em 3 Dias")
+        self.radio_1semana = QRadioButton("📅 Em 1 Semana")
+        self.radio_2semanas = QRadioButton("📅 Em 2 Semanas")
+        self.radio_personalizado = QRadioButton("🗓️ Data Personalizada")
+        
+        # Adicionar radio buttons ao layout
+        agendamento_layout.addWidget(self.radio_3dias)
+        agendamento_layout.addWidget(self.radio_1semana)
+        agendamento_layout.addWidget(self.radio_2semanas)
+        agendamento_layout.addWidget(self.radio_personalizado)
+        
+        mensagem_layout.addWidget(agendamento_group)
         layout.addWidget(mensagem_frame)
         
         # 🔧 AÇÕES - BOTÕES LADO A LADO
@@ -609,24 +643,18 @@ class EmailWidget(QWidget):
         acoes_layout = QHBoxLayout(acoes_frame)  # Mudança: QHBoxLayout para lado a lado
         acoes_layout.setSpacing(10)
         
-        # Botões de ação lado a lado
-        self.btn_salvar_rascunho = QPushButton("💾 Salvar Rascunho")
-        self.btn_salvar_rascunho.clicked.connect(self.salvar_rascunho)
+        # Botões de ação lado a lado (removidos: Salvar Rascunho, Histórico)
+        self.btn_gestor = QPushButton("⚙️ Gestor")
+        self.btn_gestor.clicked.connect(self.abrir_gestao_agendamentos)
         if STYLES_AVAILABLE:
-            BiodeskStyles.apply_to_existing_button(self.btn_salvar_rascunho, ButtonType.DRAFT)
-        
-        self.btn_historico = QPushButton("📋 Histórico")
-        self.btn_historico.clicked.connect(self.mostrar_historico_emails)
-        if STYLES_AVAILABLE:
-            BiodeskStyles.apply_to_existing_button(self.btn_historico, ButtonType.TOOL)
+            BiodeskStyles.apply_to_existing_button(self.btn_gestor, ButtonType.TOOL)
         
         self.btn_enviar = QPushButton("📧 ENVIAR EMAIL")
         self.btn_enviar.clicked.connect(self.enviar_email)
         if STYLES_AVAILABLE:
             BiodeskStyles.apply_to_existing_button(self.btn_enviar, ButtonType.SAVE)
         
-        acoes_layout.addWidget(self.btn_salvar_rascunho)
-        acoes_layout.addWidget(self.btn_historico)
+        acoes_layout.addWidget(self.btn_gestor)
         acoes_layout.addWidget(self.btn_enviar)
         layout.addWidget(acoes_frame)
         
@@ -639,11 +667,11 @@ class EmailWidget(QWidget):
         """Carregar templates disponíveis"""
         templates_basicos = [
             "🔧 Selecionar template...",
-            "� Envio da Prescrição",
-            "� Envio da Declaração de Saúde e Consentimentos",
-            "� Follow-up (Acompanhamento)",
+            "📄 Envio da Prescrição",
+            "📋 Envio da Declaração de Saúde e Consentimentos",
+            "🔄 Follow-up (Acompanhamento)",
             "✅ Confirmação de Presença",
-            "� Marcação de Consulta"
+            "📅 Marcação de Consulta"
         ]
         
         self.combo_template.addItems(templates_basicos)
@@ -656,7 +684,7 @@ class EmailWidget(QWidget):
         nome_paciente = self.paciente_data.get('nome', 'Paciente')
         
         templates = {
-            "� Envio da Prescrição": {
+            "📄 Envio da Prescrição": {
                 "assunto": "Prescrição após consulta",
                 "mensagem": f"""Caro(a) {nome_paciente},
 
@@ -668,7 +696,7 @@ Em caso de dúvida ou reação inesperada, estou disponível para o(a) apoiar.
 Com os melhores cumprimentos,
 Nuno Correia"""
             },
-            "� Envio da Declaração de Saúde e Consentimentos": {
+            "📋 Envio da Declaração de Saúde e Consentimentos": {
                 "assunto": "Declaração de saúde e consentimentos",
                 "mensagem": f"""Caro(a) {nome_paciente},
 
@@ -680,7 +708,7 @@ Estou à disposição para qualquer esclarecimento adicional.
 Com os melhores cumprimentos,
 Nuno Correia"""
             },
-            "� Follow-up (Acompanhamento)": {
+            "🔄 Follow-up (Acompanhamento)": {
                 "assunto": "Acompanhamento após consulta",
                 "mensagem": f"""Caro(a) {nome_paciente},
 
@@ -706,7 +734,7 @@ Peço a sua confirmação de presença.
 Com os melhores cumprimentos,
 Nuno Correia"""
             },
-            "� Marcação de Consulta": {
+            "📅 Marcação de Consulta": {
                 "assunto": "Agendamento de consulta",
                 "mensagem": f"""Caro(a) {nome_paciente},
 
@@ -1098,7 +1126,7 @@ Clínica Biodesk"""
         QMessageBox.information(self, "Rascunho", "Rascunho salvo com sucesso!")
     
     def enviar_email(self):
-        """Enviar email com anexos"""
+        """Enviar email usando opções dos radio buttons - padrão é envio imediato"""
         try:
             # Validações
             destinatario = self.campo_para.text().strip()
@@ -1116,96 +1144,265 @@ Clínica Biodesk"""
                 QMessageBox.warning(self, "Erro", "Por favor, digite a mensagem.")
                 return
             
-            # Confirmar envio
-            count_anexos = len(self.anexos_caminhos)
-            resposta = QMessageBox.question(
-                self,
-                "Confirmar Envio",
-                f"Enviar email para {destinatario}?\n\n"
-                f"Assunto: {assunto}\n"
-                f"Anexos: {count_anexos} arquivo(s)",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
-            )
-            
-            if resposta != QMessageBox.StandardButton.Yes:
-                return
-            
-            # Envio do email
-            if EMAIL_MODULES_AVAILABLE:
-                # Usar sistema de email completo
-                try:
-                    email_sender = EmailSender()
-                    if self.anexos_caminhos:
-                        sucesso, erro = email_sender.send_email_with_attachments(
-                            destinatario, assunto, mensagem, self.anexos_caminhos
-                        )
-                    else:
-                        sucesso, erro = email_sender.send_email(
-                            destinatario, assunto, mensagem
-                        )
-                    resultado = sucesso
-                    
-                    if resultado:
-                        QMessageBox.information(self, "Sucesso", "✅ Email enviado com sucesso!")
-                        print(f"✅ EMAIL ENVIADO: {destinatario}")
-                        
-                        # Registrar no histórico
-                        self.registrar_email_historico(destinatario, assunto, mensagem, self.anexos_caminhos, True)
-                    else:
-                        QMessageBox.warning(self, "Erro", "❌ Falha no envio do email.")
-                        return
-                        
-                except Exception as e:
-                    QMessageBox.critical(self, "Erro", f"❌ Erro no sistema de email: {str(e)}")
-                    return
+            # Verificar qual opção de agendamento foi selecionada (padrão é envio imediato)
+            if self.radio_3dias.isChecked():
+                # Agendar para 3 dias
+                self.agendar_rapido(3)
+            elif self.radio_1semana.isChecked():
+                # Agendar para 1 semana (7 dias)
+                self.agendar_rapido(7)
+            elif self.radio_2semanas.isChecked():
+                # Agendar para 2 semanas (14 dias)
+                self.agendar_rapido(14)
+            elif self.radio_personalizado.isChecked():
+                # Abrir seletor de data personalizada
+                self.agendar_personalizado()
             else:
-                # Modo simulação/fallback
-                print(f"📧 SIMULANDO ENVIO DE EMAIL:")
-                print(f"   Para: {destinatario}")
-                print(f"   Assunto: {assunto}")
-                print(f"   Anexos: {count_anexos}")
-                print(f"   Mensagem: {mensagem[:100]}...")
-                
-                # Salvar localmente para histórico
-                try:
-                    self.salvar_email_local(destinatario, assunto, mensagem, self.anexos_caminhos)
-                    # Registrar no histórico
-                    self.registrar_email_historico(destinatario, assunto, mensagem, self.anexos_caminhos, False)
-                    QMessageBox.information(self, "Email Simulado", 
-                                          "📧 Email simulado com sucesso!\n\n"
-                                          "💡 Configure o sistema de email para envio real.\n"
-                                          "📁 Email salvo no histórico local.")
-                except Exception as e:
-                    QMessageBox.warning(self, "Aviso", f"Email simulado, mas erro ao salvar: {str(e)}")
-            
-            # Dados do email enviado
-            email_data = {
-                'destinatario': destinatario,
-                'assunto': assunto,
-                'mensagem': mensagem,
-                'anexos': self.anexos_caminhos.copy(),
-                'data_envio': datetime.now(),
-                'paciente_id': self.paciente_data.get('id', '999')
-            }
-            
-            # Simular sucesso
-            QMessageBox.information(
-                self,
-                "Email Enviado",
-                f"Email enviado com sucesso!\n\n"
-                f"Destinatário: {destinatario}\n"
-                f"Anexos: {count_anexos} arquivo(s)"
-            )
-            
-            # Limpar formulário
-            self.limpar_formulario()
-            
-            # Emitir sinal de sucesso
-            self.email_enviado.emit(email_data)
+                # Padrão: envio imediato quando nenhum agendamento selecionado
+                self.processar_envio_imediato(destinatario, assunto, mensagem)
             
         except Exception as e:
-            QMessageBox.critical(self, "Erro", f"Erro ao enviar email:\n{e}")
-            traceback.print_exc()
+            QMessageBox.critical(self, "Erro", f"Erro ao preparar envio: {str(e)}")
+    
+    def agendar_rapido(self, dias):
+        """Agendar email para X dias no futuro"""
+        from datetime import datetime, timedelta
+        data_envio = datetime.now() + timedelta(days=dias)
+        self.processar_agendamento(data_envio)
+    
+    def agendar_personalizado(self):
+        """Abrir seletor de data personalizada"""
+        from PyQt6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout
+        
+        dialog = QDialog(self)
+        dialog.setWindowTitle("🗓️ Escolher Data e Hora")
+        dialog.setModal(True)
+        dialog.resize(300, 150)
+        
+        layout = QVBoxLayout(dialog)
+        
+        # Seletor de data/hora
+        datetime_edit = QDateTimeEdit()
+        datetime_edit.setDateTime(QDateTime.currentDateTime().addSecs(3600))  # +1 hora
+        datetime_edit.setDisplayFormat("dd/MM/yyyy hh:mm")
+        datetime_edit.setCalendarPopup(True)
+        layout.addWidget(datetime_edit)
+        
+        # Botões
+        buttons_layout = QHBoxLayout()
+        btn_cancelar = QPushButton("❌ Cancelar")
+        btn_cancelar.clicked.connect(dialog.reject)
+        btn_confirmar = QPushButton("✅ Agendar")
+        btn_confirmar.clicked.connect(dialog.accept)
+        btn_confirmar.setDefault(True)
+        
+        buttons_layout.addWidget(btn_cancelar)
+        buttons_layout.addWidget(btn_confirmar)
+        layout.addLayout(buttons_layout)
+        
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            # Em PyQt6, usar toPython() ou converter manualmente
+            qt_datetime = datetime_edit.dateTime()
+            data_envio = qt_datetime.toPython() if hasattr(qt_datetime, 'toPython') else qt_datetime.toPyDateTime()
+            if data_envio <= datetime.now():
+                QMessageBox.warning(self, "Erro", "🕒 Data deve ser no futuro!")
+                return
+            
+            self.processar_agendamento(data_envio)
+    
+    def mostrar_opcoes_agendamento(self):
+        """Mostrar barra com opções rápidas de agendamento"""
+        # Se já existe a barra, remover
+        if hasattr(self, 'barra_agendamento'):
+            self.barra_agendamento.setParent(None)
+            self.barra_agendamento.deleteLater()
+        
+        # Criar barra de agendamento
+        self.barra_agendamento = QFrame()
+        self.barra_agendamento.setStyleSheet("""
+            QFrame {
+                background-color: #e8f4fd;
+                border: 2px solid #4a90e2;
+                border-radius: 8px;
+                padding: 10px;
+                margin: 5px;
+            }
+            QPushButton {
+                background-color: #4a90e2;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                padding: 8px 15px;
+                font-weight: bold;
+                min-width: 120px;
+            }
+            QPushButton:hover {
+                background-color: #357abd;
+            }
+            QPushButton:pressed {
+                background-color: #2e5a8a;
+            }
+        """)
+        
+        barra_layout = QVBoxLayout(self.barra_agendamento)
+        
+        # Título da barra
+        titulo = QLabel("🕒 Quando enviar este email?")
+        titulo.setStyleSheet("font-weight: bold; font-size: 14px; color: #2e5a8a; margin-bottom: 10px;")
+        barra_layout.addWidget(titulo)
+        
+        # Linha de botões de agendamento
+        buttons_layout = QHBoxLayout()
+        
+        # Botão enviar agora
+        btn_agora = QPushButton("� Enviar Agora")
+        btn_agora.clicked.connect(self.enviar_agora)
+        buttons_layout.addWidget(btn_agora)
+        
+        # Botões de agendamento rápido
+        btn_3dias = QPushButton("📅 Em 3 Dias")
+        btn_3dias.clicked.connect(lambda: self.agendar_rapido(3))
+        buttons_layout.addWidget(btn_3dias)
+        
+        btn_1semana = QPushButton("� Em 1 Semana")
+        btn_1semana.clicked.connect(lambda: self.agendar_rapido(7))
+        buttons_layout.addWidget(btn_1semana)
+        
+        btn_2semanas = QPushButton("📅 Em 2 Semanas")
+        btn_2semanas.clicked.connect(lambda: self.agendar_rapido(14))
+        buttons_layout.addWidget(btn_2semanas)
+        
+        btn_personalizado = QPushButton("🗓️ Data Personalizada")
+        btn_personalizado.clicked.connect(self.agendar_personalizado)
+        buttons_layout.addWidget(btn_personalizado)
+        
+        # Botão cancelar
+        btn_cancelar = QPushButton("❌ Cancelar")
+        btn_cancelar.setStyleSheet("""
+            QPushButton {
+                background-color: #dc3545;
+                color: white;
+            }
+            QPushButton:hover {
+                background-color: #c82333;
+            }
+        """)
+        btn_cancelar.clicked.connect(self.cancelar_agendamento)
+        buttons_layout.addWidget(btn_cancelar)
+        
+        barra_layout.addLayout(buttons_layout)
+        
+        # Adicionar barra ao layout principal (antes dos botões de ação)
+        layout_principal = self.layout()
+        layout_principal.insertWidget(layout_principal.count() - 1, self.barra_agendamento)
+    
+    def enviar_agora(self):
+        """Enviar email imediatamente"""
+        self.esconder_barra_agendamento()
+        self.processar_envio_imediato()
+    
+    def agendar_rapido(self, dias):
+        """Agendar email para X dias no futuro"""
+        from datetime import datetime, timedelta
+        data_envio = datetime.now() + timedelta(days=dias)
+        self.processar_agendamento(data_envio)
+        self.esconder_barra_agendamento()
+    
+    def agendar_personalizado(self):
+        """Abrir seletor de data personalizada"""
+        from PyQt6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QDateTimeEdit
+        from PyQt6.QtCore import QDateTime
+        
+        dialog = QDialog(self)
+        dialog.setWindowTitle("🗓️ Escolher Data e Hora")
+        dialog.setModal(True)
+        dialog.resize(300, 150)
+        
+        layout = QVBoxLayout(dialog)
+        
+        # Seletor de data/hora
+        datetime_edit = QDateTimeEdit()
+        datetime_edit.setDateTime(QDateTime.currentDateTime().addSecs(3600))  # +1 hora
+        datetime_edit.setDisplayFormat("dd/MM/yyyy hh:mm")
+        datetime_edit.setCalendarPopup(True)
+        layout.addWidget(datetime_edit)
+        
+        # Botões
+        buttons_layout = QHBoxLayout()
+        btn_cancelar = QPushButton("❌ Cancelar")
+        btn_cancelar.clicked.connect(dialog.reject)
+        btn_confirmar = QPushButton("✅ Agendar")
+        btn_confirmar.clicked.connect(dialog.accept)
+        btn_confirmar.setDefault(True)
+        
+        buttons_layout.addWidget(btn_cancelar)
+        buttons_layout.addWidget(btn_confirmar)
+        layout.addLayout(buttons_layout)
+        
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            # Em PyQt6, usar toPython() ou converter manualmente
+            qt_datetime = datetime_edit.dateTime()
+            data_envio = qt_datetime.toPython() if hasattr(qt_datetime, 'toPython') else qt_datetime.toPyDateTime()
+            if data_envio <= datetime.now():
+                QMessageBox.warning(self, "Erro", "🕒 Data deve ser no futuro!")
+                return
+            
+            self.processar_agendamento(data_envio)
+            self.esconder_barra_agendamento()
+    
+    def cancelar_agendamento(self):
+        """Cancelar processo de agendamento"""
+        self.esconder_barra_agendamento()
+    
+    def esconder_barra_agendamento(self):
+        """Esconder e remover barra de agendamento"""
+        if hasattr(self, 'barra_agendamento'):
+            self.barra_agendamento.setParent(None)
+            self.barra_agendamento.deleteLater()
+            delattr(self, 'barra_agendamento')
+    
+    def processar_agendamento(self, data_envio):
+        """Processar agendamento do email"""
+        try:
+            destinatario = self.campo_para.text().strip()
+            assunto = self.campo_assunto.text().strip()
+            mensagem = self.campo_mensagem.toPlainText().strip()
+            
+            # Agendar email
+            resultado = self.agendar_email(destinatario, assunto, mensagem, data_envio)
+            
+            if resultado:
+                data_formatada = data_envio.strftime("%d/%m/%Y às %H:%M")
+                QMessageBox.information(
+                    self, 
+                    "✅ Email Agendado", 
+                    f"� Email agendado com sucesso!\n\n"
+                    f"📅 Será enviado em: {data_formatada}\n"
+                    f"📩 Para: {destinatario}\n"
+                    f"📝 Assunto: {assunto}"
+                )
+                self.limpar_formulario()
+            
+        except Exception as e:
+            QMessageBox.critical(self, "Erro", f"Erro ao agendar email: {str(e)}")
+    
+    def processar_envio_imediato(self):
+        """Processar envio imediato do email"""
+        try:
+            destinatario = self.campo_para.text().strip()
+            assunto = self.campo_assunto.text().strip()
+            mensagem = self.campo_mensagem.toPlainText().strip()
+            
+            # Processar envio imediato
+            self.processar_envio_imediato_helper(destinatario, assunto, mensagem)
+            
+        except Exception as e:
+            QMessageBox.critical(self, "Erro", f"Erro no envio imediato: {str(e)}")
+    
+    def processar_envio_imediato_helper(self, destinatario, assunto, mensagem):
+        """Helper para processamento de envio imediato"""
+        # Usar o método existente
+        self.processar_envio_imediato(destinatario, assunto, mensagem)
     
     def limpar_formulario(self):
         """Limpar formulário após envio"""
@@ -1282,6 +1479,9 @@ Clínica Biodesk"""
                 "Data/Hora", "Paciente", "Destinatário", "Assunto", "Anexos", "Status"
             ])
             
+            # Ocultar cabeçalho para visual mais limpo
+            tabela.horizontalHeader().setVisible(False)
+            
             # Configurar tabela
             header = tabela.horizontalHeader()
             header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)  # Data
@@ -1290,6 +1490,33 @@ Clínica Biodesk"""
             header.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)           # Assunto
             header.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)  # Anexos
             header.setSectionResizeMode(5, QHeaderView.ResizeMode.ResizeToContents)  # Status
+            
+            # Estilo melhorado da tabela
+            tabela.setStyleSheet("""
+                QTableWidget {
+                    background-color: #ffffff;
+                    alternate-background-color: #f8f9fa;
+                    gridline-color: #e9ecef;
+                    border: 1px solid #dee2e6;
+                    border-radius: 8px;
+                    selection-background-color: #007bff;
+                    selection-color: white;
+                }
+                QTableWidget::item {
+                    padding: 10px 8px;
+                    border: none;
+                    font-size: 13px;
+                }
+                QTableWidget::item:selected {
+                    background-color: #007bff;
+                    color: white;
+                    font-weight: bold;
+                }
+                QTableWidget::item:hover {
+                    background-color: #e3f2fd;
+                    color: #1976d2;
+                }
+            """)
             
             # Carregar dados do histórico
             historico_file = "historico_envios/emails_enviados.json"
@@ -1354,6 +1581,189 @@ Clínica Biodesk"""
             
         except Exception as e:
             QMessageBox.critical(self, "Erro", f"Erro ao mostrar histórico:\n{e}")
+    
+    def abrir_gestao_agendamentos(self):
+        """Abrir janela de gestão de emails agendados"""
+        try:
+            # Tentar importar o sistema de agendamento
+            try:
+                from emails_agendados_manager import EmailsAgendadosWindow
+                janela_agendamentos = EmailsAgendadosWindow(self)
+                
+                # Definir filtro por paciente atual se disponível
+                paciente_id = None
+                paciente_nome = None
+                
+                # Tentar obter ID e nome do paciente de várias formas
+                if hasattr(self, 'paciente_data') and self.paciente_data:
+                    paciente_id = self.paciente_data.get('id')
+                    paciente_nome = self.paciente_data.get('nome')
+                elif hasattr(self, 'paciente_id') and self.paciente_id:
+                    paciente_id = self.paciente_id
+                elif hasattr(self.parent(), 'paciente_id') and self.parent().paciente_id:
+                    paciente_id = self.parent().paciente_id
+                
+                # Aplicar filtro se encontrou dados do paciente
+                if paciente_id:
+                    print(f"🔍 Aplicando filtro para paciente ID: {paciente_id}, Nome: {paciente_nome}")
+                    janela_agendamentos.widget_principal.definir_paciente_filtro(paciente_id, paciente_nome)
+                else:
+                    print("⚠️ Não foi possível identificar o paciente atual para filtro")
+                
+                # A janela já maximiza automaticamente no construtor
+                janela_agendamentos.show()
+                
+            except ImportError:
+                QMessageBox.warning(
+                    self,
+                    "Sistema Indisponível",
+                    "📅 Sistema de agendamento de emails não está disponível.\n\n"
+                    "Verifique se os módulos necessários estão instalados."
+                )
+                
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Erro",
+                f"Erro ao abrir gestão de agendamentos:\n\n{str(e)}"
+            )
+    
+    def agendar_email(self, destinatario: str, assunto: str, mensagem: str, data_envio: datetime):
+        """Agendar email para envio futuro"""
+        try:
+            # Tentar importar sistema de agendamento
+            try:
+                from email_scheduler import get_email_scheduler
+                
+                # Dados do email para agendamento
+                dados_email = {
+                    "paciente_id": self.paciente_data.get('id', ''),
+                    "paciente_nome": self.paciente_data.get('nome', 'Paciente'),
+                    "destinatario": destinatario,
+                    "assunto": assunto,
+                    "mensagem": mensagem,
+                    "data_envio": data_envio.strftime("%Y-%m-%d %H:%M:%S"),
+                    "anexos": self.anexos_caminhos.copy()
+                }
+                
+                # Agendar
+                scheduler = get_email_scheduler()
+                email_id = scheduler.agendar_email(dados_email)
+                
+                if email_id:
+                    QMessageBox.information(
+                        self,
+                        "Email Agendado",
+                        f"📅 Email agendado com sucesso!\n\n"
+                        f"📧 Para: {destinatario}\n"
+                        f"📝 Assunto: {assunto}\n"
+                        f"🕒 Envio em: {data_envio.strftime('%d/%m/%Y às %H:%M')}\n\n"
+                        f"💡 O email será enviado automaticamente na data/hora agendada."
+                    )
+                    
+                    # Limpar formulário (manter email para próximo envio)
+                    # self.campo_para.clear()  # Manter email preenchido
+                    self.campo_assunto.clear()
+                    self.campo_mensagem.clear()
+                    self.anexos_caminhos.clear()
+                    self.atualizar_anexos([])  # Limpar anexos
+                    
+                else:
+                    QMessageBox.critical(
+                        self,
+                        "Erro",
+                        "❌ Erro ao agendar email. Tente novamente."
+                    )
+                    
+            except ImportError:
+                QMessageBox.warning(
+                    self,
+                    "Sistema Indisponível",
+                    "📅 Sistema de agendamento não está disponível.\n\n"
+                    "O email será enviado imediatamente."
+                )
+                
+                # Fallback: enviar imediatamente
+                self.processar_envio_imediato(destinatario, assunto, mensagem)
+                
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Erro",
+                f"Erro ao agendar email:\n\n{str(e)}"
+            )
+    
+    def processar_envio_imediato(self, destinatario: str, assunto: str, mensagem: str):
+        """Processar envio imediato do email (método auxiliar)"""
+        try:
+            count_anexos = len(self.anexos_caminhos)
+            
+            # Envio do email
+            if EMAIL_MODULES_AVAILABLE:
+                # Usar sistema de email completo
+                try:
+                    email_sender = EmailSender()
+                    if self.anexos_caminhos:
+                        sucesso, erro = email_sender.send_email_with_attachments(
+                            destinatario, assunto, mensagem, self.anexos_caminhos
+                        )
+                    else:
+                        sucesso, erro = email_sender.send_email(
+                            destinatario, assunto, mensagem
+                        )
+                    resultado = sucesso
+                    
+                    if resultado:
+                        QMessageBox.information(self, "Sucesso", "✅ Email enviado com sucesso!")
+                        print(f"✅ EMAIL ENVIADO: {destinatario}")
+                        
+                        # Registrar no histórico
+                        self.registrar_email_historico(destinatario, assunto, mensagem, self.anexos_caminhos, True)
+                        
+                        # Limpar formulário (manter email para próximo envio)
+                        # self.campo_para.clear()  # Manter email preenchido
+                        self.campo_assunto.clear()
+                        self.campo_mensagem.clear()
+                        self.anexos_caminhos.clear()
+                        self.atualizar_anexos([])  # Limpar anexos
+                        
+                    else:
+                        QMessageBox.warning(self, "Erro", "❌ Falha no envio do email.")
+                        return
+                        
+                except Exception as e:
+                    QMessageBox.critical(self, "Erro", f"❌ Erro no sistema de email: {str(e)}")
+                    return
+            else:
+                # Modo simulação/fallback
+                print(f"📧 SIMULANDO ENVIO DE EMAIL:")
+                print(f"   Para: {destinatario}")
+                print(f"   Assunto: {assunto}")
+                print(f"   Anexos: {count_anexos}")
+                print(f"   Mensagem: {mensagem[:100]}...")
+                
+                # Salvar localmente para histórico
+                try:
+                    self.salvar_email_local(destinatario, assunto, mensagem, self.anexos_caminhos)
+                    # Registrar no histórico
+                    self.registrar_email_historico(destinatario, assunto, mensagem, self.anexos_caminhos, False)
+                    QMessageBox.information(self, "Email Simulado", 
+                                          "📧 Email simulado com sucesso!\n\n"
+                                          "💡 Configure o sistema de email para envio real.\n"
+                                          "📁 Email salvo no histórico local.")
+                    
+                    # Limpar formulário (manter email para próximo envio)
+                    # self.campo_para.clear()  # Manter email preenchido
+                    self.campo_assunto.clear()
+                    self.campo_mensagem.clear()
+                    self.anexos_caminhos.clear()
+                    self.atualizar_anexos([])  # Limpar anexos
+                    
+                except Exception as e:
+                    QMessageBox.warning(self, "Aviso", f"Email simulado, mas erro ao salvar: {str(e)}")
+            
+        except Exception as e:
+            QMessageBox.critical(self, "Erro", f"Erro no envio do email:\n\n{str(e)}")
 
 
 class CentroComunicacaoUnificado(QWidget):
@@ -1455,6 +1865,11 @@ class CentroComunicacaoUnificado(QWidget):
         try:
             # Carregar documentos
             self.documentos_widget.carregar_documentos()
+            
+            # Preencher email do paciente automaticamente se disponível
+            if hasattr(self, 'email_widget') and self.paciente_data.get('email'):
+                self.email_widget.campo_para.setText(self.paciente_data['email'])
+                print(f"✅ Email do paciente preenchido: {self.paciente_data['email']}")
             
             # Atualizar estatísticas
             self.atualizar_estatisticas()
