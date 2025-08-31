@@ -391,29 +391,43 @@ class IrisIntegrationWidget(QWidget):
         thumb_path = img.get('caminho_imagem', '') or img.get('caminho', '')
         
         thumb_container = QFrame()
-        thumb_container.setFixedSize(75, 85)
+        thumb_container.setFixedSize(72, 80)  # Ligeiramente mais compacto
+        # Cores baseadas na lateralização - SEM BORDAS
+        if tipo_calc == 'ESQ':
+            # Estilo para olho esquerdo (azul) - apenas fundo
+            cor_fundo_hover = "#e3f2fd"
+            cor_fundo_selecionado = "#bbdefb"
+        elif tipo_calc == 'DRT':
+            # Estilo para olho direito (vermelho) - apenas fundo
+            cor_fundo_hover = "#ffebee"
+            cor_fundo_selecionado = "#ffcdd2"
+        else:
+            # Estilo padrão (cinza) - apenas fundo
+            cor_fundo_hover = "#f8fcff"
+            cor_fundo_selecionado = "#e8f3ff"
+
         style_normal = (
             "QFrame {"
-            "background: white;"
-            "border: 2px solid #e0e0e0;"
-            "border-radius: 12px;"
-            "padding: 4px;"
+            "background: transparent;"
+            "border: none;"
+            "border-radius: 8px;"
+            "padding: 2px;"
             "}"
             "QFrame:hover {"
-            "border: 2px solid #2196F3;"
-            "background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #f8fcff, stop:1 #e3f2fd);"
+            "border: none;"
+            f"background: {cor_fundo_hover};"
             "}"
         )
         style_selecionado = (
             "QFrame {"
-            "background: #e8f3ff;"
-            "border: 3px solid #1976D2;"
-            "border-radius: 12px;"
-            "padding: 3px;"
+            f"background: {cor_fundo_selecionado};"
+            "border: none;"
+            "border-radius: 8px;"
+            "padding: 2px;"
             "}"
             "QFrame:hover {"
-            "border: 3px solid #1565C0;"
-            "background: #e2f0ff;"
+            "border: none;"
+            f"background: {cor_fundo_selecionado};"
             "}"
         )
         
@@ -422,48 +436,71 @@ class IrisIntegrationWidget(QWidget):
         thumb_container.setProperty('style_base_selecionado', style_selecionado)
         
         thumb_layout = QVBoxLayout(thumb_container)
-        thumb_layout.setContentsMargins(4, 4, 4, 4)
-        thumb_layout.setSpacing(6)
+        thumb_layout.setContentsMargins(3, 3, 3, 3)
+        thumb_layout.setSpacing(3)
         thumb_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        # Imagem da miniatura
+        # Imagem da miniatura - tamanho reduzido para melhor centralização
         thumb_label = QLabel()
-        thumb_label.setFixedSize(70, 50)
+        thumb_label.setFixedSize(65, 45)
         thumb_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         thumb_label.setStyleSheet(
-            "QLabel { border: 1px solid #ddd; border-radius: 8px; background: #f5f5f5; }"
+            "QLabel { border: none; background: transparent; }"
         )
         
         if thumb_path and os.path.exists(thumb_path):
             pix = QPixmap(thumb_path)
             if not pix.isNull():
+                # Reduzir ainda mais a imagem para garantir centralização
                 thumb_label.setPixmap(
                     pix.scaled(
-                        68, 48,
+                        63, 43,
                         Qt.AspectRatioMode.KeepAspectRatio,
                         Qt.TransformationMode.SmoothTransformation,
                     )
                 )
             else:
                 thumb_label.setText('❌')
-                thumb_label.setStyleSheet(thumb_label.styleSheet() + 'color: #f44336; font-size: 20px;')
+                thumb_label.setStyleSheet('border: none; background: transparent; color: #f44336; font-size: 20px;')
         else:
             thumb_label.setText('📷')
-            thumb_label.setStyleSheet(thumb_label.styleSheet() + 'color: #666; font-size: 24px;')
+            thumb_label.setStyleSheet('border: none; background: transparent; color: #666; font-size: 24px;')
         
-        # Etiqueta de texto
-        texto_label = QLabel(label_text)
+        # Etiqueta de texto com lateralização visual
+        if tipo_calc == 'ESQ':
+            # Olho esquerdo - emoji de olho virado para a esquerda + cor azul
+            texto_lateralizado = f"👁️ {label_text} 👈"
+            cor_lateral = "#1976D2"  # Azul para esquerdo
+        elif tipo_calc == 'DRT':
+            # Olho direito - emoji de olho virado para a direita + cor vermelha
+            texto_lateralizado = f"👉 {label_text} 👁️"
+            cor_lateral = "#D32F2F"  # Vermelho para direito
+        else:
+            texto_lateralizado = label_text
+            cor_lateral = "#424242"  # Cinza padrão
+        
+        texto_label = QLabel(texto_lateralizado)
         texto_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         texto_label.setStyleSheet(
-            "font-size: 10px; color: #424242; font-weight: 600; background: transparent; padding: 0px;"
+            f"font-size: 9px; color: {cor_lateral}; font-weight: 600; background: transparent; padding: 1px;"
         )
         
         # Adicionar ao layout
         thumb_layout.addWidget(thumb_label)
         thumb_layout.addWidget(texto_label)
         
-        # Tooltip informativo
-        tooltip_partes = [f"Etiqueta: {label_text}"]
+        # Tooltip informativo melhorado
+        if tipo_calc == 'ESQ':
+            lado_descricao = "👁️ Olho Esquerdo"
+        elif tipo_calc == 'DRT':
+            lado_descricao = "👁️ Olho Direito"
+        else:
+            lado_descricao = "📷 Imagem"
+            
+        tooltip_partes = [
+            f"{lado_descricao}",
+            f"Etiqueta: {label_text}"
+        ]
         dt = img.get('data_analise') or img.get('data')
         if dt:
             tooltip_partes.append(f"Data: {dt}")
@@ -603,20 +640,59 @@ class IrisIntegrationWidget(QWidget):
                     import cv2
                     from PyQt6.QtCore import QTimer
                     
-                    # Tentar iridoscópio (câmera 1) depois padrão (câmera 0)
-                    self.cap = cv2.VideoCapture(1)
-                    if not self.cap.isOpened():
-                        self.cap = cv2.VideoCapture(0)
-                        if not self.cap.isOpened():
-                            self.video_label.setText("❌ Câmera não disponível")
-                            return
+                    self.cap = None
                     
+                    # 🔬 PRIORIDADE 1: Tentar iridoscópio USB (câmara 1)
+                    print("📷 Tentando iridoscópio USB (câmara 1)...")
+                    try:
+                        self.cap = cv2.VideoCapture(1)
+                        if self.cap.isOpened():
+                            ret, test_frame = self.cap.read()
+                            if ret and test_frame is not None:
+                                print("✅ Iridoscópio USB (câmara 1) ativo!")
+                            else:
+                                print("⚠️ Câmara 1 detectada mas sem sinal")
+                                self.cap.release()
+                                self.cap = None
+                        else:
+                            self.cap = None
+                    except Exception as e:
+                        print(f"⚠️ Erro na câmara 1: {e}")
+                        self.cap = None
+                    
+                    # 📷 FALLBACK: Câmara padrão (câmara 0)
+                    if not self.cap:
+                        print("📷 Tentando webcam padrão (câmara 0)...")
+                        try:
+                            self.cap = cv2.VideoCapture(0)
+                            if self.cap.isOpened():
+                                ret, test_frame = self.cap.read()
+                                if ret and test_frame is not None:
+                                    print("✅ Webcam padrão (câmara 0) ativa!")
+                                else:
+                                    print("❌ Câmara 0 sem sinal")
+                                    self.cap.release()
+                                    self.cap = None
+                            else:
+                                self.cap = None
+                        except Exception as e:
+                            print(f"❌ Erro na câmara 0: {e}")
+                            self.cap = None
+                    
+                    # Verificar se alguma câmara funcionou
+                    if not self.cap or not self.cap.isOpened():
+                        self.video_label.setText("❌ Nenhuma câmera disponível")
+                        print("❌ Nenhuma câmera funcional encontrada")
+                        return
+                    
+                    # Configurar resolução
                     self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
                     self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
                     
+                    # Iniciar timer de atualização
                     self.timer = QTimer()
                     self.timer.timeout.connect(self.update_frame)
-                    self.timer.start(30)
+                    self.timer.start(30)  # 30ms = ~33 FPS
                 
                 def update_frame(self):
                     import cv2
@@ -804,11 +880,10 @@ class IrisIntegrationWidget(QWidget):
             )
             return
         
-        # Formatar notas
-        notas = '\\n'.join(linhas_selecionadas)
-        
-        # Emitir sinal para o módulo principal processar
-        self.notas_exportadas.emit(notas)
+        # Formatar notas - enviar cada zona individualmente
+        for linha in linhas_selecionadas:
+            # Emitir sinal para cada zona separadamente
+            self.notas_exportadas.emit(linha.strip())
         
         # Remover linhas exportadas
         if hasattr(self.notas_iris, 'remover_linhas_selecionadas'):

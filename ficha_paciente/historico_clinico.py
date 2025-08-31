@@ -71,16 +71,40 @@ class HistoricoClinicoWidget(QWidget):
         self._inicializando = False
     
     def init_ui(self):
-        """Inicializa interface do histórico clínico"""
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.setSpacing(15)
+        """Inicializa interface do histórico clínico com painel lateral para análises da íris"""
+        # Layout principal vertical
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(20, 20, 20, 20)
+        main_layout.setSpacing(15)
         
         # Criar toolbar
-        self.criar_toolbar(layout)
+        self.criar_toolbar(main_layout)
+        
+        # Layout horizontal para histórico + painel íris
+        content_layout = QHBoxLayout()
+        content_layout.setSpacing(20)
+        
+        # Container para o histórico clínico (75% da largura)
+        historico_container = QWidget()
+        historico_layout = QVBoxLayout(historico_container)
+        historico_layout.setContentsMargins(0, 0, 0, 0)
         
         # Criar editor de texto
-        self.criar_editor(layout)
+        self.criar_editor(historico_layout)
+        
+        # Container para análises da íris (25% da largura)
+        iris_container = QWidget()
+        iris_layout = QVBoxLayout(iris_container)
+        iris_layout.setContentsMargins(0, 0, 0, 0)
+        
+        # Criar painel de análises da íris
+        self.criar_painel_iris(iris_layout)
+        
+        # Definir proporções (75% histórico, 25% íris)
+        content_layout.addWidget(historico_container, 3)  # 75%
+        content_layout.addWidget(iris_container, 1)       # 25%
+        
+        main_layout.addLayout(content_layout)
     
     def criar_toolbar(self, parent_layout):
         """Cria toolbar com ferramentas de formatação"""
@@ -198,6 +222,185 @@ class HistoricoClinicoWidget(QWidget):
         """)
         
         parent_layout.addWidget(self.historico_edit)
+    
+    def criar_painel_iris(self, parent_layout):
+        """Cria painel lateral para análises da íris - VERSÃO MELHORADA"""
+        # Título do painel com ícone melhor
+        titulo = QLabel("� Análises da Íris")
+        titulo.setStyleSheet(f"""
+            QLabel {{
+                color: {BiodeskUIKit.COLORS['primary']};
+                font-family: {BiodeskUIKit.FONTS['family']};
+                font-size: 18px;
+                font-weight: 700;
+                padding: 15px;
+                background: qlineargradient(
+                    x1: 0, y1: 0, x2: 0, y2: 1,
+                    stop: 0 {BiodeskUIKit.COLORS['background_light']},
+                    stop: 1 #f0f0f0
+                );
+                border: 2px solid {BiodeskUIKit.COLORS['border_light']};
+                border-radius: 10px;
+                margin-bottom: 15px;
+            }}
+        """)
+        titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        parent_layout.addWidget(titulo)
+        
+        # Área de scroll para a tabela
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        scroll_area.setStyleSheet(f"""
+            QScrollArea {{
+                border: 2px solid {BiodeskUIKit.COLORS['border_light']};
+                border-radius: 10px;
+                background-color: {BiodeskUIKit.COLORS['white']};
+            }}
+            QScrollBar:vertical {{
+                background-color: #f0f0f0;
+                width: 12px;
+                border-radius: 6px;
+            }}
+            QScrollBar::handle:vertical {{
+                background-color: {BiodeskUIKit.COLORS['primary']};
+                border-radius: 6px;
+                min-height: 20px;
+            }}
+        """)
+        
+        # Widget container para a tabela
+        self.iris_container = QWidget()
+        self.iris_layout = QVBoxLayout(self.iris_container)
+        self.iris_layout.setContentsMargins(15, 15, 15, 15)
+        self.iris_layout.setSpacing(8)
+        
+        # Adicionar widget de instruções inicial MELHORADO
+        instrucoes = QLabel("👆 Clique em zonas da íris\n📋 Depois clique em 'Histórico'\n✨ As análises aparecerão aqui organizadas por data")
+        instrucoes.setStyleSheet(f"""
+            QLabel {{
+                color: {BiodeskUIKit.COLORS['text_muted']};
+                font-family: {BiodeskUIKit.FONTS['family']};
+                font-size: 13px;
+                text-align: center;
+                padding: 25px;
+                border: 2px dashed {BiodeskUIKit.COLORS['border_light']};
+                border-radius: 10px;
+                background-color: #fafafa;
+                line-height: 1.4;
+            }}
+        """)
+        instrucoes.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        instrucoes.setWordWrap(True)
+        self.iris_layout.addWidget(instrucoes)
+        
+        # Spacer para empurrar tudo para o topo
+        self.iris_layout.addStretch()
+        
+        scroll_area.setWidget(self.iris_container)
+        parent_layout.addWidget(scroll_area)
+    
+    def adicionar_analise_iris(self, zona: str, data: str = None):
+        """Adiciona análise agrupada por data com lista numerada - FORMATO LIMPO"""
+        if data is None:
+            data = datetime.now().strftime('%d/%m/%Y')
+        
+        # Remover as instruções iniciais se existirem
+        for i in reversed(range(self.iris_layout.count())):
+            item = self.iris_layout.itemAt(i)
+            if item.widget() and "Clique em zonas" in item.widget().text():
+                item.widget().deleteLater()
+                break
+        
+        # Procurar grupo existente para esta data
+        grupo_existente = None
+        for i in range(self.iris_layout.count()):
+            widget = self.iris_layout.itemAt(i).widget()
+            if hasattr(widget, 'data_grupo') and widget.data_grupo == data:
+                grupo_existente = widget
+                break
+        
+        if grupo_existente:
+            # Adicionar zona à lista existente
+            layout_lista = grupo_existente.layout_lista
+            numero_item = layout_lista.count() + 1
+            
+            item_label = QLabel(f"     {numero_item}- {zona}")
+            item_label.setStyleSheet("""
+                QLabel {
+                    color: #333333;
+                    font-size: 12px;
+                    font-family: 'Segoe UI', Arial, sans-serif;
+                    padding: 1px 0px;
+                    background: transparent;
+                    border: none;
+                }
+            """)
+            item_label.setWordWrap(False)
+            layout_lista.addWidget(item_label)
+            
+        else:
+            # Criar novo grupo para esta data
+            grupo_widget = QFrame()
+            grupo_widget.data_grupo = data
+            grupo_widget.setStyleSheet("""
+                QFrame {
+                    background-color: #ffffff;
+                    border: 1px solid #cccccc;
+                    border-radius: 6px;
+                    margin: 6px 0px;
+                    padding: 0px;
+                }
+            """)
+            
+            layout_grupo = QVBoxLayout(grupo_widget)
+            layout_grupo.setContentsMargins(8, 6, 8, 6)
+            layout_grupo.setSpacing(2)
+            
+            # Cabeçalho da data
+            header_label = QLabel(f"{data}  Reactividade nas áreas reflexas:")
+            header_label.setStyleSheet("""
+                QLabel {
+                    color: #000000;
+                    font-size: 13px;
+                    font-weight: bold;
+                    font-family: 'Segoe UI', Arial, sans-serif;
+                    padding: 2px 0px;
+                    background: transparent;
+                    border: none;
+                }
+            """)
+            layout_grupo.addWidget(header_label)
+            
+            # Container para a lista numerada
+            lista_widget = QWidget()
+            grupo_widget.layout_lista = QVBoxLayout(lista_widget)
+            grupo_widget.layout_lista.setContentsMargins(0, 0, 0, 0)
+            grupo_widget.layout_lista.setSpacing(0)
+            
+            # Primeiro item da lista
+            item_label = QLabel(f"     1- {zona}")
+            item_label.setStyleSheet("""
+                QLabel {
+                    color: #333333;
+                    font-size: 12px;
+                    font-family: 'Segoe UI', Arial, sans-serif;
+                    padding: 1px 0px;
+                    background: transparent;
+                    border: none;
+                }
+            """)
+            item_label.setWordWrap(False)
+            grupo_widget.layout_lista.addWidget(item_label)
+            
+            layout_grupo.addWidget(lista_widget)
+            
+            # Adicionar grupo no topo (mais recente primeiro)
+            self.iris_layout.insertWidget(0, grupo_widget)
+        
+        # Scroll para o topo
+        QTimer.singleShot(100, lambda: self.iris_container.parent().parent().verticalScrollBar().setValue(0))
     
     def conectar_sinais(self):
         """Conecta sinais dos widgets"""
