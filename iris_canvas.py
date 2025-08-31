@@ -1,10 +1,11 @@
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QPushButton, QGraphicsView, QGraphicsScene,
     QGraphicsEllipseItem, QGraphicsPolygonItem, QDialog, QHBoxLayout,
-    QLabel, QTextEdit, QComboBox, QGroupBox, QFrame, QSizePolicy, QGraphicsItem
+    QLabel, QTextEdit, QComboBox, QGroupBox, QFrame, QSizePolicy, QGraphicsItem,
+    QToolTip
 )
 from PyQt6.QtGui import QPixmap, QPolygonF, QBrush, QPen, QColor, QWheelEvent, QMouseEvent
-from PyQt6.QtCore import Qt, QPointF, pyqtSignal
+from PyQt6.QtCore import Qt, QPointF, QRectF, pyqtSignal
 import json
 import math
 import os
