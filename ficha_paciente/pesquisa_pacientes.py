@@ -172,6 +172,29 @@ class PesquisaPacientesWidget(QDialog):
         # Botões de ação
         botoes_layout = QHBoxLayout()
         
+        # Botão "Novo" destacado à esquerda
+        self.btn_novo = QPushButton("➕ Novo Paciente")
+        self.btn_novo.setStyleSheet("""
+            QPushButton {
+                background-color: #28a745;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: bold;
+                padding: 12px 24px;
+                margin: 4px;
+            }
+            QPushButton:hover {
+                background-color: #218838;
+                transform: translateY(-1px);
+            }
+            QPushButton:pressed {
+                background-color: #1e7e34;
+            }
+        """)
+        self.btn_novo.clicked.connect(self.criar_novo_paciente)
+        
         self.btn_abrir = BiodeskUIKit.create_neutral_button("✅ Abrir Paciente")
         self.btn_abrir.clicked.connect(self.abrir)
         self.btn_abrir.setEnabled(False)
@@ -179,6 +202,7 @@ class PesquisaPacientesWidget(QDialog):
         btn_cancelar = BiodeskUIKit.create_neutral_button("❌ Cancelar")
         btn_cancelar.clicked.connect(self.reject)
         
+        botoes_layout.addWidget(self.btn_novo)
         botoes_layout.addStretch()
         botoes_layout.addWidget(btn_cancelar)
         botoes_layout.addWidget(self.btn_abrir)
@@ -251,6 +275,34 @@ class PesquisaPacientesWidget(QDialog):
             self.tabela.setItem(row, 1, QTableWidgetItem(str(p.get('data_nascimento', ''))))
             self.tabela.setItem(row, 2, QTableWidgetItem(p.get('contacto', '')))
             self.tabela.setItem(row, 3, QTableWidgetItem(p.get('email', '')))
+
+    def criar_novo_paciente(self):
+        """Cria um novo paciente e fecha o diálogo"""
+        try:
+            # Fechar o diálogo de pesquisa
+            self.accept()
+            
+            # Importar e criar nova ficha
+            from ficha_paciente import FichaPaciente
+            
+            # Obter referência da janela principal
+            parent = self.parent()
+            if parent and hasattr(parent, 'abrir_ficha_nova'):
+                parent.abrir_ficha_nova()
+            else:
+                # Fallback: criar diretamente
+                nova_ficha = FichaPaciente(parent=parent)
+                nova_ficha.setWindowTitle('Novo Utente')
+                if parent and hasattr(parent, 'safe_maximize_window'):
+                    parent.safe_maximize_window(nova_ficha)
+                nova_ficha.show()
+                nova_ficha.raise_()
+                nova_ficha.activateWindow()
+                
+        except Exception as e:
+            print(f"❌ Erro ao criar novo paciente: {e}")
+            from biodesk_dialogs import mostrar_erro
+            mostrar_erro(self, "Erro", f"Erro ao criar novo paciente: {str(e)}")
 
     def on_selection_changed(self):
         """Ativa/desativa botão quando há seleção"""

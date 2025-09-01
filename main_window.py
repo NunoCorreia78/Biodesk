@@ -284,8 +284,8 @@ class MainWindow(QMainWindow):
         btn_pacientes.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon)
         btn_pacientes.setFixedSize(200, 200)
         btn_pacientes.setToolTip('Gerir utentes: ver e registar novos utentes')
-        # Usar painel custom em vez de QMenu
-        btn_pacientes.clicked.connect(lambda: self.show_pacientes_panel(btn_pacientes))
+        # Abrir diretamente a lista de pacientes
+        btn_pacientes.clicked.connect(self.abrir_lista_pacientes)
 
         # 🎨 Estilo personalizado para botão Pacientes
         btn_pacientes.setStyleSheet("""
