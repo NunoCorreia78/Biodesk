@@ -459,8 +459,22 @@ class ZonaReflexa(QGraphicsPolygonItem):
         nome_zona = self.dados_originais.get('nome', 'Zona desconhecida')
         print(f"🔍 Abrindo análise de sinais para: {nome_zona}")
         
-        # ✅ CORREÇÃO: Carregar sinais do ficheiro separado
-        sinais = self.carregar_sinais_zona(nome_zona)
+        # ✅ CORREÇÃO: Priorizar sinais embutidos nas zonas, fallback para ficheiro separado
+        sinais_embutidos = self.dados_originais.get('sinais', {})
+        
+        if sinais_embutidos:
+            # Usar sinais embutidos na zona (formato dict)
+            print(f"✅ Usando sinais embutidos: {len(sinais_embutidos)} sinais encontrados")
+            sinais = sinais_embutidos
+        else:
+            # Fallback: carregar do ficheiro separado (formato list)
+            sinais_lista = self.carregar_sinais_zona(nome_zona)
+            if sinais_lista:
+                # Converter lista para dict
+                sinais = {sinal.get('nome', f'Sinal {i}'): sinal for i, sinal in enumerate(sinais_lista)}
+                print(f"✅ Usando sinais do ficheiro separado: {len(sinais)} sinais encontrados")
+            else:
+                sinais = {}
         
         if not sinais:
             # Se não há sinais definidos, apenas registar na consola - não mostrar popup
@@ -469,7 +483,7 @@ class ZonaReflexa(QGraphicsPolygonItem):
         
         # Integrar sinais nos dados da zona
         dados_zona_com_sinais = self.dados_originais.copy()
-        dados_zona_com_sinais['sinais'] = {sinal['nome']: sinal for sinal in sinais}
+        dados_zona_com_sinais['sinais'] = sinais
         
         # Criar e abrir popup de análise
         try:
@@ -486,15 +500,20 @@ class ZonaReflexa(QGraphicsPolygonItem):
     def carregar_sinais_zona(self, nome_zona):
         """
         Carrega os sinais específicos de uma zona a partir dos ficheiros JSON de sinais.
+        ✅ CORREÇÃO: Usar JSON correto para cada olho (esq → esq, drt → drt)
         """
         
-        # Determinar o tipo de íris (assumindo que está definido no canvas pai)
-        tipo_iris = 'drt'  # default
-        if self.iris_canvas and hasattr(self.iris_canvas, 'tipo'):
-            tipo_iris = self.iris_canvas.tipo or 'drt'
+        # Determinar o tipo de íris e usar o ficheiro correto
+        tipo_iris = getattr(self.iris_canvas, 'tipo', 'drt') or 'drt'
+        tipo_iris = tipo_iris.lower()
         
-        # Caminho para o ficheiro de sinais
-        caminho_sinais = os.path.join('assets', f'sinais_{tipo_iris}.json')
+        # ✅ CORREÇÃO: Usar ficheiro correto para cada olho
+        if tipo_iris.startswith('esq'):
+            caminho_sinais = os.path.join('assets', 'sinais_esq.json')
+        else:
+            caminho_sinais = os.path.join('assets', 'sinais_drt.json')
+        
+        print(f"📁 Carregando sinais de: {caminho_sinais} para zona '{nome_zona}'")
         
         if not os.path.exists(caminho_sinais):
             print(f"❌ Ficheiro de sinais não encontrado: {caminho_sinais}")
@@ -506,7 +525,7 @@ class ZonaReflexa(QGraphicsPolygonItem):
             
             # Procurar sinais para esta zona específica
             sinais_zona = dados_sinais.get(nome_zona, [])
-            print(f"✅ Carregados {len(sinais_zona)} sinais para zona '{nome_zona}'")
+            print(f"✅ Carregados {len(sinais_zona)} sinais para zona '{nome_zona}' do ficheiro {caminho_sinais}")
             return sinais_zona
             
         except Exception as e:
@@ -1089,10 +1108,10 @@ class IrisCanvas(QWidget):
         tipo = (tipo or "").lower()
         if tipo.startswith("esq"):
             json_path = 'assets/iris_esq.json'
-            sinais_path = 'assets/iris_esq.json'  # Sinais sempre do esquerdo
+            sinais_path = 'assets/iris_esq.json'  # ✅ CORREÇÃO: Sinais do esquerdo para esquerdo
         else:
             json_path = 'assets/iris_drt.json'
-            sinais_path = 'assets/iris_esq.json'  # 🔥 SINAIS sempre do esquerdo por enquanto
+            sinais_path = 'assets/iris_drt.json'  # ✅ CORREÇÃO: Sinais do direito para direito
         
         print(f"📁 Tentando carregar zonas: {json_path}")
         print(f"📁 Sinais serão carregados de: {sinais_path}")
@@ -1240,7 +1259,7 @@ class IrisCanvas(QWidget):
                     if lista_poligonos:  # Só processar se há polígonos
                         nome_zona = zona_raw.get('nome', 'Zona sem nome')
                         
-                        # 🔥 USAR sinais do iris_esq.json sempre
+                        # 🔥 USAR sinais do JSON correto para cada olho
                         sinais_zona = sinais_data.get(nome_zona, {})
                         print(f"🔍 Zona '{nome_zona}': {len(sinais_zona)} sinais encontrados")
                         
