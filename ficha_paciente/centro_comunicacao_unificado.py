@@ -31,6 +31,8 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, pyqtSignal, QTimer, QThread, pyqtSlot, QDateTime
 from PyQt6.QtGui import QFont, QPixmap, QIcon, QColor
 
+from biodesk_dialogs import mostrar_informacao, mostrar_aviso, mostrar_confirmacao
+
 # ✅ IMPORTAR SISTEMA DE ESTILOS
 try:
     from biodesk_styles import BiodeskStyles, ButtonType, DialogStyles
@@ -297,26 +299,26 @@ class DocumentosListWidget(QWidget):
             if pasta_paciente.exists():
                 os.startfile(str(pasta_paciente))
             else:
-                QMessageBox.warning(self, "Aviso", f"Pasta do paciente não encontrada:\n{pasta_paciente}")
+                BiodeskMessageBox.warning(self, "Aviso", f"Pasta do paciente não encontrada:\n{pasta_paciente}")
         except Exception as e:
-            QMessageBox.critical(self, "Erro", f"Erro ao abrir pasta:\n{e}")
+            BiodeskMessageBox.critical(self, "Erro", f"Erro ao abrir pasta:\n{e}")
     
     def abrir_ficheiro_selecionado(self):
         """Abrir ficheiro selecionado diretamente"""
         try:
             item_atual = self.lista_documentos.currentItem()
             if not item_atual:
-                QMessageBox.information(self, "Informação", "Seleccione um ficheiro para abrir.")
+                BiodeskMessageBox.information(self, "Informação", "Seleccione um ficheiro para abrir.")
                 return
             
             documento = item_atual.data(Qt.ItemDataRole.UserRole)
             if documento and os.path.exists(documento.caminho):
                 os.startfile(documento.caminho)
             else:
-                QMessageBox.warning(self, "Aviso", "Ficheiro não encontrado ou não selecionado.")
+                BiodeskMessageBox.warning(self, "Aviso", "Ficheiro não encontrado ou não selecionado.")
                 
         except Exception as e:
-            QMessageBox.critical(self, "Erro", f"Erro ao abrir ficheiro:\n{e}")
+            BiodeskMessageBox.critical(self, "Erro", f"Erro ao abrir ficheiro:\n{e}")
     
     def abrir_ficheiro_duplo_click(self, item):
         """Abrir ficheiro com duplo-click"""
@@ -325,10 +327,10 @@ class DocumentosListWidget(QWidget):
             if documento and os.path.exists(documento.caminho):
                 os.startfile(documento.caminho)
             else:
-                QMessageBox.warning(self, "Aviso", "Ficheiro não encontrado.")
+                BiodeskMessageBox.warning(self, "Aviso", "Ficheiro não encontrado.")
                 
         except Exception as e:
-            QMessageBox.critical(self, "Erro", f"Erro ao abrir ficheiro:\n{e}")
+            BiodeskMessageBox.critical(self, "Erro", f"Erro ao abrir ficheiro:\n{e}")
 
 
 class AnexosListWidget(QWidget):
@@ -842,7 +844,7 @@ Nuno Correia"""
             protocolos_selecionados = templates_widget.obter_protocolos_selecionados()
             
             if not protocolos_selecionados:
-                QMessageBox.warning(dialog, "Aviso", "Nenhum protocolo selecionado.")
+                BiodeskMessageBox.warning(dialog, "Aviso", "Nenhum protocolo selecionado.")
                 return
             
             # Gerar texto dos protocolos para o email
@@ -865,7 +867,7 @@ Nuno Correia"""
             dialog.accept()
             
         except Exception as e:
-            QMessageBox.critical(dialog, "Erro", f"Erro ao aplicar protocolos: {str(e)}")
+            BiodeskMessageBox.critical(dialog, "Erro", f"Erro ao aplicar protocolos: {str(e)}")
     
     def abrir_relatorio(self):
         """Abrir gerador de relatórios"""
@@ -1058,7 +1060,7 @@ Clínica Biodesk"""
             dialog.accept()
             
         except Exception as e:
-            QMessageBox.critical(dialog, "Erro", f"Erro ao gerar relatório: {str(e)}")
+            BiodeskMessageBox.critical(dialog, "Erro", f"Erro ao gerar relatório: {str(e)}")
     
     def salvar_email_local(self, destinatario: str, assunto: str, mensagem: str, anexos: List[str]):
         """Salvar email no histórico local quando sistema de email não está disponível"""
@@ -1123,7 +1125,7 @@ Clínica Biodesk"""
     def salvar_rascunho(self):
         """Salvar email como rascunho"""
         # TODO: Implementar salvamento de rascunho
-        QMessageBox.information(self, "Rascunho", "Rascunho salvo com sucesso!")
+        BiodeskMessageBox.information(self, "Rascunho", "Rascunho salvo com sucesso!")
     
     def enviar_email(self):
         """Enviar email usando opções dos radio buttons - padrão é envio imediato"""
@@ -1131,17 +1133,17 @@ Clínica Biodesk"""
             # Validações
             destinatario = self.campo_para.text().strip()
             if not destinatario:
-                QMessageBox.warning(self, "Erro", "Por favor, informe o destinatário.")
+                BiodeskMessageBox.warning(self, "Erro", "Por favor, informe o destinatário.")
                 return
             
             assunto = self.campo_assunto.text().strip()
             if not assunto:
-                QMessageBox.warning(self, "Erro", "Por favor, informe o assunto.")
+                BiodeskMessageBox.warning(self, "Erro", "Por favor, informe o assunto.")
                 return
             
             mensagem = self.campo_mensagem.toPlainText().strip()
             if not mensagem:
-                QMessageBox.warning(self, "Erro", "Por favor, digite a mensagem.")
+                BiodeskMessageBox.warning(self, "Erro", "Por favor, digite a mensagem.")
                 return
             
             # Verificar qual opção de agendamento foi selecionada (padrão é envio imediato)
@@ -1162,7 +1164,7 @@ Clínica Biodesk"""
                 self.processar_envio_imediato(destinatario, assunto, mensagem)
             
         except Exception as e:
-            QMessageBox.critical(self, "Erro", f"Erro ao preparar envio: {str(e)}")
+            BiodeskMessageBox.critical(self, "Erro", f"Erro ao preparar envio: {str(e)}")
     
     def agendar_rapido(self, dias):
         """Agendar email para X dias no futuro"""
@@ -1205,7 +1207,7 @@ Clínica Biodesk"""
             qt_datetime = datetime_edit.dateTime()
             data_envio = qt_datetime.toPython() if hasattr(qt_datetime, 'toPython') else qt_datetime.toPyDateTime()
             if data_envio <= datetime.now():
-                QMessageBox.warning(self, "Erro", "🕒 Data deve ser no futuro!")
+                BiodeskMessageBox.warning(self, "Erro", "🕒 Data deve ser no futuro!")
                 return
             
             self.processar_agendamento(data_envio)
@@ -1344,7 +1346,7 @@ Clínica Biodesk"""
             qt_datetime = datetime_edit.dateTime()
             data_envio = qt_datetime.toPython() if hasattr(qt_datetime, 'toPython') else qt_datetime.toPyDateTime()
             if data_envio <= datetime.now():
-                QMessageBox.warning(self, "Erro", "🕒 Data deve ser no futuro!")
+                BiodeskMessageBox.warning(self, "Erro", "🕒 Data deve ser no futuro!")
                 return
             
             self.processar_agendamento(data_envio)
@@ -1373,7 +1375,7 @@ Clínica Biodesk"""
             
             if resultado:
                 data_formatada = data_envio.strftime("%d/%m/%Y às %H:%M")
-                QMessageBox.information(
+                BiodeskMessageBox.information(
                     self, 
                     "✅ Email Agendado", 
                     f"� Email agendado com sucesso!\n\n"
@@ -1384,7 +1386,7 @@ Clínica Biodesk"""
                 self.limpar_formulario()
             
         except Exception as e:
-            QMessageBox.critical(self, "Erro", f"Erro ao agendar email: {str(e)}")
+            BiodeskMessageBox.critical(self, "Erro", f"Erro ao agendar email: {str(e)}")
     
     def processar_envio_imediato(self):
         """Processar envio imediato do email"""
@@ -1397,7 +1399,7 @@ Clínica Biodesk"""
             self.processar_envio_imediato_helper(destinatario, assunto, mensagem)
             
         except Exception as e:
-            QMessageBox.critical(self, "Erro", f"Erro no envio imediato: {str(e)}")
+            BiodeskMessageBox.critical(self, "Erro", f"Erro no envio imediato: {str(e)}")
     
     def processar_envio_imediato_helper(self, destinatario, assunto, mensagem):
         """Helper para processamento de envio imediato"""
@@ -1580,7 +1582,7 @@ Clínica Biodesk"""
             dialog.exec()
             
         except Exception as e:
-            QMessageBox.critical(self, "Erro", f"Erro ao mostrar histórico:\n{e}")
+            BiodeskMessageBox.critical(self, "Erro", f"Erro ao mostrar histórico:\n{e}")
     
     def abrir_gestao_agendamentos(self):
         """Abrir janela de gestão de emails agendados"""
@@ -1614,7 +1616,7 @@ Clínica Biodesk"""
                 janela_agendamentos.show()
                 
             except ImportError:
-                QMessageBox.warning(
+                BiodeskMessageBox.warning(
                     self,
                     "Sistema Indisponível",
                     "📅 Sistema de agendamento de emails não está disponível.\n\n"
@@ -1622,7 +1624,7 @@ Clínica Biodesk"""
                 )
                 
         except Exception as e:
-            QMessageBox.critical(
+            BiodeskMessageBox.critical(
                 self,
                 "Erro",
                 f"Erro ao abrir gestão de agendamentos:\n\n{str(e)}"
@@ -1651,7 +1653,7 @@ Clínica Biodesk"""
                 email_id = scheduler.agendar_email(dados_email)
                 
                 if email_id:
-                    QMessageBox.information(
+                    BiodeskMessageBox.information(
                         self,
                         "Email Agendado",
                         f"📅 Email agendado com sucesso!\n\n"
@@ -1669,14 +1671,14 @@ Clínica Biodesk"""
                     self.atualizar_anexos([])  # Limpar anexos
                     
                 else:
-                    QMessageBox.critical(
+                    BiodeskMessageBox.critical(
                         self,
                         "Erro",
                         "❌ Erro ao agendar email. Tente novamente."
                     )
                     
             except ImportError:
-                QMessageBox.warning(
+                BiodeskMessageBox.warning(
                     self,
                     "Sistema Indisponível",
                     "📅 Sistema de agendamento não está disponível.\n\n"
@@ -1687,7 +1689,7 @@ Clínica Biodesk"""
                 self.processar_envio_imediato(destinatario, assunto, mensagem)
                 
         except Exception as e:
-            QMessageBox.critical(
+            BiodeskMessageBox.critical(
                 self,
                 "Erro",
                 f"Erro ao agendar email:\n\n{str(e)}"
@@ -1714,7 +1716,7 @@ Clínica Biodesk"""
                     resultado = sucesso
                     
                     if resultado:
-                        QMessageBox.information(self, "Sucesso", "✅ Email enviado com sucesso!")
+                        BiodeskMessageBox.information(self, "Sucesso", "✅ Email enviado com sucesso!")
                         print(f"✅ EMAIL ENVIADO: {destinatario}")
                         
                         # Registrar no histórico
@@ -1728,11 +1730,11 @@ Clínica Biodesk"""
                         self.atualizar_anexos([])  # Limpar anexos
                         
                     else:
-                        QMessageBox.warning(self, "Erro", "❌ Falha no envio do email.")
+                        BiodeskMessageBox.warning(self, "Erro", "❌ Falha no envio do email.")
                         return
                         
                 except Exception as e:
-                    QMessageBox.critical(self, "Erro", f"❌ Erro no sistema de email: {str(e)}")
+                    BiodeskMessageBox.critical(self, "Erro", f"❌ Erro no sistema de email: {str(e)}")
                     return
             else:
                 # Modo simulação/fallback
@@ -1747,7 +1749,7 @@ Clínica Biodesk"""
                     self.salvar_email_local(destinatario, assunto, mensagem, self.anexos_caminhos)
                     # Registrar no histórico
                     self.registrar_email_historico(destinatario, assunto, mensagem, self.anexos_caminhos, False)
-                    QMessageBox.information(self, "Email Simulado", 
+                    BiodeskMessageBox.information(self, "Email Simulado", 
                                           "📧 Email simulado com sucesso!\n\n"
                                           "💡 Configure o sistema de email para envio real.\n"
                                           "📁 Email salvo no histórico local.")
@@ -1760,10 +1762,10 @@ Clínica Biodesk"""
                     self.atualizar_anexos([])  # Limpar anexos
                     
                 except Exception as e:
-                    QMessageBox.warning(self, "Aviso", f"Email simulado, mas erro ao salvar: {str(e)}")
+                    BiodeskMessageBox.warning(self, "Aviso", f"Email simulado, mas erro ao salvar: {str(e)}")
             
         except Exception as e:
-            QMessageBox.critical(self, "Erro", f"Erro no envio do email:\n\n{str(e)}")
+            BiodeskMessageBox.critical(self, "Erro", f"Erro no envio do email:\n\n{str(e)}")
 
 
 class CentroComunicacaoUnificado(QWidget):

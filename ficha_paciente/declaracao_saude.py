@@ -3951,7 +3951,7 @@ class DeclaracaoSaudeWidget(QWidget):
     
     def _mostrar_info_naturopatia(self):
         """Mostra informações sobre Naturopatia/Fitoterapia"""
-        QMessageBox.information(self, "🌿 Naturopatia / Fitoterapia / Suplementos", 
+        BiodeskMessageBox.information(self, "🌿 Naturopatia / Fitoterapia / Suplementos", 
             "📋 INFORMAÇÃO CLÍNICA:\n\n"
             "• Riscos/precauções: alergias/intolerâncias, queixas GI, alterações de sono/PA, "
             "interações com fármacos; restrições em gravidez/amamentação.\n\n"
@@ -3962,7 +3962,7 @@ class DeclaracaoSaudeWidget(QWidget):
     
     def _mostrar_info_osteopatia(self):
         """Mostra informações sobre Osteopatia"""
-        QMessageBox.information(self, "🤲 Osteopatia / Técnicas Manuais", 
+        BiodeskMessageBox.information(self, "🤲 Osteopatia / Técnicas Manuais", 
             "📋 INFORMAÇÃO CLÍNICA:\n\n"
             "• Riscos comuns: dor/rigidez transitória (24–48 h), tontura, cefaleia; "
             "raramente agravamento temporário.\n\n"
@@ -3974,7 +3974,7 @@ class DeclaracaoSaudeWidget(QWidget):
     
     def _mostrar_info_mesoterapia(self):
         """Mostra informações sobre Mesoterapia"""
-        QMessageBox.information(self, "💉 Mesoterapia (Homeopática)", 
+        BiodeskMessageBox.information(self, "💉 Mesoterapia (Homeopática)", 
             "📋 INFORMAÇÃO CLÍNICA:\n\n"
             "• Riscos: dor local, hematoma, infeção, reação alérgica/vasovagal; "
             "hiperpigmentação/eritema transitório; queloide em suscetíveis.\n\n"
@@ -3987,7 +3987,7 @@ class DeclaracaoSaudeWidget(QWidget):
     
     def _mostrar_info_medicina_quantica(self):
         """Mostra informações sobre Medicina Quântica"""
-        QMessageBox.information(self, "⚡ Medicina Quântica / Frequencial", 
+        BiodeskMessageBox.information(self, "⚡ Medicina Quântica / Frequencial", 
             "📋 INFORMAÇÃO CLÍNICA:\n\n"
             "• Precauções: pacemaker/DAI, neuroestimuladores, bombas de insulina; "
             "evitar aplicação direta sobre dispositivos/feridas; atenção em gravidez.\n\n"

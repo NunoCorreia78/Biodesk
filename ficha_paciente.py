@@ -1,4 +1,4 @@
-﻿
+
 # Imports essenciais para startup
 from pathlib import Path
 
@@ -6,6 +6,7 @@ from pathlib import Path
 from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QTabWidget, QLabel, QLineEdit, QTextEdit, QComboBox, QDateEdit, QPushButton, QScrollArea, QFrame, QApplication, QDialog, QListWidget, QListWidgetItem, QMessageBox
 from PyQt6.QtCore import Qt, QDate
 from PyQt6.QtGui import QShortcut, QKeySequence
+from biodesk_dialogs import BiodeskMessageBox
 
 # ✅ SISTEMA NOVO: BiodeskStyles v2.0 - Estilos centralizados
 try:
@@ -701,10 +702,10 @@ class FichaPaciente(QMainWindow):
                 
                 dialog.exec()
             else:
-                QMessageBox.warning(self, "Aviso", "Módulo de declaração de saúde não disponível")
+                BiodeskMessageBox.warning(self, "Aviso", "Módulo de declaração de saúde não disponível")
                 
         except Exception as e:
-            QMessageBox.critical(self, "Erro", f"Erro ao abrir declaração: {str(e)}")
+            BiodeskMessageBox.critical(self, "Erro", f"Erro ao abrir declaração: {str(e)}")
     
     def abrir_prescricao_popup(self):
         """Abrir prescrição médica como popup"""
@@ -740,9 +741,9 @@ class FichaPaciente(QMainWindow):
             dialog.exec()
             
         except ImportError:
-            QMessageBox.warning(self, "Aviso", "Módulo de prescrição médica não disponível")
+            BiodeskMessageBox.warning(self, "Aviso", "Módulo de prescrição médica não disponível")
         except Exception as e:
-            QMessageBox.critical(self, "Erro", f"Erro ao abrir prescrição: {str(e)}")
+            BiodeskMessageBox.critical(self, "Erro", f"Erro ao abrir prescrição: {str(e)}")
     
     def abrir_protocolo_popup(self):
         """Abrir protocolos como popup"""
@@ -792,18 +793,18 @@ class FichaPaciente(QMainWindow):
             dialog.exec()
             
         except ImportError:
-            QMessageBox.warning(self, "Aviso", "Módulo de protocolos não disponível")
+            BiodeskMessageBox.warning(self, "Aviso", "Módulo de protocolos não disponível")
         except Exception as e:
-            QMessageBox.critical(self, "Erro", f"Erro ao abrir protocolos: {str(e)}")
+            BiodeskMessageBox.critical(self, "Erro", f"Erro ao abrir protocolos: {str(e)}")
     
     def salvar_declaracao(self, declaracao_widget, dialog):
         """Salvar declaração de saúde"""
         try:
             # Implementar lógica de salvamento
-            QMessageBox.information(dialog, "Sucesso", "Declaração de saúde salva com sucesso!")
+            BiodeskMessageBox.information(dialog, "Sucesso", "Declaração de saúde salva com sucesso!")
             dialog.accept()
         except Exception as e:
-            QMessageBox.critical(dialog, "Erro", f"Erro ao salvar declaração: {str(e)}")
+            BiodeskMessageBox.critical(dialog, "Erro", f"Erro ao salvar declaração: {str(e)}")
     
     def aplicar_protocolo_historico(self, templates_widget, dialog):
         """Aplicar protocolos selecionados ao histórico"""
@@ -815,12 +816,12 @@ class FichaPaciente(QMainWindow):
                 if hasattr(self.historico_widget, 'adicionar_entrada'):
                     self.historico_widget.adicionar_entrada(texto_protocolos)
                 
-                QMessageBox.information(dialog, "Sucesso", f"{len(protocolos)} protocolo(s) aplicado(s) ao histórico!")
+                BiodeskMessageBox.information(dialog, "Sucesso", f"{len(protocolos)} protocolo(s) aplicado(s) ao histórico!")
                 dialog.accept()
             else:
-                QMessageBox.warning(dialog, "Aviso", "Nenhum protocolo selecionado ou histórico não disponível")
+                BiodeskMessageBox.warning(dialog, "Aviso", "Nenhum protocolo selecionado ou histórico não disponível")
         except Exception as e:
-            QMessageBox.critical(dialog, "Erro", f"Erro ao aplicar protocolos: {str(e)}")
+            BiodeskMessageBox.critical(dialog, "Erro", f"Erro ao aplicar protocolos: {str(e)}")
         """
         📋 DOCUMENTAÇÃO CLÍNICA
         - Dados Pessoais
@@ -1376,7 +1377,6 @@ class FichaPaciente(QMainWindow):
         try:
             # Verificar se há dados do paciente carregados
             if not hasattr(self, 'paciente_data') or not self.paciente_data:
-                from biodesk_styled_dialogs import BiodeskMessageBox
                 BiodeskMessageBox.warning(self, "Aviso", "Selecione um paciente primeiro.")
                 return
             
@@ -1384,14 +1384,12 @@ class FichaPaciente(QMainWindow):
             patient_email = self.paciente_data.get('email', '').strip()
             
             if not patient_email:
-                from biodesk_styled_dialogs import BiodeskMessageBox
                 BiodeskMessageBox.warning(self, "Aviso", "Paciente não tem email configurado.\n\nPor favor, adicione um email na ficha do paciente.")
                 return
             
             # Obter dados da prescrição
             template_texto = self.template_preview.toPlainText()
             if not template_texto or "Selecione um template" in template_texto:
-                from biodesk_styled_dialogs import BiodeskMessageBox
                 BiodeskMessageBox.warning(self, "Aviso", "Selecione um template de prescrição primeiro.")
                 return
             
@@ -1542,7 +1540,6 @@ Equipe Médica"""
             )
             
             if sucesso:
-                from biodesk_styled_dialogs import BiodeskMessageBox
                 BiodeskMessageBox.information(self, "Sucesso", "✅ Prescrição enviada com sucesso!\n\nO PDF profissional foi enviado para o email do paciente.")
                 
                 # Mostrar PDF gerado no visualizador integrado
@@ -1561,14 +1558,19 @@ Equipe Médica"""
                 
                 threading.Thread(target=cleanup, daemon=True).start()
             else:
-                from biodesk_styled_dialogs import BiodeskMessageBox
-                BiodeskMessageBox.critical(self, "Erro", f"❌ Erro ao enviar prescrição:\n\n{mensagem}")
+                QMessageBox.critical(
+            self,
+            "Erro",
+            f"❌ Erro ao enviar prescrição:\n\n{mensagem}"
+        )
                 
         except ImportError:
-            from biodesk_styled_dialogs import BiodeskMessageBox
-            BiodeskMessageBox.warning(self, "Dependência", "📦 Biblioteca reportlab não encontrada.\n\n▶️ Instale com: pip install reportlab")
+            QMessageBox.warning(
+            self,
+            "Dependência",
+            "📦 Biblioteca reportlab não encontrada.\n\n▶️ Instale com: pip install reportlab"
+        )
         except Exception as e:
-            from biodesk_styled_dialogs import BiodeskMessageBox
             BiodeskMessageBox.critical(self, "Erro", f"❌ Erro inesperado ao enviar prescrição:\n\n{str(e)}")
             print(f"[ERRO] Erro ao enviar prescrição: {e}")
 
@@ -1595,7 +1597,7 @@ Equipe Médica"""
         try:
             from PyQt6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QListWidget, QTextEdit, QPushButton, QLabel, QListWidgetItem, QMessageBox
             from PyQt6.QtCore import Qt
-            from biodesk_styled_dialogs import BiodeskDialog
+            from biodesk_dialogs import BiodeskDialog
             
             # Obter nome do paciente
             nome_paciente = getattr(self, 'nome_paciente', self.paciente_data.get('nome', 'Paciente') if self.paciente_data else 'Paciente')
@@ -1807,7 +1809,11 @@ Equipe Médica"""
                     
                     dialog.accept()
                 else:
-                    QMessageBox.warning(dialog, "Aviso", "Selecione um template primeiro.")
+                    QMessageBox.warning(
+            dialog,
+            "Aviso",
+            "Selecione um template primeiro."
+        )
             
             btn_usar.clicked.connect(usar_template)
             
@@ -1825,7 +1831,7 @@ Equipe Médica"""
             
         except Exception as e:
             from PyQt6.QtWidgets import QMessageBox
-            QMessageBox.warning(self, "Erro", f"Erro ao abrir templates: {str(e)}")
+            BiodeskMessageBox.warning(self, "Erro", f"Erro ao abrir templates: {str(e)}")
             print(f"❌ [TEMPLATES] Erro: {e}")
 
     def selecionar_pdf_e_mostrar_visualizador(self, template_data):
@@ -2159,7 +2165,7 @@ Naturopata | Osteopata | Medicina Quântica
             
         except Exception as e:
             from PyQt6.QtWidgets import QMessageBox
-            QMessageBox.warning(self, "Erro", f"Erro ao abrir templates: {str(e)}")
+            BiodeskMessageBox.warning(self, "Erro", f"Erro ao abrir templates: {str(e)}")
             print(f"[TEMPLATE] ❌ Erro: {e}")
 
     def enviar_mensagem(self):
@@ -2947,8 +2953,11 @@ Naturopata | Osteopata | Medicina Quântica
         params = (dados['nome'], dados['data_nascimento'])
         duplicados = db.execute_query(query, params)
         if duplicados and (not ('id' in dados and duplicados[0].get('id') == dados['id'])):
-            from biodesk_styled_dialogs import BiodeskMessageBox
-            BiodeskMessageBox.warning(self, "Duplicado", "Já existe um utente com este nome e data de nascimento.")
+            QMessageBox.warning(
+            self,
+            "Duplicado",
+            "Já existe um utente com este nome e data de nascimento."
+        )
             return
             
         novo_id = db.save_or_update_paciente(dados)
@@ -2961,11 +2970,17 @@ Naturopata | Osteopata | Medicina Quântica
             self.paciente_data.update(dados)
             self.setWindowTitle(dados['nome'])
             self.dirty = False
-            from biodesk_styled_dialogs import BiodeskMessageBox
-            BiodeskMessageBox.information(self, "Sucesso", "Utente guardado com sucesso!")
+            QMessageBox.information(
+            self,
+            "Sucesso",
+            "Utente guardado com sucesso!"
+        )
         else:
-            from biodesk_styled_dialogs import BiodeskMessageBox
-            BiodeskMessageBox.warning(self, "Erro", "Erro ao guardar utente.")
+            QMessageBox.warning(
+            self,
+            "Erro",
+            "Erro ao guardar utente."
+        )
 
     @staticmethod
     def mostrar_seletor(callback, parent=None):
@@ -3020,7 +3035,7 @@ Naturopata | Osteopata | Medicina Quântica
     def schedule_followup_consulta(self):
         """REMOVIDO: Agendamento de follow-up movido para comunicacao_manager.py"""
         from PyQt6.QtWidgets import QMessageBox
-        QMessageBox.information(self, "Follow-up", 
+        BiodeskMessageBox.information(self, "Follow-up", 
                               "O sistema de follow-up foi integrado no Centro de Comunicação.\n"
                               "Use a aba 'Comunicação' para agendar follow-ups.")
         return
@@ -3151,7 +3166,11 @@ Naturopata | Osteopata | Medicina Quântica
     def listar_followups_agendados(self):
         """Lista todos os follow-ups agendados e enviados para este paciente."""
         if not hasattr(self, 'scheduler') or not self.scheduler:
-            QMessageBox.warning(self, "Erro", "Sistema de agendamento não disponível.")
+            QMessageBox.warning(
+            self,
+            "Erro",
+            "Sistema de agendamento não disponível."
+        )
             return
             
         paciente_id = self.paciente_data.get('id')
@@ -3240,8 +3259,11 @@ Naturopata | Osteopata | Medicina Quântica
         # Verificar se há dados para mostrar
         total_emails = len(followups_enviados) + len(emails_enviados)
         if not jobs_agendados and total_emails == 0:
-            QMessageBox.information(self, "📧 Emails & Follow-ups", 
-                "Não há follow-ups agendados nem emails enviados para este paciente.")
+            QMessageBox.information(
+            self,
+            "📧 Emails & Follow-ups",
+            "Não há follow-ups agendados nem emails enviados para este paciente."
+        )
             return
             
         # Criar dialog melhorado
@@ -3285,7 +3307,7 @@ Naturopata | Osteopata | Medicina Quântica
                     try:
                         self.scheduler.remove_job(job_id)
                         lista_agendados.takeItem(lista_agendados.row(item))
-                        QMessageBox.information(dialog, "✅ Sucesso", "Follow-up cancelado com sucesso.")
+                        BiodeskMessageBox.information(dialog, "✅ Sucesso", "Follow-up cancelado com sucesso.")
                         
                         # Se não há mais jobs, atualizar label
                         if lista_agendados.count() == 0:
@@ -3293,7 +3315,11 @@ Naturopata | Osteopata | Medicina Quântica
                             btn_cancelar.setEnabled(False)
                             
                     except Exception as e:
-                        QMessageBox.warning(dialog, "❌ Erro", f"Erro ao cancelar: {e}")
+                        QMessageBox.warning(
+            dialog,
+            "❌ Erro",
+            f"Erro ao cancelar: {e}"
+        )
             
             btn_cancelar.clicked.connect(cancelar_job)
             layout_agendados.addWidget(btn_cancelar)
@@ -3392,12 +3418,14 @@ Naturopata | Osteopata | Medicina Quântica
             pass
             
         if getattr(self, 'dirty', False):
-            from biodesk_styled_dialogs import BiodeskMessageBox
-            if not BiodeskMessageBox.question(
-                self,
-                "Alterações por guardar",
-                "Existem alterações não guardadas. Deseja sair sem guardar?"
-            ):
+            reply = QMessageBox.question(
+            self,
+            "Alterações por guardar",
+            "Existem alterações não guardadas. Deseja sair sem guardar?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No
+        )
+            if reply != QMessageBox.StandardButton.Yes:
                 event.ignore()
                 return
         event.accept()

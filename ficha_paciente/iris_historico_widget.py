@@ -17,6 +17,7 @@ Painel lateral que mostra análises por data com formatação clara.
 
 from typing import Dict, Any, List
 from PyQt6.QtWidgets import *
+from biodesk_dialogs import BiodeskMessageBox
 from PyQt6.QtCore import *
 from PyQt6.QtGui import *
 from datetime import datetime
@@ -376,7 +377,7 @@ class IrisHistoricoWidget(QWidget):
     
     def limpar_historico(self):
         """Limpa todo o histórico de análises"""
-        reply = QMessageBox.question(
+        reply = BiodeskMessageBox.question(
             self, 
             "Confirmar Limpeza",
             "Tem certeza que deseja limpar todo o histórico de análises da íris?\n\nEsta ação não pode ser desfeita.",
@@ -393,7 +394,7 @@ class IrisHistoricoWidget(QWidget):
     def exportar_analises(self):
         """Exporta análises para arquivo"""
         if not self.analises_dados:
-            QMessageBox.information(self, "Exportar", "Não há análises para exportar.")
+            BiodeskMessageBox.information(self, "Exportar", "Não há análises para exportar.")
             return
         
         # Diálogo para escolher arquivo
@@ -423,11 +424,11 @@ class IrisHistoricoWidget(QWidget):
                             f.write(f"   {analise['notas']}\n")
                         f.write("\n")
                 
-                QMessageBox.information(self, "Exportar", f"Análises exportadas com sucesso para:\n{filename}")
+                BiodeskMessageBox.information(self, "Exportar", f"Análises exportadas com sucesso para:\n{filename}")
                 print(f"📤 Análises exportadas para: {filename}")
                 
             except Exception as e:
-                QMessageBox.critical(self, "Erro", f"Erro ao exportar análises:\n{str(e)}")
+                BiodeskMessageBox.critical(self, "Erro", f"Erro ao exportar análises:\n{str(e)}")
                 print(f"❌ Erro ao exportar análises: {e}")
     
     def set_paciente_id(self, paciente_id: str):

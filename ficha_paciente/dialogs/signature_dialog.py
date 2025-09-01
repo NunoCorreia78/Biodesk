@@ -126,7 +126,11 @@ class SignatureDialog(QDialog):
         except Exception as e:
             print(f"[ERRO] Erro ao importar assinado: {e}")
             from PyQt6.QtWidgets import QMessageBox
-            QMessageBox.warning(self, "Erro", f"Erro ao importar documento:\n{str(e)}")
+            QMessageBox.warning(
+            self,
+            "Erro",
+            f"Erro ao importar documento:\n{str(e
+        )}")
     
     @staticmethod
     def abrir_dialog(arquivo_temp: str, arquivo_final: str, 

@@ -132,7 +132,11 @@ class TemplateDialog(QDialog):
             
             self.accept()
         else:
-            QMessageBox.warning(self, "Aviso", "Selecione um template primeiro.")
+            QMessageBox.warning(
+            self,
+            "Aviso",
+            "Selecione um template primeiro."
+        )
     
     def get_template_texto(self) -> Optional[str]:
         """Retorna o texto do template selecionado"""

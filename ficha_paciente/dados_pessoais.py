@@ -40,7 +40,7 @@ except ImportError as e:
 from biodesk_ui_kit import BiodeskUIKit
 from modern_date_widget import ModernDateWidget
 from data_cache import DataCache
-from biodesk_styled_dialogs import BiodeskStyledDialog, BiodeskMessageBox
+from biodesk_dialogs import BiodeskMessageBox
 
 
 class DadosPessoaisWidget(QWidget):

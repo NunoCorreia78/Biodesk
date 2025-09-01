@@ -14,6 +14,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, QDateTime, QTimer, pyqtSignal
 from PyQt6.QtGui import QFont, QIcon, QColor
 from datetime import datetime, timedelta
+from biodesk_dialogs import mostrar_informacao, mostrar_aviso, mostrar_confirmacao
 from typing import List, Dict, Any, Optional
 import json
 import os
@@ -219,17 +220,17 @@ class EmailAgendamentoDialog(QDialog):
         """Processar agendamento do email"""
         # Validar campos obrigatórios
         if not self.edit_email.text().strip():
-            QMessageBox.warning(self, "Aviso", "📧 Email é obrigatório!")
+            BiodeskMessageBox.warning(self, "Aviso", "📧 Email é obrigatório!")
             return
         
         if not self.edit_assunto.text().strip():
-            QMessageBox.warning(self, "Aviso", "📝 Assunto é obrigatório!")
+            BiodeskMessageBox.warning(self, "Aviso", "📝 Assunto é obrigatório!")
             return
         
         # Validar data
         data_envio = self.datetime_envio.dateTime().toPython()
         if data_envio <= datetime.now():
-            QMessageBox.warning(self, "Aviso", "🕒 Data de envio deve ser no futuro!")
+            BiodeskMessageBox.warning(self, "Aviso", "🕒 Data de envio deve ser no futuro!")
             return
         
         # Preparar dados
@@ -451,17 +452,17 @@ class EmailsAgendadosWidget(QWidget):
             email_id = self.scheduler.agendar_email(dados)
             
             if email_id:
-                QMessageBox.information(self, "Sucesso", "📅 Email agendado com sucesso!")
+                BiodeskMessageBox.information(self, "Sucesso", "📅 Email agendado com sucesso!")
                 self.atualizar_tabela()
                 self.email_agendado.emit(dados)
             else:
-                QMessageBox.critical(self, "Erro", "❌ Erro ao agendar email!")
+                BiodeskMessageBox.critical(self, "Erro", "❌ Erro ao agendar email!")
     
     def editar_email(self):
         """Editar email selecionado"""
         row = self.tabela.currentRow()
         if row < 0:
-            QMessageBox.warning(self, "Aviso", "Selecione um email para editar!")
+            BiodeskMessageBox.warning(self, "Aviso", "Selecione um email para editar!")
             return
         
         email_id = self.tabela.item(row, 0).data(Qt.ItemDataRole.UserRole)
@@ -474,11 +475,11 @@ class EmailsAgendadosWidget(QWidget):
                 break
         
         if not email_data:
-            QMessageBox.warning(self, "Erro", "Email não encontrado!")
+            BiodeskMessageBox.warning(self, "Erro", "Email não encontrado!")
             return
         
         if email_data.get("status") != "agendado":
-            QMessageBox.warning(self, "Aviso", "Apenas emails agendados podem ser editados!")
+            BiodeskMessageBox.warning(self, "Aviso", "Apenas emails agendados podem ser editados!")
             return
         
         dialog = EmailAgendamentoDialog(self, email_data)
@@ -490,22 +491,22 @@ class EmailsAgendadosWidget(QWidget):
             novo_id = self.scheduler.agendar_email(dados)
             
             if novo_id:
-                QMessageBox.information(self, "Sucesso", "📝 Email atualizado com sucesso!")
+                BiodeskMessageBox.information(self, "Sucesso", "📝 Email atualizado com sucesso!")
                 self.atualizar_tabela()
             else:
-                QMessageBox.critical(self, "Erro", "❌ Erro ao atualizar email!")
+                BiodeskMessageBox.critical(self, "Erro", "❌ Erro ao atualizar email!")
     
     def cancelar_email(self):
         """Cancelar email selecionado"""
         row = self.tabela.currentRow()
         if row < 0:
-            QMessageBox.warning(self, "Aviso", "Selecione um email para cancelar!")
+            BiodeskMessageBox.warning(self, "Aviso", "Selecione um email para cancelar!")
             return
         
         email_id = self.tabela.item(row, 0).data(Qt.ItemDataRole.UserRole)
         assunto = self.tabela.item(row, 3).text()  # Coluna 3 = Assunto
         
-        resp = QMessageBox.question(
+        resp = BiodeskMessageBox.question(
             self,
             "Confirmar Cancelamento",
             f"Cancelar email '{assunto}'?",
@@ -514,11 +515,11 @@ class EmailsAgendadosWidget(QWidget):
         
         if resp == QMessageBox.StandardButton.Yes:
             if self.scheduler.cancelar_email(email_id):
-                QMessageBox.information(self, "Sucesso", "❌ Email cancelado!")
+                BiodeskMessageBox.information(self, "Sucesso", "❌ Email cancelado!")
                 self.atualizar_tabela()
                 self.email_cancelado.emit(email_id)
             else:
-                QMessageBox.critical(self, "Erro", "❌ Erro ao cancelar email!")
+                BiodeskMessageBox.critical(self, "Erro", "❌ Erro ao cancelar email!")
     
     def carregar_historico_completo(self):
         """Carregar histórico completo de emails enviados"""
