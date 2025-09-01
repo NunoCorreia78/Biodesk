@@ -654,8 +654,6 @@ class MainWindow(QMainWindow):
         try:
             if self._patients_panel is None:
                 self._patients_panel = PatientsPanel(self)
-                self._patients_panel.selectRequested.connect(self.abrir_lista_pacientes)
-                self._patients_panel.newRequested.connect(self.abrir_ficha_nova)
 
             # Calcular posição usando coordenadas da janela principal diretamente
             btn_geom = anchor_btn.geometry()
@@ -851,9 +849,6 @@ class MainWindow(QMainWindow):
 
 
 class PatientsPanel(QDialog):
-    from PyQt6.QtCore import pyqtSignal
-    selectRequested = pyqtSignal()
-    newRequested = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -912,32 +907,23 @@ class PatientsPanel(QDialog):
             container.setStyleSheet("QFrame { background: white; border: 1px solid gray; border-radius: 10px; }")
 
         # Layout horizontal para os dois pills lado a lado com mais espaçamento
-        layout = QHBoxLayout(container)
+        layout = QVBoxLayout(container)
         layout.setContentsMargins(16, 12, 16, 12)
-        layout.setSpacing(16)
-
-        # Pill 1: Selecionar Paciente - usando BiodeskStyles
-        if BiodeskStyles:
-            btn_select = BiodeskStyles.create_button("🔍 Selecionar", ButtonType.NAVIGATION)
-        else:
-            btn_select = QPushButton("🔍\nSelecionar")
-
-        # Pill 2: Novo Paciente - usando BiodeskStyles
-        if BiodeskStyles:
-            btn_new = BiodeskStyles.create_button("➕ Novo", ButtonType.SAVE)
-        else:
-            btn_new = QPushButton("➕\nNovo")
+        layout.setSpacing(8)
         
-        # Conectar sinais
-        btn_select.clicked.connect(self.selectRequested.emit)
-        btn_new.clicked.connect(self.newRequested.emit)
-        
-        # Fechar painel após clique com pequeno delay para melhor UX
-        btn_select.clicked.connect(lambda: self.close_with_delay())
-        btn_new.clicked.connect(lambda: self.close_with_delay())
-
-        layout.addWidget(btn_select)
-        layout.addWidget(btn_new)
+        # Título do painel
+        title_label = QLabel("Fichas de Pacientes")
+        title_label.setStyleSheet("""
+            QLabel {
+                font-size: 14px;
+                font-weight: bold;
+                color: #2c3e50;
+                padding: 8px;
+                text-align: center;
+            }
+        """)
+        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(title_label)
 
         # Sombra elegante para transparência
         try:
