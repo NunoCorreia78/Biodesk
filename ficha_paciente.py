@@ -83,6 +83,7 @@ class FichaPaciente(QMainWindow):
             'dados_pessoais': False,  # Será carregado imediatamente
             'historico': False,
             'irisdiagnose': False,
+            'terapia_quantica': False,
             'centro_comunicacao': False
         }
         
@@ -368,16 +369,18 @@ class FichaPaciente(QMainWindow):
         main_layout.setContentsMargins(10, 10, 10, 10)
         main_layout.setSpacing(10)
         
-        # ====== NOVA ESTRUTURA SIMPLIFICADA: 4 ABAS PRINCIPAIS ======
+        # ====== NOVA ESTRUTURA SIMPLIFICADA: 5 ABAS PRINCIPAIS ======
         self.tabs = QTabWidget()
         self.tab_dados_pessoais = QWidget()
         self.tab_historico = QWidget()
         self.tab_irisdiagnose = QWidget()
+        self.tab_terapia_quantica = QWidget()
         self.tab_centro_comunicacao = QWidget()
         
         self.tabs.addTab(self.tab_dados_pessoais, '👤 DADOS PESSOAIS')
         self.tabs.addTab(self.tab_historico, '🏥 HISTÓRICO')
         self.tabs.addTab(self.tab_irisdiagnose, '👁️ IRISDIAGNOSE')
+        self.tabs.addTab(self.tab_terapia_quantica, '⚛️ TERAPIA QUÂNTICA')
         self.tabs.addTab(self.tab_centro_comunicacao, '📧 CENTRO DE COMUNICAÇÃO')
         
         main_layout.addWidget(self.tabs)
@@ -427,7 +430,11 @@ class FichaPaciente(QMainWindow):
                 self.init_tab_irisdiagnose()
                 self._tabs_loaded['irisdiagnose'] = True
                 
-            elif index == 3 and not self._tabs_loaded.get('centro_comunicacao', False):
+            elif index == 3 and not self._tabs_loaded.get('terapia_quantica', False):
+                self.init_tab_terapia_quantica()
+                self._tabs_loaded['terapia_quantica'] = True
+                
+            elif index == 4 and not self._tabs_loaded.get('centro_comunicacao', False):
                 self.init_tab_centro_comunicacao()
                 self._tabs_loaded['centro_comunicacao'] = True
             
@@ -631,6 +638,49 @@ class FichaPaciente(QMainWindow):
         print(f"✅ Processamento da zona {zona} concluído")
         
         print("✅ Irisdiagnose interface criada (carregamento sob demanda)")
+    
+    def init_tab_terapia_quantica(self):
+        """⚛️ TERAPIA QUÂNTICA - Sistema de medicina energética"""
+        layout = QVBoxLayout(self.tab_terapia_quantica)
+        layout.setContentsMargins(10, 10, 10, 10)
+        layout.setSpacing(15)
+        
+        try:
+            # Importar e carregar sistema de Terapia Quântica
+            from terapia_quantica_window import TerapiaQuanticaWindow
+            
+            # Criar interface de Terapia Quântica para este paciente
+            self.terapia_quantica_widget = TerapiaQuanticaWindow(
+                paciente_data=self.paciente_data,
+                parent=self,
+                modo_integrado=True  # Modo integrado na ficha do paciente
+            )
+            
+            # Adicionar ao layout
+            layout.addWidget(self.terapia_quantica_widget)
+            
+            print("✅ Sistema de Terapia Quântica carregado para paciente")
+            
+        except Exception as e:
+            print(f"⚠️ Erro ao carregar Terapia Quântica: {e}")
+            
+            # Interface de fallback
+            erro_label = QLabel("⚠️ Sistema de Terapia Quântica temporariamente indisponível")
+            erro_label.setStyleSheet("""
+                QLabel {
+                    color: #666;
+                    font-size: 14px;
+                    padding: 20px;
+                    text-align: center;
+                }
+            """)
+            layout.addWidget(erro_label)
+            
+            # Botão para tentar recarregar
+            botao_recarregar = QPushButton("🔄 Tentar Novamente")
+            botao_recarregar.clicked.connect(lambda: self.init_tab_terapia_quantica())
+            botao_recarregar.setMaximumWidth(200)
+            layout.addWidget(botao_recarregar, alignment=Qt.AlignmentFlag.AlignCenter)
     
     def init_tab_centro_comunicacao(self):
         """📧 CENTRO DE COMUNICAÇÃO - Email e documentos"""

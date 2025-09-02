@@ -435,6 +435,238 @@ class BiodeskStyles:
         cls._apply_shadow(button)
         button.setProperty("button_type", button_type.value)
 
+    @staticmethod
+    def get_terapia_quantica_style():
+        """Estilo específico para a interface de Terapia Quântica"""
+        return """
+        /* Terapia Quântica - Estilo Principal */
+        
+        QWidget {
+            background-color: #f5f5f5;
+            font-family: "Segoe UI", Arial, sans-serif;
+            font-size: 12px;
+        }
+        
+        #headerFrame {
+            background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                                      stop:0 #4a90e2, stop:1 #357abd);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        
+        #titleLabel {
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        #subtitleLabel {
+            color: #e6f3ff;
+            font-size: 12px;
+        }
+        
+        #tabWidget {
+            background-color: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+        }
+        
+        #tabWidget QTabBar::tab {
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                      stop:0 #f8f9fa, stop:1 #e9ecef);
+            border: 1px solid #dee2e6;
+            border-bottom: none;
+            border-top-left-radius: 6px;
+            border-top-right-radius: 6px;
+            padding: 10px 16px;
+            margin-right: 2px;
+            color: #495057;
+            font-weight: 500;
+            min-width: 100px;
+        }
+        
+        #tabWidget QTabBar::tab:selected {
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                      stop:0 #ffffff, stop:1 #f8f9fa);
+            border-bottom: 2px solid #4a90e2;
+            color: #212529;
+        }
+        
+        #tabWidget QTabBar::tab:hover {
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                      stop:0 #ffffff, stop:1 #f0f0f0);
+        }
+        
+        QPushButton {
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                      stop:0 #f8f9fa, stop:1 #e9ecef);
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 8px 16px;
+            color: #495057;
+            font-weight: 500;
+            min-height: 20px;
+        }
+        
+        QPushButton:hover {
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                      stop:0 #ffffff, stop:1 #f8f9fa);
+            border: 1px solid #adb5bd;
+            color: #212529;
+        }
+        
+        QPushButton:pressed {
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                      stop:0 #e9ecef, stop:1 #dee2e6);
+        }
+        
+        QPushButton:disabled {
+            background: #f8f9fa;
+            color: #6c757d;
+            border: 1px solid #e9ecef;
+        }
+        
+        QTextEdit, QPlainTextEdit {
+            background-color: white;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 8px;
+            font-family: "Segoe UI", Arial, sans-serif;
+            font-size: 12px;
+            color: #495057;
+        }
+        
+        QTextEdit:focus, QPlainTextEdit:focus {
+            border: 2px solid #4a90e2;
+        }
+        
+        QLineEdit {
+            background-color: white;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 8px;
+            font-size: 12px;
+            color: #495057;
+        }
+        
+        QLineEdit:focus {
+            border: 2px solid #4a90e2;
+        }
+        
+        QComboBox {
+            background-color: white;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 6px 12px;
+            font-size: 12px;
+            color: #495057;
+            min-height: 20px;
+        }
+        
+        QComboBox:hover {
+            border: 1px solid #adb5bd;
+        }
+        
+        QComboBox:focus {
+            border: 2px solid #4a90e2;
+        }
+        
+        QComboBox::drop-down {
+            border: none;
+            background: transparent;
+            width: 20px;
+        }
+        
+        QComboBox::down-arrow {
+            image: none;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-top: 4px solid #6c757d;
+            margin-top: 2px;
+        }
+        
+        QLabel {
+            color: #495057;
+            font-size: 12px;
+        }
+        
+        QGroupBox {
+            font-weight: bold;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            margin: 10px 0;
+            padding-top: 15px;
+            background-color: white;
+        }
+        
+        QGroupBox::title {
+            subcontrol-origin: margin;
+            left: 10px;
+            padding: 0 5px 0 5px;
+            color: #495057;
+        }
+        
+        QScrollArea {
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            background-color: white;
+        }
+        
+        QScrollBar:vertical {
+            background: #f8f9fa;
+            width: 12px;
+            border-radius: 6px;
+        }
+        
+        QScrollBar::handle:vertical {
+            background: #6c757d;
+            border-radius: 6px;
+            min-height: 20px;
+        }
+        
+        QScrollBar::handle:vertical:hover {
+            background: #495057;
+        }
+        
+        QProgressBar {
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+            text-align: center;
+            color: #495057;
+            font-weight: bold;
+        }
+        
+        QProgressBar::chunk {
+            background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                                      stop:0 #4a90e2, stop:1 #357abd);
+            border-radius: 3px;
+        }
+        
+        #resultFrame {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 10px;
+            margin: 5px;
+        }
+        
+        #statusFrame {
+            background-color: #f0f0f0;
+            border-top: 1px solid #e0e0e0;
+            padding: 8px;
+        }
+        
+        #infoLabel {
+            background-color: #e8f4fd;
+            border: 1px solid #bee5eb;
+            border-radius: 6px;
+            padding: 10px;
+            color: #0c5460;
+        }
+        """
+
 # Estilo para diálogos profissionais e sóbrios
 class DialogStyles:
     """Estilos para caixas de diálogo profissionais"""
@@ -552,6 +784,165 @@ class DialogStyles:
             dialog.setGraphicsEffect(shadow)
         except Exception as e:
             print(f"⚠️ Aviso: Não foi possível aplicar sombra ao diálogo: {e}")
+
+    @staticmethod
+    def get_terapia_quantica_style():
+        """Estilo específico para a interface de Terapia Quântica"""
+        return """
+        /* Terapia Quântica - Estilo Principal */
+        
+        QWidget {
+            background-color: #f5f5f5;
+            font-family: "Segoe UI", Arial, sans-serif;
+            font-size: 12px;
+        }
+        
+        #headerFrame {
+            background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                                      stop:0 #4a90e2, stop:1 #357abd);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        
+        #titleLabel {
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        #statusLabel {
+            color: white;
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        #mainTabs::pane {
+            border: 1px solid #c0c0c0;
+            border-radius: 8px;
+            background-color: white;
+        }
+        
+        #mainTabs::tab-bar {
+            alignment: center;
+        }
+        
+        QTabBar::tab {
+            background: #e0e0e0;
+            border: 1px solid #c0c0c0;
+            padding: 8px 16px;
+            margin-right: 2px;
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+        }
+        
+        QTabBar::tab:selected {
+            background: #4a90e2;
+            color: white;
+        }
+        
+        QTabBar::tab:hover {
+            background: #b0c4de;
+        }
+        
+        #controlFrame {
+            background-color: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 10px;
+            margin: 5px;
+        }
+        
+        #sectionTitle {
+            font-size: 14px;
+            font-weight: bold;
+            color: #4a90e2;
+            margin-bottom: 10px;
+        }
+        
+        QPushButton {
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 16px;
+            font-weight: bold;
+        }
+        
+        QPushButton:hover {
+            background-color: #357abd;
+        }
+        
+        QPushButton:pressed {
+            background-color: #2a5a8a;
+        }
+        
+        QPushButton:disabled {
+            background-color: #cccccc;
+            color: #666666;
+        }
+        
+        QTableWidget {
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            gridline-color: #f0f0f0;
+            background-color: white;
+        }
+        
+        QTableWidget::item {
+            padding: 8px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        QTableWidget::item:selected {
+            background-color: #e3f2fd;
+        }
+        
+        QHeaderView::section {
+            background-color: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            padding: 8px;
+            font-weight: bold;
+        }
+        
+        QLineEdit, QSpinBox, QDoubleSpinBox, QComboBox {
+            border: 1px solid #c0c0c0;
+            border-radius: 4px;
+            padding: 6px;
+            background-color: white;
+        }
+        
+        QLineEdit:focus, QSpinBox:focus, QDoubleSpinBox:focus, QComboBox:focus {
+            border-color: #4a90e2;
+        }
+        
+        QProgressBar {
+            border: 1px solid #c0c0c0;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        QProgressBar::chunk {
+            background-color: #4a90e2;
+            border-radius: 3px;
+        }
+        
+        #statusFrame {
+            background-color: #f0f0f0;
+            border-top: 1px solid #e0e0e0;
+            padding: 8px;
+        }
+        
+        #infoLabel {
+            background-color: #e8f4fd;
+            border: 1px solid #bee5eb;
+            border-radius: 6px;
+            padding: 10px;
+            color: #0c5460;
+        }
+        """
 
 # Utility functions para migração gradual
 def convert_button_to_biodesk_style(button: QPushButton):

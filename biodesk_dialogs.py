@@ -28,6 +28,59 @@ class BiodeskMessageBox:
         return msg.exec()
     
     @staticmethod
+    def warning(parent, title, message, details=None):
+        """Exibe mensagem de aviso"""
+        msg = QMessageBox(parent)
+        msg.setIcon(QMessageBox.Icon.Warning)
+        msg.setWindowTitle(title)
+        msg.setText(message)
+        if details:
+            msg.setDetailedText(details)
+        msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+        
+        # Definir texto em português europeu
+        msg.button(QMessageBox.StandardButton.Ok).setText("OK")
+        
+        return msg.exec()
+    
+    @staticmethod
+    def critical(parent, title, message, details=None):
+        """Exibe mensagem de erro crítico"""
+        msg = QMessageBox(parent)
+        msg.setIcon(QMessageBox.Icon.Critical)
+        msg.setWindowTitle(title)
+        msg.setText(message)
+        if details:
+            msg.setDetailedText(details)
+        msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+        
+        # Definir texto em português europeu
+        msg.button(QMessageBox.StandardButton.Ok).setText("OK")
+        
+        return msg.exec()
+    
+    @staticmethod
+    def show_error(parent, title, message, details=None):
+        """Alias para critical"""
+        return BiodeskMessageBox.critical(parent, title, message)
+    
+    @staticmethod
+    def show_warning(parent, title, message, details=None):
+        """Alias para warning"""
+        return BiodeskMessageBox.warning(parent, title, message)
+    
+    @staticmethod
+    def show_question(parent, title, message, details=None):
+        if details:
+            msg.setDetailedText(details)
+        msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+        
+        # Definir texto em português europeu
+        msg.button(QMessageBox.StandardButton.Ok).setText("OK")
+        
+        return msg.exec()
+    
+    @staticmethod
     def warning(parent, title, message):
         """Exibe mensagem de aviso"""
         msg = QMessageBox(parent)

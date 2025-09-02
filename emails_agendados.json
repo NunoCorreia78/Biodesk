@@ -70,7 +70,8 @@
     "assunto": "Acompanhamento após consulta",
     "mensagem": "Caro(a) Teste do Testes,\n\nGostaria de saber como tem evoluído desde a nossa última consulta.\nTem conseguido cumprir as orientações indicadas? Notou melhorias ou alguma dificuldade?\n\nO seu feedback é importante para adequarmos o acompanhamento.\n\nCom os melhores cumprimentos,\nNuno Correia",
     "anexos": [],
-    "status": "agendado"
+    "status": "enviado",
+    "data_envio_real": "2025-09-02 08:58:15"
   },
   {
     "id": "1756505203.749129",

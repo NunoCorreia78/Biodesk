@@ -1,0 +1,300 @@
+{
+  "form_spec": {
+    "title": "Declaração de Estado de Saúde - Terapia Quântica",
+    "version": "1.0",
+    "description": "Formulário obrigatório de avaliação médica prévia para terapia de frequências",
+    "language": "pt-PT",
+    "sections": [
+      {
+        "id": "dados_pessoais",
+        "title": "Dados Pessoais",
+        "fields": [
+          {
+            "id": "nome_completo",
+            "type": "text",
+            "label": "Nome Completo",
+            "required": true,
+            "maxLength": 100
+          },
+          {
+            "id": "data_nascimento",
+            "type": "date",
+            "label": "Data de Nascimento",
+            "required": true
+          },
+          {
+            "id": "numero_utente",
+            "type": "text",
+            "label": "Número de Utente SNS",
+            "required": false,
+            "pattern": "^[0-9]{9}$",
+            "placeholder": "123456789"
+          },
+          {
+            "id": "contacto_telefone",
+            "type": "text",
+            "label": "Contacto Telefónico",
+            "required": true,
+            "pattern": "^[0-9+\\s-]{9,15}$",
+            "placeholder": "+351 912 345 678"
+          },
+          {
+            "id": "email",
+            "type": "text",
+            "label": "Email",
+            "required": false,
+            "pattern": "^[^@]+@[^@]+\\.[^@]+$",
+            "placeholder": "exemplo@email.com"
+          }
+        ]
+      },
+      {
+        "id": "historia_medica",
+        "title": "História Médica",
+        "fields": [
+          {
+            "id": "doencas_cronicas",
+            "type": "checkbox_group",
+            "label": "Tem alguma das seguintes doenças crónicas?",
+            "required": true,
+            "options": [
+              { "value": "diabetes", "label": "Diabetes" },
+              { "value": "hipertensao", "label": "Hipertensão Arterial" },
+              { "value": "cardiopatia", "label": "Doenças Cardíacas" },
+              { "value": "epilepsia", "label": "Epilepsia" },
+              { "value": "cancer", "label": "Cancro (ativo ou em remissão)" },
+              { "value": "doencas_autoimunes", "label": "Doenças Autoimunes" },
+              { "value": "doencas_neurologicas", "label": "Doenças Neurológicas" },
+              { "value": "nenhuma", "label": "Nenhuma das anteriores" }
+            ]
+          },
+          {
+            "id": "medicamentos_atuais",
+            "type": "textarea",
+            "label": "Medicamentos que toma atualmente",
+            "required": false,
+            "placeholder": "Liste todos os medicamentos, suplementos e dosagens...",
+            "maxLength": 500
+          },
+          {
+            "id": "alergias",
+            "type": "textarea",
+            "label": "Alergias conhecidas",
+            "required": false,
+            "placeholder": "Medicamentos, alimentos, outros...",
+            "maxLength": 300
+          },
+          {
+            "id": "cirurgias_recentes",
+            "type": "radio",
+            "label": "Teve alguma cirurgia nos últimos 6 meses?",
+            "required": true,
+            "options": [
+              { "value": "sim", "label": "Sim" },
+              { "value": "nao", "label": "Não" }
+            ]
+          },
+          {
+            "id": "detalhes_cirurgia",
+            "type": "textarea",
+            "label": "Detalhe a cirurgia realizada",
+            "required": true,
+            "show_if": {
+              "field": "cirurgias_recentes",
+              "value": "sim"
+            },
+            "maxLength": 200
+          }
+        ]
+      },
+      {
+        "id": "contraindicacoes",
+        "title": "Contraindicações e Fatores de Risco",
+        "fields": [
+          {
+            "id": "dispositivos_implantados",
+            "type": "checkbox_group",
+            "label": "Tem algum dos seguintes dispositivos implantados?",
+            "required": true,
+            "options": [
+              { "value": "pacemaker", "label": "Pacemaker Cardíaco" },
+              { "value": "desfibrilador", "label": "Desfibrilador Implantável" },
+              { "value": "bomba_insulina", "label": "Bomba de Insulina" },
+              { "value": "implante_coclear", "label": "Implante Coclear" },
+              { "value": "estimulador_cerebral", "label": "Estimulador Cerebral Profundo" },
+              { "value": "proteses_metalicas", "label": "Próteses Metálicas" },
+              { "value": "clips_aneurisma", "label": "Clips de Aneurisma" },
+              { "value": "nenhum", "label": "Nenhum dos anteriores" }
+            ]
+          },
+          {
+            "id": "gravidez_possivel",
+            "type": "radio",
+            "label": "Está grávida ou pode estar grávida?",
+            "required": true,
+            "show_if": {
+              "field": "sexo",
+              "value": "feminino"
+            },
+            "options": [
+              { "value": "sim", "label": "Sim" },
+              { "value": "nao", "label": "Não" },
+              { "value": "nao_sei", "label": "Não sei" }
+            ]
+          },
+          {
+            "id": "amamentacao",
+            "type": "radio",
+            "label": "Está a amamentar?",
+            "required": true,
+            "show_if": {
+              "field": "gravidez_possivel",
+              "value": "nao"
+            },
+            "options": [
+              { "value": "sim", "label": "Sim" },
+              { "value": "nao", "label": "Não" }
+            ]
+          },
+          {
+            "id": "tratamentos_recentes",
+            "type": "checkbox_group",
+            "label": "Realizou algum dos seguintes tratamentos recentemente?",
+            "required": true,
+            "options": [
+              { "value": "quimioterapia", "label": "Quimioterapia (últimos 6 meses)" },
+              { "value": "radioterapia", "label": "Radioterapia (últimos 3 meses)" },
+              { "value": "imunoterapia", "label": "Imunoterapia (últimos 3 meses)" },
+              { "value": "corticoides", "label": "Corticóides em altas doses" },
+              { "value": "nenhum", "label": "Nenhum dos anteriores" }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "estado_atual",
+        "title": "Estado de Saúde Atual",
+        "fields": [
+          {
+            "id": "sintomas_atuais",
+            "type": "checkbox_group",
+            "label": "Apresenta atualmente algum dos seguintes sintomas?",
+            "required": true,
+            "options": [
+              { "value": "febre", "label": "Febre (>37.5°C)" },
+              { "value": "dor_intensa", "label": "Dor Intensa" },
+              { "value": "convulsoes", "label": "Convulsões ou Espasmos" },
+              { "value": "arritmias", "label": "Arritmias Cardíacas" },
+              { "value": "tonturas", "label": "Tonturas Severas" },
+              { "value": "nauseas", "label": "Náuseas ou Vómitos" },
+              { "value": "alteracoes_consciencia", "label": "Alterações de Consciência" },
+              { "value": "nenhum", "label": "Nenhum dos anteriores" }
+            ]
+          },
+          {
+            "id": "nivel_dor",
+            "type": "rating",
+            "label": "Numa escala de 0-10, qual o seu nível de dor atual?",
+            "required": true,
+            "min": 0,
+            "max": 10,
+            "labels": {
+              "0": "Sem dor",
+              "5": "Dor moderada",
+              "10": "Dor insuportável"
+            }
+          },
+          {
+            "id": "medicacao_recente",
+            "type": "radio",
+            "label": "Tomou algum medicamento nas últimas 4 horas?",
+            "required": true,
+            "options": [
+              { "value": "sim", "label": "Sim" },
+              { "value": "nao", "label": "Não" }
+            ]
+          },
+          {
+            "id": "detalhes_medicacao",
+            "type": "text",
+            "label": "Que medicamento tomou e a que horas?",
+            "required": true,
+            "show_if": {
+              "field": "medicacao_recente",
+              "value": "sim"
+            },
+            "maxLength": 150
+          }
+        ]
+      },
+      {
+        "id": "consentimento",
+        "title": "Consentimento Informado",
+        "fields": [
+          {
+            "id": "informacoes_recebidas",
+            "type": "checkbox",
+            "label": "Confirmo que recebi informações claras sobre:",
+            "required": true,
+            "options": [
+              "Os objetivos da terapia de frequências",
+              "Os possíveis benefícios e riscos",
+              "As contraindicações e efeitos secundários",
+              "A duração estimada do tratamento",
+              "O meu direito de interromper a qualquer momento"
+            ]
+          },
+          {
+            "id": "questoes_esclarecidas",
+            "type": "checkbox",
+            "label": "Confirmo que todas as minhas questões foram esclarecidas",
+            "required": true
+          },
+          {
+            "id": "dados_verdadeiros",
+            "type": "checkbox",
+            "label": "Declaro que todas as informações fornecidas são verdadeiras",
+            "required": true
+          },
+          {
+            "id": "responsabilidade_informacao",
+            "type": "checkbox",
+            "label": "Comprometo-me a informar imediatamente sobre qualquer alteração no meu estado de saúde",
+            "required": true
+          },
+          {
+            "id": "assinatura_digital",
+            "type": "signature",
+            "label": "Assinatura Digital",
+            "required": true,
+            "instructions": "Desenhe a sua assinatura no espaço abaixo"
+          },
+          {
+            "id": "decl_confirmo",
+            "type": "checkbox",
+            "label": "CONFIRMO QUE LI, COMPREENDI E ACEITO TODOS OS TERMOS DESTA DECLARAÇÃO",
+            "required": true,
+            "style": "critical"
+          }
+        ]
+      }
+    ],
+    "validation_rules": {
+      "critical_contraindications": {
+        "fields": ["dispositivos_implantados", "gravidez_possivel", "sintomas_atuais"],
+        "blocking_values": {
+          "dispositivos_implantados": ["pacemaker", "desfibrilador", "estimulador_cerebral"],
+          "gravidez_possivel": ["sim", "nao_sei"],
+          "sintomas_atuais": ["convulsoes", "arritmias", "alteracoes_consciencia"]
+        }
+      },
+      "required_final_consent": ["decl_confirmo"]
+    },
+    "legal_text": {
+      "disclaimer": "Esta declaração tem valor legal e deve ser preenchida com total honestidade. Informações falsas podem comprometer a sua segurança e saúde.",
+      "data_protection": "Os seus dados pessoais serão tratados de acordo com o Regulamento Geral de Proteção de Dados (RGPD) e apenas utilizados para fins médicos e de segurança.",
+      "emergency_contact": "Em caso de emergência durante o tratamento, contacte imediatamente o 112.",
+      "validity": "Esta declaração é válida por 30 dias a partir da data de assinatura."
+    }
+  }
+}

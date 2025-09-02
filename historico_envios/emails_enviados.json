@@ -68,5 +68,15 @@
     "num_anexos": 0,
     "enviado_real": true,
     "status": "Enviado"
+  },
+  {
+    "data_envio": "2025-09-02 08:58:15",
+    "paciente_id": 117,
+    "paciente_nome": "Teste do Testes",
+    "destinatario": "nfjpcorreia@gmail.com",
+    "assunto": "Acompanhamento após consulta",
+    "num_anexos": 0,
+    "enviado_real": true,
+    "status": "Enviado via Scheduler"
   }
 ]
