@@ -107,3 +107,19 @@ Thumbs.db
 *.csv.temp
 *.json.temp
 *.txt.temp
+
+# Quarkus Integration - arquivos específicos
+quarkus_integration/quarkus-super-heroes/
+quarkus_integration/*.log
+quarkus_integration/therapy_quarkus_mappings.json
+quarkus_integration/biodesk_quarkus_statistics.json
+quarkus_integration/health_report_*.json
+quarkus_integration/installation.log
+
+# Build artifacts do Quarkus
+**/target/
+**/.quarkus/
+**/build/
+
+# Docker
+.docker/
