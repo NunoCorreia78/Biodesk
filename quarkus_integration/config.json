@@ -1,0 +1,67 @@
+{
+  "installation": {
+    "timestamp": "2024-12-19 10:00:00",
+    "mode": "docker",
+    "dev_mode": false,
+    "auto_setup": false
+  },
+  "services": {
+    "hero-service": {
+      "url": "http://localhost:8083",
+      "endpoints": {
+        "list": "/api/heroes",
+        "get": "/api/heroes/{id}",
+        "create": "/api/heroes",
+        "update": "/api/heroes/{id}",
+        "delete": "/api/heroes/{id}",
+        "random": "/api/heroes/random",
+        "health": "/q/health"
+      }
+    },
+    "villain-service": {
+      "url": "http://localhost:8084",
+      "endpoints": {
+        "list": "/api/villains",
+        "get": "/api/villains/{id}",
+        "create": "/api/villains",
+        "update": "/api/villains/{id}",
+        "delete": "/api/villains/{id}",
+        "random": "/api/villains/random",
+        "health": "/q/health"
+      }
+    },
+    "fight-service": {
+      "url": "http://localhost:8082",
+      "endpoints": {
+        "list": "/api/fights",
+        "get": "/api/fights/{id}",
+        "create": "/api/fights",
+        "random": "/api/fights/randomfight",
+        "health": "/q/health"
+      }
+    },
+    "statistics-service": {
+      "url": "http://localhost:8085",
+      "endpoints": {
+        "stats": "/api/statistics",
+        "team-stats": "/api/statistics/team",
+        "health": "/q/health"
+      }
+    },
+    "event-statistics": {
+      "url": "http://localhost:8086",
+      "endpoints": {
+        "events": "/",
+        "health": "/q/health"
+      }
+    }
+  },
+  "integration": {
+    "enabled": true,
+    "timeout": 30,
+    "retry_attempts": 3,
+    "health_check_interval": 60,
+    "cache_ttl": 300,
+    "biodesk_sync_enabled": true
+  }
+}
